@@ -16,3 +16,18 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type SubwayArrival = {
+  direction: string;
+  line: string;
+  destination: string;
+  subtitle: string;
+  arrivalMinutes: number[];
+};
+
+export type WeatherData = {
+  icon: string;
+  temperature: string;
+  description: string;
+  time: string;
+};
