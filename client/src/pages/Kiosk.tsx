@@ -156,16 +156,23 @@ export default function Kiosk() {
             <ClockDisplay format={timeFormat} />
           </div>
 
-          <div className="absolute flex" style={{ left: '436px', top: '50%', transform: 'translateY(-50%)' }} data-testid="section-weather">
-            {sampleWeather.map((weather, idx) => (
+          <div data-testid="section-weather">
+            <div className="absolute" style={{ left: '436px', top: '50%', transform: 'translateY(-50%)' }}>
               <WeatherTile
-                key={idx}
-                icon={weather.icon as "sun" | "rain"}
-                temperature={weather.temperature}
-                description={weather.description}
-                time={weather.time}
+                icon={sampleWeather[0].icon as "sun" | "rain"}
+                temperature={sampleWeather[0].temperature}
+                description={sampleWeather[0].description}
+                time={sampleWeather[0].time}
               />
-            ))}
+            </div>
+            <div className="absolute" style={{ left: '586px', top: '50%', transform: 'translateY(-50%)' }}>
+              <WeatherTile
+                icon={sampleWeather[1].icon as "sun" | "rain"}
+                temperature={sampleWeather[1].temperature}
+                description={sampleWeather[1].description}
+                time={sampleWeather[1].time}
+              />
+            </div>
           </div>
         </section>
         </main>
