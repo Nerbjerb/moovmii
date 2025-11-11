@@ -26,9 +26,51 @@ export default function TrackCard({
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
 
   return (
-    <div className="relative flex items-center gap-3">
+    <div className="relative w-[720px]">
+      {/* Third arrival card - furthest back */}
+      {thirdArrival !== undefined && (
+        <Card className="absolute top-2 left-2 h-[110px] w-[720px] rounded-[18px] border-0 bg-[#ABABAB] z-10 flex items-center justify-end pr-6">
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center border-2 border-[#111]">
+            {iconSrc ? (
+              <img
+                src={iconSrc}
+                alt={`${line} train`}
+                className="w-[44px] h-[44px] object-contain"
+              />
+            ) : (
+              <span className="text-2xl font-bold text-primary-foreground">{line}</span>
+            )}
+          </div>
+          <div className="ml-3 text-center">
+            <div className="text-2xl font-medium text-black">{thirdArrival}</div>
+            <div className="text-sm text-black">Min</div>
+          </div>
+        </Card>
+      )}
+      
+      {/* Second arrival card - middle layer */}
+      {secondArrival !== undefined && (
+        <Card className="absolute top-1 left-1 h-[110px] w-[720px] rounded-[18px] border-0 bg-[#C3C3C3] z-20 flex items-center justify-end pr-6">
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center border-2 border-[#111]">
+            {iconSrc ? (
+              <img
+                src={iconSrc}
+                alt={`${line} train`}
+                className="w-[44px] h-[44px] object-contain"
+              />
+            ) : (
+              <span className="text-2xl font-bold text-primary-foreground">{line}</span>
+            )}
+          </div>
+          <div className="ml-3 text-center">
+            <div className="text-2xl font-medium text-black">{secondArrival}</div>
+            <div className="text-sm text-black">Min</div>
+          </div>
+        </Card>
+      )}
+
       {/* Main card - front layer */}
-      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30 w-[580px]">
+      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30 w-[720px] h-[110px]">
         <div className="w-10 bg-[#D9D9D9] flex items-center justify-center self-stretch rounded-l-[18px]">
           <div 
             className="text-sm font-medium tracking-[0.14em] uppercase whitespace-nowrap text-black text-center"
@@ -42,7 +84,7 @@ export default function TrackCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 p-6 pr-6 min-h-[110px] flex-1">
+        <div className="flex items-center gap-4 p-6 pr-6 flex-1">
           <div className="flex-shrink-0 w-24 h-24 rounded-full bg-primary flex items-center justify-center border-4 border-[#111]">
             {iconSrc ? (
               <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
@@ -66,45 +108,6 @@ export default function TrackCard({
           </div>
         </div>
       </Card>
-
-      {/* Secondary arrivals positioned outside main card */}
-      <div className="flex gap-3 items-center">
-        {secondArrival !== undefined && (
-          <div className="bg-[#C3C3C3] rounded-xl h-[110px] w-[70px] flex flex-col items-center justify-center gap-1">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-[#111]">
-              {iconSrc ? (
-                <img
-                  src={iconSrc}
-                  alt={`${line} train`}
-                  className="w-[28px] h-[28px] object-contain"
-                />
-              ) : (
-                <span className="text-sm font-bold text-primary-foreground">{line}</span>
-              )}
-            </div>
-            <div className="text-base font-medium text-black">{secondArrival}</div>
-            <div className="text-xs -mt-1 text-black">Min</div>
-          </div>
-        )}
-
-        {thirdArrival !== undefined && (
-          <div className="bg-[#ABABAB] rounded-xl h-[110px] w-[70px] flex flex-col items-center justify-center gap-1">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-[#111]">
-              {iconSrc ? (
-                <img
-                  src={iconSrc}
-                  alt={`${line} train`}
-                  className="w-[28px] h-[28px] object-contain"
-                />
-              ) : (
-                <span className="text-sm font-bold text-primary-foreground">{line}</span>
-              )}
-            </div>
-            <div className="text-base font-medium text-black">{thirdArrival}</div>
-            <div className="text-xs -mt-1 text-black">Min</div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
