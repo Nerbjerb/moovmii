@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
-import nTrainIcon from "@assets/generated_images/NYC_N_train_badge_dd23c165.png";
-import wTrainIcon from "@assets/generated_images/NYC_W_train_badge_67b94f4f.png";
+import nTrainIcon from "@assets/moovmii/MTA Icons/src/svg/n.svg";
+import wTrainIcon from "@assets/moovmii/MTA Icons/src/svg/w.svg";
 
 interface TrackCardProps {
   direction: string;

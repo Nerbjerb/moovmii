@@ -1,5 +1,5 @@
-import sunIcon from "@assets/generated_images/Sunny_weather_icon_ff647ea3.png";
-import rainIcon from "@assets/generated_images/Rainy_weather_icon_3c08a567.png";
+import sunIcon from "@assets/moovmii/Weather Icons/svg/wi-day-sunny.svg";
+import rainIcon from "@assets/moovmii/Weather Icons/svg/wi-day-showers.svg";
 
 interface WeatherTileProps {
   icon: "sun" | "rain";
