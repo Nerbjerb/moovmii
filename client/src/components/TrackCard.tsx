@@ -78,7 +78,7 @@ export default function TrackCard({
           {/* Secondary arrivals display within main card */}
           <div className="flex gap-3 items-center">
             {secondArrival !== undefined && (
-              <div className="bg-[#1D1D1D] rounded-xl h-[70px] w-[70px] flex flex-col items-center justify-center gap-1">
+              <div className="bg-[#C3C3C3] rounded-xl h-[70px] w-[70px] flex flex-col items-center justify-center gap-1">
                 <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-[#111]">
                   {iconSrc ? (
                     <img
@@ -90,8 +90,8 @@ export default function TrackCard({
                     <span className="text-sm font-bold text-primary-foreground">{line}</span>
                   )}
                 </div>
-                <div className="text-base font-medium">{secondArrival}</div>
-                <div className="text-xs -mt-1">Min</div>
+                <div className="text-base font-medium text-black">{secondArrival}</div>
+                <div className="text-xs -mt-1 text-black">Min</div>
               </div>
             )}
 
