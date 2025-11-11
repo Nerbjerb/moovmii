@@ -156,7 +156,7 @@ export default function Kiosk() {
             <ClockDisplay format={timeFormat} />
           </div>
 
-          <div className="absolute flex" style={{ left: '406px', top: '50%', transform: 'translateY(-50%)' }} data-testid="section-weather">
+          <div className="absolute flex" style={{ left: '436px', top: '50%', transform: 'translateY(-50%)' }} data-testid="section-weather">
             {sampleWeather.map((weather, idx) => (
               <WeatherTile
                 key={idx}
