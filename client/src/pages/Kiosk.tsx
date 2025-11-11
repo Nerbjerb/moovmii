@@ -151,23 +151,21 @@ export default function Kiosk() {
           ))}
         </section>
 
-        <section className="grid grid-cols-[1fr_auto] gap-8 items-center flex-1">
-          <div className="flex flex-col justify-center items-start">
+        <section className="relative flex-1">
+          <div className="flex flex-col justify-center items-start h-full">
             <ClockDisplay format={timeFormat} />
           </div>
 
-          <div className="flex flex-col gap-2" data-testid="section-weather">
-            <div className="flex gap-3">
-              {sampleWeather.map((weather, idx) => (
-                <WeatherTile
-                  key={idx}
-                  icon={weather.icon as "sun" | "rain"}
-                  temperature={weather.temperature}
-                  description={weather.description}
-                  time={weather.time}
-                />
-              ))}
-            </div>
+          <div className="absolute flex gap-3" style={{ left: '459px', top: '50%', transform: 'translateY(-50%)' }} data-testid="section-weather">
+            {sampleWeather.map((weather, idx) => (
+              <WeatherTile
+                key={idx}
+                icon={weather.icon as "sun" | "rain"}
+                temperature={weather.temperature}
+                description={weather.description}
+                time={weather.time}
+              />
+            ))}
           </div>
         </section>
         </main>
