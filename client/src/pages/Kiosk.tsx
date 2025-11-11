@@ -138,7 +138,7 @@ export default function Kiosk() {
           className="bg-[#0b0b0b] rounded-md shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col"
           style={{ width: '800px', height: '480px' }}
         >
-        <section className="flex flex-col gap-4 mb-6" data-testid="section-tracks">
+        <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
           {tracks.map((track, idx) => (
             <TrackCard
               key={idx}
