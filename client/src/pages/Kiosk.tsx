@@ -140,14 +140,15 @@ export default function Kiosk() {
         >
         <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
           {tracks.map((track, idx) => (
-            <TrackCard
-              key={idx}
-              direction={track.direction}
-              line={track.line}
-              destination={track.destination}
-              subtitle={track.subtitle}
-              arrivalMinutes={track.arrivalMinutes}
-            />
+            <div key={idx} style={{ marginLeft: idx === 1 ? '10px' : '0' }}>
+              <TrackCard
+                direction={track.direction}
+                line={track.line}
+                destination={track.destination}
+                subtitle={track.subtitle}
+                arrivalMinutes={track.arrivalMinutes}
+              />
+            </div>
           ))}
         </section>
 
