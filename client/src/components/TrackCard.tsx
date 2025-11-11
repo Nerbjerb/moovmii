@@ -31,7 +31,7 @@ export default function TrackCard({
       <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30 w-[580px]">
         <div className="w-10 bg-[#D9D9D9] flex items-center justify-center self-stretch rounded-l-[18px]">
           <div 
-            className="text-xs font-medium tracking-[0.14em] whitespace-nowrap text-black text-center"
+            className="text-[20px] font-medium tracking-[0.14em] whitespace-nowrap text-black text-center"
             style={{ 
               writingMode: 'vertical-rl',
               transform: 'rotate(180deg)'
@@ -52,14 +52,14 @@ export default function TrackCard({
           </div>
 
           <div className="flex-1 flex flex-col gap-3 min-w-0">
-            <div className="text-[38px] font-bold leading-none text-black">
+            <div className="text-[50px] font-bold leading-none text-black">
               {destination}
             </div>
-            <div className="text-lg text-black/70">{subtitle}</div>
+            <div className="text-[20px] text-black/70">{subtitle}</div>
           </div>
 
           <div className="w-[140px] text-center flex-shrink-0">
-            <div className="text-[92px] font-bold leading-[0.8] text-black">
+            <div className="text-[85px] font-bold leading-[0.8] text-black">
               {firstArrival}
             </div>
             <div className="text-xl mt-1 text-black">Min</div>
