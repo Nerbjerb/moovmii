@@ -116,7 +116,6 @@ export default function Kiosk() {
           </div>
 
           <div className="flex flex-col gap-2" data-testid="section-weather">
-            <h2 className="text-white text-lg font-medium">Forecast</h2>
             <div className="flex gap-3">
               {sampleWeather.map((weather, idx) => (
                 <WeatherTile
