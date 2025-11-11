@@ -51,14 +51,14 @@ export default function TrackCard({
             )}
           </div>
 
-          <div className="flex-1 flex flex-col gap-3 min-w-0">
+          <div className="flex-1 flex flex-col justify-center gap-3 min-w-0">
             <div className="text-[50px] font-bold leading-none text-black">
               {destination}
             </div>
-            <div className="text-[20px] text-black/70">{subtitle}</div>
+            <div className="text-[20px] leading-none text-black/70">{subtitle}</div>
           </div>
 
-          <div className="w-[140px] text-center flex-shrink-0">
+          <div className="w-[140px] text-center flex-shrink-0 flex flex-col justify-center">
             <div className="text-[85px] font-bold leading-[0.8] text-black">
               {firstArrival}
             </div>
