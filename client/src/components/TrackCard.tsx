@@ -27,16 +27,6 @@ export default function TrackCard({
 
   return (
     <div className="relative flex items-center gap-3">
-      {/* Third arrival card - furthest back */}
-      {thirdArrival !== undefined && (
-        <Card className="absolute top-2 left-2 right-0 h-[110px] rounded-[18px] border-0 bg-card opacity-60 z-10" style={{ maxWidth: 'calc(100% - 160px)' }} />
-      )}
-      
-      {/* Second arrival card - middle layer */}
-      {secondArrival !== undefined && (
-        <Card className="absolute top-1 left-1 right-0 h-[110px] rounded-[18px] border-0 bg-card opacity-80 z-20" style={{ maxWidth: 'calc(100% - 160px)' }} />
-      )}
-
       {/* Main card - front layer */}
       <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30 w-[580px]">
         <div className="w-10 bg-[#D9D9D9] flex items-center justify-center self-stretch rounded-l-[18px]">
