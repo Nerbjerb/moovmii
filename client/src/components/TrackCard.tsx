@@ -38,7 +38,7 @@ export default function TrackCard({
       )}
 
       {/* Main card - front layer */}
-      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30">
+      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30 w-[580px]">
         <div className="w-10 bg-[#D9D9D9] flex items-center justify-center self-stretch rounded-l-[18px]">
           <div 
             className="text-sm font-medium tracking-[0.14em] uppercase whitespace-nowrap text-black text-center"
@@ -52,7 +52,7 @@ export default function TrackCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 p-6 pr-6 min-h-[110px]">
+        <div className="flex items-center gap-4 p-6 pr-6 min-h-[110px] flex-1">
           <div className="flex-shrink-0 w-24 h-24 rounded-full bg-primary flex items-center justify-center border-4 border-[#111]">
             {iconSrc ? (
               <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
@@ -61,14 +61,14 @@ export default function TrackCard({
             )}
           </div>
 
-          <div className="flex-1 flex flex-col gap-3">
+          <div className="flex-1 flex flex-col gap-3 min-w-0">
             <div className="text-[38px] font-bold leading-none text-black">
               {destination}
             </div>
             <div className="text-lg text-black/70">{subtitle}</div>
           </div>
 
-          <div className="w-[140px] text-center">
+          <div className="w-[140px] text-center flex-shrink-0">
             <div className="text-[92px] font-bold leading-[0.8] text-black">
               {firstArrival}
             </div>
