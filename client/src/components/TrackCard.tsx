@@ -38,7 +38,7 @@ export default function TrackCard({
       )}
 
       {/* Main card - front layer */}
-      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-card z-30">
+      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30">
         <div className="w-10 bg-white flex items-center justify-center self-stretch rounded-l-[18px]">
           <div 
             className="text-sm font-medium tracking-[0.14em] uppercase whitespace-nowrap text-black text-center"
@@ -62,17 +62,17 @@ export default function TrackCard({
           </div>
 
           <div className="flex-1 flex flex-col gap-3">
-            <div className="text-[38px] font-bold leading-none">
+            <div className="text-[38px] font-bold leading-none text-black">
               {destination}
             </div>
-            <div className="text-lg text-card-foreground/70">{subtitle}</div>
+            <div className="text-lg text-black/70">{subtitle}</div>
           </div>
 
           <div className="w-[140px] text-center">
-            <div className="text-[92px] font-bold leading-[0.8]">
+            <div className="text-[92px] font-bold leading-[0.8] text-black">
               {firstArrival}
             </div>
-            <div className="text-xl mt-1">Min</div>
+            <div className="text-xl mt-1 text-black">Min</div>
           </div>
 
           {/* Secondary arrivals display within main card */}
