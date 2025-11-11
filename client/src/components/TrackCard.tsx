@@ -39,9 +39,9 @@ export default function TrackCard({
 
       {/* Main card - front layer */}
       <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-hidden border-0 bg-card z-30">
-        <div className="w-10 h-full bg-white flex items-center justify-center py-6">
+        <div className="w-10 h-full bg-white flex items-center justify-center">
           <div 
-            className="text-sm font-medium tracking-[0.14em] uppercase whitespace-nowrap text-black"
+            className="text-sm font-medium tracking-[0.14em] uppercase whitespace-nowrap text-black text-center"
             style={{ 
               writingMode: 'vertical-rl',
               transform: 'rotate(180deg)'
