@@ -42,7 +42,7 @@ export default function TrackCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 p-6 pr-6 h-[115px] flex-1">
+        <div className="flex items-start gap-4 pt-[18px] pb-6 px-6 pr-6 h-[115px] flex-1">
           <div className="flex-shrink-0 w-24 h-24 rounded-full bg-primary flex items-center justify-center border-4 border-[#111]">
             {iconSrc ? (
               <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
@@ -51,14 +51,14 @@ export default function TrackCard({
             )}
           </div>
 
-          <div className="flex-1 flex flex-col justify-center gap-3 min-w-0">
+          <div className="flex-1 flex flex-col min-w-0" style={{ paddingTop: '8px' }}>
             <div className="text-[50px] font-bold leading-none text-black">
               {destination}
             </div>
-            <div className="text-[20px] leading-none text-black/70">{subtitle}</div>
+            <div className="text-[20px] leading-none text-black/70 mt-[14px]">{subtitle}</div>
           </div>
 
-          <div className="w-[140px] text-center flex-shrink-0 flex flex-col justify-center">
+          <div className="w-[140px] text-center flex-shrink-0 flex flex-col">
             <div className="text-[85px] font-bold leading-[0.8] text-black">
               {firstArrival}
             </div>
