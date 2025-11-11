@@ -93,10 +93,51 @@ export default function Kiosk() {
         />
       </header>
 
-      <main 
-        className="bg-[#0b0b0b] rounded-md shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col"
-        style={{ width: '800px', height: '480px' }}
-      >
+      <div className="relative">
+        {/* Top ruler */}
+        <div className="absolute -top-6 left-0 w-[800px] h-5 flex items-center justify-between text-xs text-gray-600 font-mono">
+          {[0, 100, 200, 300, 400, 500, 600, 700, 800].map((mark) => (
+            <div key={mark} className="flex flex-col items-center">
+              <div className="w-px h-2 bg-gray-400"></div>
+              <span className="text-[10px]">{mark}</span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Left ruler */}
+        <div className="absolute -left-6 top-0 w-5 h-[480px] flex flex-col items-center justify-between text-xs text-gray-600 font-mono">
+          {[0, 100, 200, 300, 400, 480].map((mark) => (
+            <div key={mark} className="flex items-center">
+              <span className="text-[10px] mr-1">{mark}</span>
+              <div className="h-px w-2 bg-gray-400"></div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Right ruler */}
+        <div className="absolute -right-6 top-0 w-5 h-[480px] flex flex-col items-center justify-between text-xs text-gray-600 font-mono">
+          {[0, 100, 200, 300, 400, 480].map((mark) => (
+            <div key={mark} className="flex items-center">
+              <div className="h-px w-2 bg-gray-400"></div>
+              <span className="text-[10px] ml-1">{mark}</span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Bottom ruler */}
+        <div className="absolute -bottom-6 left-0 w-[800px] h-5 flex items-center justify-between text-xs text-gray-600 font-mono">
+          {[0, 100, 200, 300, 400, 500, 600, 700, 800].map((mark) => (
+            <div key={mark} className="flex flex-col items-center">
+              <span className="text-[10px]">{mark}</span>
+              <div className="w-px h-2 bg-gray-400"></div>
+            </div>
+          ))}
+        </div>
+
+        <main 
+          className="bg-[#0b0b0b] rounded-md shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col"
+          style={{ width: '800px', height: '480px' }}
+        >
         <section className="flex flex-col gap-4 mb-6" data-testid="section-tracks">
           {tracks.map((track, idx) => (
             <TrackCard
@@ -129,7 +170,8 @@ export default function Kiosk() {
             </div>
           </div>
         </section>
-      </main>
+        </main>
+      </div>
 
       <footer className="mt-4 text-sm text-muted-foreground" data-testid="text-footer">
         Prototype — data mocked. Replace mocked fetch functions with MTA/OpenWeather calls.
