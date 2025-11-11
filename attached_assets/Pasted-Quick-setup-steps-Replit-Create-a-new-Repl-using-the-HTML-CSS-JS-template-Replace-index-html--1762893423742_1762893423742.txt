@@ -1,0 +1,348 @@
+Quick setup steps (Replit)
+
+Create a new Repl using the HTML, CSS, JS template.
+
+Replace index.html, style.css, and script.js contents with the code below.
+
+Create a folder assets/ in the Repl and upload your subway icons (e.g., n.png, w.png) and weather icons (e.g., sun.png, rain.png) and any font .ttf if you want.
+
+Expected default asset names in the code: assets/n.png, assets/w.png, assets/sun.png, assets/rain.png. You can change names or update the constants in script.js.
+
+Click Run. Use the browser preview or open the hosted URL. Click the Full screen button (top-right in Replit preview) or press F11 to see the kiosk look.
+
+FILE: index.html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>moovmii — prototype</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="brand">
+      <h1>moovmii</h1>
+      <div id="controls">
+        <label class="small">Time format
+          <select id="timeFormat">
+            <option value="12">12-hour</option>
+            <option value="24">24-hour</option>
+          </select>
+        </label>
+        <button id="fullscreenBtn" title="Toggle fullscreen">Full screen</button>
+      </div>
+    </header>
+
+    <main id="kiosk">
+      <section id="tracks">
+        <!-- Two track cards -->
+        <div class="track" id="track-1"></div>
+        <div class="track" id="track-2"></div>
+      </section>
+
+      <section id="bottomRow">
+        <div id="clockPanel">
+          <div id="clockLarge">--:--</div>
+        </div>
+
+        <div id="weatherStack">
+          <!-- Weather tiles -->
+        </div>
+      </section>
+    </main>
+
+    <footer id="credits">
+      Prototype — data mocked. Replace mocked fetch functions with MTA/OpenWeather calls.
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+FILE: style.css
+:root{
+  --bg: #0b0b0b;
+  --card-bg: #e6e6e6;
+  --card-overlay:#d6d6d6;
+  --accent:#ffd200;
+  --muted:#bdbdbd;
+  --white:#ffffff;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body,#app{height:100%;margin:0;font-family:var(--font-sans);background:#f0f0f0}
+#app{display:flex;flex-direction:column;align-items:center;padding:18px}
+
+#brand{width:100%;max-width:1200px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+#brand h1{margin:0;font-weight:700}
+#controls{display:flex;gap:10px;align-items:center}
+.small{font-size:13px;color:#333}
+
+#kiosk{width:100%;max-width:1200px;background:var(--bg);padding:22px;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.25)}
+#tracks{display:flex;flex-direction:column;gap:18px}
+
+.track{
+  display:flex;
+  align-items:center;
+  background:var(--card-bg);
+  border-radius:18px;
+  padding:18px;
+  position:relative;
+  min-height:110px;
+  overflow:visible;
+}
+
+/* left rotated direction label */
+.track .dir {
+  position:absolute;
+  left:-46px;
+  top:24px;
+  transform:rotate(-90deg);
+  transform-origin:left top;
+  font-weight:600;
+  color:#333;
+}
+
+/* circular badge */
+.track .badge{
+  min-width:110px;height:110px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:48px;margin-right:18px;color:#000;
+  flex-shrink:0;
+}
+
+/* route text */
+.route-info{flex:1;display:flex;flex-direction:column;gap:6px}
+.route-info .dest{font-size:44px;font-weight:700}
+.route-info .sub{font-size:18px;color:#222}
+
+/* minutes big */
+.mins-big{width:140px;text-align:center;font-size:72px;font-weight:700;color:#000;margin-left:12px}
+
+/* mini overlay area on right */
+.overlay{
+  display:flex;gap:10px;align-items:center;background:transparent;padding-left:14px;
+  margin-left:14px;
+}
+.smallBadge{width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700}
+.smallCard{background:var(--card-overlay);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:90px}
+
+/* bottom row */
+#bottomRow{display:flex;gap:20px;align-items:center;margin-top:18px;padding-top:12px}
+#clockPanel{flex:1;padding:8px}
+#clockLarge{font-size:160px;color:var(--white);font-weight:700;line-height:0.9}
+#weatherStack{width:320px;display:flex;flex-direction:column;gap:12px;align-items:flex-end}
+
+/* weather tile */
+.weatherTile{background:black;border-radius:8px;padding:10px 14px;color:white;min-width:200px;display:flex;flex-direction:column;align-items:center}
+.weatherTime{font-size:14px;margin-bottom:6px}
+.weatherIcon{width:64px;height:64px}
+.weatherTemp{font-weight:700;margin-top:6px}
+
+/* responsive for smaller width */
+@media (max-width:900px){
+  #clockLarge{font-size:100px}
+  .route-info .dest{font-size:32px}
+  .mins-big{font-size:48px}
+  .badge{min-width:80px;height:80px;font-size:36px}
+}
+
+FILE: script.js
+// Basic moovmii prototype behavior
+// - Mocked MTA arrival data for Broadway (Astoria) N/W
+// - Mocked weather
+// - Clock with 12/24 toggle
+
+const ASSETS = {
+  subway: {
+    N: "assets/n.png",
+    W: "assets/w.png"
+  },
+  weather: {
+    sun: "assets/sun.png",
+    rain: "assets/rain.png"
+  }
+};
+
+const sampleTracks = [
+  { direction: "Uptown", line: "N", dest: "Queens", subtitle: "Astoria-Ditmars Blvd", mins: [12, 15, 20] },
+  { direction: "Downtown", line: "W", dest: "Manhattan", subtitle: "Coney Island-Stillwell Ave", mins: [2, 8, 14] }
+];
+
+const sampleWeather = {
+  now: { icon: "sun", temp: "70°F", desc: "Sunny", time: "11:30AM" },
+  later: { icon: "rain", temp: "61°F", desc: "Showers", time: "2:00PM" }
+};
+
+const timeFormatSelect = document.querySelector("#timeFormat");
+const fullscreenBtn = document.querySelector("#fullscreenBtn");
+
+function createTrackElement(track) {
+  const el = document.createElement("div");
+  el.className = "track";
+
+  const dir = document.createElement("div");
+  dir.className = "dir";
+  dir.textContent = track.direction;
+  el.appendChild(dir);
+
+  // badge
+  const badge = document.createElement("div");
+  badge.className = "badge";
+  // try to use icon if present
+  const iconPath = ASSETS.subway[track.line];
+  if (iconPath) {
+    const img = document.createElement("img");
+    img.src = iconPath;
+    img.alt = track.line;
+    img.style.width = "90%";
+    img.style.height = "90%";
+    img.style.objectFit = "contain";
+    badge.appendChild(img);
+  } else {
+    badge.textContent = track.line;
+  }
+  el.appendChild(badge);
+
+  // route info
+  const info = document.createElement("div");
+  info.className = "route-info";
+  const dest = document.createElement("div");
+  dest.className = "dest";
+  dest.textContent = track.dest;
+  const sub = document.createElement("div");
+  sub.className = "sub";
+  sub.textContent = track.subtitle;
+  info.appendChild(dest);
+  info.appendChild(sub);
+  el.appendChild(info);
+
+  // big minutes
+  const minsBig = document.createElement("div");
+  minsBig.className = "mins-big";
+  minsBig.innerHTML = `<div>${track.mins[0]}</div><div style="font-size:18px">Min</div>`;
+  el.appendChild(minsBig);
+
+  // overlay area
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
+  // first small badge
+  track.mins.slice(1).forEach((m, idx) => {
+    // small circle
+    const small = document.createElement("div");
+    small.className = "smallCard";
+    const sb = document.createElement("div");
+    sb.className = "smallBadge";
+    // put line char or small icon
+    const smallIcon = ASSETS.subway[track.line];
+    if (smallIcon) {
+      const img = document.createElement("img");
+      img.src = smallIcon;
+      img.style.width = "80%";
+      img.style.height = "80%";
+      img.style.objectFit = "contain";
+      sb.appendChild(img);
+    } else {
+      sb.textContent = track.line;
+    }
+    small.appendChild(sb);
+    const minsLabel = document.createElement("div");
+    minsLabel.style.fontSize = "18px";
+    minsLabel.textContent = `${m} Min`;
+    small.appendChild(minsLabel);
+    overlay.appendChild(small);
+  });
+
+  el.appendChild(overlay);
+
+  return el;
+}
+
+function renderTracks() {
+  const container = document.querySelector("#tracks");
+  container.innerHTML = "";
+  sampleTracks.forEach(t => {
+    container.appendChild(createTrackElement(t));
+  });
+}
+
+function renderWeather() {
+  const container = document.querySelector("#weatherStack");
+  container.innerHTML = "";
+  const now = sampleWeather.now;
+  const later = sampleWeather.later;
+
+  function makeTile(data) {
+    const tile = document.createElement("div");
+    tile.className = "weatherTile";
+    const time = document.createElement("div");
+    time.className = "weatherTime";
+    time.textContent = data.time;
+    const icon = document.createElement("img");
+    icon.className = "weatherIcon";
+    icon.src = ASSETS.weather[data.icon] || "";
+    const temp = document.createElement("div");
+    temp.className = "weatherTemp";
+    temp.textContent = data.temp;
+    const desc = document.createElement("div");
+    desc.className = "weatherDesc";
+    desc.textContent = data.desc;
+    tile.appendChild(time);
+    tile.appendChild(icon);
+    tile.appendChild(temp);
+    tile.appendChild(desc);
+    return tile;
+  }
+
+  // show now and later depending on time of day logic
+  container.appendChild(makeTile(now));
+  container.appendChild(makeTile(later));
+}
+
+function updateClock() {
+  const el = document.querySelector("#clockLarge");
+  const fmt = timeFormatSelect.value || "12";
+  const now = new Date();
+  let hours = now.getHours(), minutes = now.getMinutes();
+  if (fmt === "12") {
+    const ampm = hours >= 12 ? "PM" : "AM";
+    let h12 = hours % 12;
+    if (h12 === 0) h12 = 12;
+    el.textContent = `${String(h12).padStart(2," ")}:${String(minutes).padStart(2,"0")} ${ampm}`;
+  } else {
+    el.textContent = `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}`;
+  }
+}
+
+// simulate periodic update of arrivals (rotate list)
+function tickArrivals() {
+  sampleTracks.forEach(t => {
+    t.mins = t.mins.map(x => Math.max(1, x - 1));
+    // if the first reaches 0, rotate
+    if (t.mins[0] <= 0) {
+      t.mins.push(t.mins.shift() + 6); // push a future fake time
+    }
+  });
+  renderTracks();
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+  }
+}
+
+// wire up
+document.addEventListener("DOMContentLoaded", () => {
+  renderTracks();
+  renderWeather();
+  updateClock();
+  setInterval(updateClock, 1000);
+  setInterval(tickArrivals, 5000);
+
+  timeFormatSelect.addEventListener("change", updateClock);
+  fullscreenBtn.addEventListener("click", toggleFullscreen);
+});
