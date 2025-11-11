@@ -39,7 +39,7 @@ export default function TrackCard({
 
       {/* Main card - front layer */}
       <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30">
-        <div className="w-10 bg-white flex items-center justify-center self-stretch rounded-l-[18px]">
+        <div className="w-10 bg-[#D9D9D9] flex items-center justify-center self-stretch rounded-l-[18px]">
           <div 
             className="text-sm font-medium tracking-[0.14em] uppercase whitespace-nowrap text-black text-center"
             style={{ 
