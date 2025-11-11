@@ -59,8 +59,8 @@ export default function Kiosk() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center p-[18px]">
-      <header className="w-full max-w-[1200px] flex justify-between items-center mb-2.5">
+    <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center p-8">
+      <header className="w-full max-w-[1400px] flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold" data-testid="text-brand">moovmii</h1>
         <KioskControls
           timeFormat={timeFormat}
@@ -69,8 +69,8 @@ export default function Kiosk() {
         />
       </header>
 
-      <main className="w-full max-w-[1200px] bg-[#0b0b0b] p-[22px] rounded-md shadow-[0_6px_20px_rgba(0,0,0,0.25)]">
-        <section className="flex flex-col gap-[18px]" data-testid="section-tracks">
+      <main className="w-full max-w-[1400px] bg-[#0b0b0b] p-8 rounded-md shadow-[0_6px_20px_rgba(0,0,0,0.25)]">
+        <section className="flex flex-col gap-6 mb-8" data-testid="section-tracks">
           {tracks.map((track, idx) => (
             <TrackCard
               key={idx}
@@ -83,26 +83,29 @@ export default function Kiosk() {
           ))}
         </section>
 
-        <section className="flex gap-5 items-center mt-[18px] pt-3">
-          <div className="flex-1 p-2">
+        <section className="grid grid-cols-[minmax(420px,1fr)_420px] gap-8 items-center">
+          <div className="flex flex-col">
             <ClockDisplay format={timeFormat} />
           </div>
 
-          <div className="w-80 flex flex-col gap-3 items-end" data-testid="section-weather">
-            {sampleWeather.map((weather, idx) => (
-              <WeatherTile
-                key={idx}
-                icon={weather.icon as "sun" | "rain"}
-                temperature={weather.temperature}
-                description={weather.description}
-                time={weather.time}
-              />
-            ))}
+          <div className="flex flex-col gap-3" data-testid="section-weather">
+            <h2 className="text-white text-xl font-medium mb-1">Forecast</h2>
+            <div className="flex gap-3">
+              {sampleWeather.map((weather, idx) => (
+                <WeatherTile
+                  key={idx}
+                  icon={weather.icon as "sun" | "rain"}
+                  temperature={weather.temperature}
+                  description={weather.description}
+                  time={weather.time}
+                />
+              ))}
+            </div>
           </div>
         </section>
       </main>
 
-      <footer className="mt-3 text-sm text-muted-foreground" data-testid="text-footer">
+      <footer className="mt-7 text-sm text-muted-foreground" data-testid="text-footer">
         Prototype — data mocked. Replace mocked fetch functions with MTA/OpenWeather calls.
       </footer>
     </div>

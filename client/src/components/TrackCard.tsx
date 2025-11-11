@@ -26,57 +26,67 @@ export default function TrackCard({
   const [firstArrival, ...remainingArrivals] = arrivalMinutes;
 
   return (
-    <div className="relative">
-      <div className="absolute -left-12 top-6 origin-top-left -rotate-90 font-semibold text-foreground text-base whitespace-nowrap">
-        {direction}
+    <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-hidden border-0 bg-card">
+      <div className="w-10 h-full bg-[#111111] flex items-center justify-center py-6">
+        <div 
+          className="text-sm font-medium tracking-[0.14em] uppercase whitespace-nowrap"
+          style={{ 
+            writingMode: 'vertical-rl',
+            transform: 'rotate(180deg)'
+          }}
+        >
+          {direction}
+        </div>
       </div>
-      <Card className="flex items-center gap-[18px] p-[18px] min-h-[110px] rounded-[18px] overflow-visible border-0">
-        <div className="flex-shrink-0 w-[110px] h-[110px] rounded-full bg-primary flex items-center justify-center">
+
+      <div className="flex-1 flex items-center gap-4 p-6 pr-0">
+        <div className="flex-shrink-0 w-24 h-24 rounded-full bg-primary flex items-center justify-center border-4 border-[#111]">
           {iconSrc ? (
-            <img src={iconSrc} alt={`${line} train`} className="w-[90%] h-[90%] object-contain" />
+            <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
           ) : (
             <span className="text-[48px] font-bold text-primary-foreground">{line}</span>
           )}
         </div>
 
-        <div className="flex-1 flex flex-col gap-1.5">
-          <div className="text-[44px] font-bold leading-none max-md:text-[32px]">
+        <div className="flex-1 flex flex-col gap-3">
+          <div className="text-[38px] font-bold leading-none">
             {destination}
           </div>
           <div className="text-lg text-card-foreground/70">{subtitle}</div>
         </div>
 
-        <div className="w-[140px] text-center ml-3">
-          <div className="text-[72px] font-bold leading-none max-md:text-[48px]">
+        <div className="w-[140px] text-center pr-6">
+          <div className="text-[92px] font-bold leading-[0.8]">
             {firstArrival}
           </div>
-          <div className="text-lg">Min</div>
+          <div className="text-xl mt-1">Min</div>
         </div>
+      </div>
 
-        {remainingArrivals.length > 0 && (
-          <div className="flex gap-2.5 items-center pl-3.5 ml-3.5">
-            {remainingArrivals.map((mins, idx) => (
-              <div
-                key={idx}
-                className="bg-card-foreground/10 rounded-xl p-2.5 px-3 flex flex-col items-center justify-center min-w-[90px]"
-              >
-                <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mb-1">
-                  {iconSrc ? (
-                    <img
-                      src={iconSrc}
-                      alt={`${line} train`}
-                      className="w-[80%] h-[80%] object-contain"
-                    />
-                  ) : (
-                    <span className="text-xl font-bold text-primary-foreground">{line}</span>
-                  )}
-                </div>
-                <div className="text-lg">{mins} Min</div>
+      {remainingArrivals.length > 0 && (
+        <div className="absolute bottom-4 right-6 flex gap-3">
+          {remainingArrivals.map((mins, idx) => (
+            <div
+              key={idx}
+              className="bg-[#1D1D1D] rounded-xl h-[70px] w-[70px] flex flex-col items-center justify-center gap-1"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-[#111]">
+                {iconSrc ? (
+                  <img
+                    src={iconSrc}
+                    alt={`${line} train`}
+                    className="w-[28px] h-[28px] object-contain"
+                  />
+                ) : (
+                  <span className="text-sm font-bold text-primary-foreground">{line}</span>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </div>
+              <div className="text-base font-medium">{mins}</div>
+              <div className="text-xs -mt-1">Min</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }

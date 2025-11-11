@@ -17,13 +17,13 @@ export default function WeatherTile({ icon, temperature, description, time }: We
   const iconSrc = weatherIcons[icon];
 
   return (
-    <div className="bg-black rounded-lg p-2.5 px-3.5 text-white min-w-[200px] flex flex-col items-center" data-testid="weather-tile">
-      <div className="text-sm mb-1.5" data-testid="text-weather-time">{time}</div>
+    <div className="bg-[#0F0F0F] rounded-lg w-[120px] h-[88px] text-white flex flex-col items-center justify-center gap-1" data-testid="weather-tile">
+      <div className="text-xs font-medium" data-testid="text-weather-time">{time}</div>
       {iconSrc && (
-        <img src={iconSrc} alt={description} className="w-16 h-16 object-contain" />
+        <img src={iconSrc} alt={description} className="w-12 h-12 object-contain" />
       )}
-      <div className="font-bold mt-1.5" data-testid="text-temperature">{temperature}</div>
-      <div className="text-sm" data-testid="text-description">{description}</div>
+      <div className="text-lg font-bold -mt-1" data-testid="text-temperature">{temperature}</div>
+      <div className="text-xs -mt-1" data-testid="text-description">{description}</div>
     </div>
   );
 }
