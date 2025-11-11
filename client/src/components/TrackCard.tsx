@@ -8,6 +8,7 @@ interface TrackCardProps {
   destination: string;
   subtitle: string;
   arrivalMinutes: number[];
+  isDowntown?: boolean;
 }
 
 const lineIcons: Record<string, string> = {
@@ -21,6 +22,7 @@ export default function TrackCard({
   destination,
   subtitle,
   arrivalMinutes,
+  isDowntown = false,
 }: TrackCardProps) {
   const iconSrc = lineIcons[line];
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
@@ -42,7 +44,7 @@ export default function TrackCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 p-6 pr-6 h-[115px] flex-1">
+        <div className="flex items-center gap-4 p-6 pr-6 h-[115px] flex-1" style={{ paddingLeft: isDowntown ? '29px' : '24px' }}>
           <div className="flex-shrink-0 w-24 h-24 rounded-full bg-primary flex items-center justify-center border-4 border-[#111]">
             {iconSrc ? (
               <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />

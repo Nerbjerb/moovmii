@@ -147,6 +147,7 @@ export default function Kiosk() {
               destination={track.destination}
               subtitle={track.subtitle}
               arrivalMinutes={track.arrivalMinutes}
+              isDowntown={idx === 1}
             />
           ))}
         </section>
