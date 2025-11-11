@@ -29,7 +29,7 @@ export default function WeatherTile({ icon, temperature, description, time }: We
   const iconSrc = weatherIcons[icon];
 
   return (
-    <div className="bg-[#0F0F0F] rounded-lg w-[180px] h-[132px] text-white flex flex-col items-center justify-center gap-1" data-testid="weather-tile">
+    <div className="w-[180px] h-[132px] text-white flex flex-col items-center justify-center gap-1" data-testid="weather-tile">
       <div className="text-lg font-medium" data-testid="text-weather-time">{time}</div>
       {iconSrc && (
         <img 
