@@ -110,8 +110,8 @@ export default function Kiosk() {
           ))}
         </section>
 
-        <section className="grid grid-cols-[1fr_auto] gap-8 items-start flex-1">
-          <div className="flex flex-col justify-center">
+        <section className="grid grid-cols-[1fr_auto] gap-8 items-center flex-1">
+          <div className="flex flex-col justify-center items-center">
             <ClockDisplay format={timeFormat} />
           </div>
 

@@ -28,7 +28,7 @@ export default function ClockDisplay({ format }: ClockDisplayProps) {
       return (
         <span>
           {timeStr}
-          <span className="text-[80px] ml-4 align-top">{ampm}</span>
+          <span className="text-[50px] ml-4 align-top">{ampm}</span>
         </span>
       );
     } else {
@@ -37,7 +37,7 @@ export default function ClockDisplay({ format }: ClockDisplayProps) {
   };
 
   return (
-    <div className="text-white text-[220px] font-bold leading-[0.85] tracking-tight" data-testid="text-clock">
+    <div className="text-white text-[120px] font-bold leading-[0.85] tracking-tight" data-testid="text-clock">
       {formatTime()}
     </div>
   );
