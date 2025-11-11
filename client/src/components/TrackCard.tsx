@@ -38,8 +38,8 @@ export default function TrackCard({
       )}
 
       {/* Main card - front layer */}
-      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-hidden border-0 bg-card z-30">
-        <div className="w-10 h-full bg-white flex items-center justify-center pt-8">
+      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-card z-30">
+        <div className="w-10 bg-white flex items-center justify-center self-stretch rounded-l-[18px]">
           <div 
             className="text-sm font-medium tracking-[0.14em] uppercase whitespace-nowrap text-black text-center"
             style={{ 
@@ -52,7 +52,7 @@ export default function TrackCard({
           </div>
         </div>
 
-        <div className="flex-1 flex items-center gap-4 p-6 pr-6">
+        <div className="flex-1 flex items-center gap-4 p-6 pr-6 min-h-[110px]">
           <div className="flex-shrink-0 w-24 h-24 rounded-full bg-primary flex items-center justify-center border-4 border-[#111]">
             {iconSrc ? (
               <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
