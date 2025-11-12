@@ -45,7 +45,7 @@ export default function TrackCard({
         </div>
 
         <div className="flex items-center gap-4 p-6 pr-6 h-[115px] flex-1" style={{ paddingLeft: isDowntown ? '29px' : '24px' }}>
-          <div className="flex-shrink-0 w-24 h-24 rounded-full bg-primary flex items-center justify-center border-4 border-[#111]">
+          <div className="flex-shrink-0 w-24 h-24 rounded-full flex items-center justify-center">
             {iconSrc ? (
               <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
             ) : (
@@ -73,7 +73,7 @@ export default function TrackCard({
       <div className="flex gap-3 items-center">
         {secondArrival !== undefined && (
           <div className="bg-[#C3C3C3] rounded-xl h-[115px] w-[70px] flex flex-col items-center justify-center gap-1">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-[#111]">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {iconSrc ? (
                 <img
                   src={iconSrc}
@@ -91,7 +91,7 @@ export default function TrackCard({
 
         {thirdArrival !== undefined && (
           <div className="bg-[#ABABAB] rounded-xl h-[115px] w-[70px] flex flex-col items-center justify-center gap-1">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-[#111]">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {iconSrc ? (
                 <img
                   src={iconSrc}
