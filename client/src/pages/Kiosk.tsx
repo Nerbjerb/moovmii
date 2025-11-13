@@ -42,11 +42,6 @@ export default function Kiosk() {
     return `${h12}:00${ampm}`;
   };
 
-  const isFutureWeatherTomorrow = () => {
-    const futureTime = new Date(currentTime.getTime() + 3 * 60 * 60 * 1000);
-    return futureTime.getDate() !== currentTime.getDate();
-  };
-
   const sampleWeather: WeatherData[] = [
     { icon: "sun", temperature: "70°", description: "Sunny", time: getCurrentWeatherTime() },
     { icon: "rain", temperature: "61°", description: "Showers", time: getFutureWeatherTime() },
@@ -180,7 +175,6 @@ export default function Kiosk() {
                 temperature={sampleWeather[1].temperature}
                 description={sampleWeather[1].description}
                 time={sampleWeather[1].time}
-                dayLabel={isFutureWeatherTomorrow() ? "Tomorrow" : undefined}
               />
             </div>
           </div>

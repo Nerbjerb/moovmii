@@ -12,7 +12,6 @@ interface WeatherTileProps {
   temperature: string;
   description: string;
   time: string;
-  dayLabel?: string;
 }
 
 const weatherIcons: Record<string, string> = {
@@ -26,14 +25,11 @@ const weatherIcons: Record<string, string> = {
   windy: windyIcon,
 };
 
-export default function WeatherTile({ icon, temperature, description, time, dayLabel }: WeatherTileProps) {
+export default function WeatherTile({ icon, temperature, description, time }: WeatherTileProps) {
   const iconSrc = weatherIcons[icon];
 
   return (
     <div className="w-[180px] h-[132px] text-white flex flex-col items-center justify-center gap-1" data-testid="weather-tile">
-      {dayLabel && (
-        <div className="text-xs" data-testid="text-weather-day-label">{dayLabel}</div>
-      )}
       <div className="text-lg font-medium" data-testid="text-weather-time">{time}</div>
       {iconSrc && (
         <img 
