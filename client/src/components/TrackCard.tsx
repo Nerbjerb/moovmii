@@ -43,7 +43,7 @@ export default function TrackCard({
             className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-black text-center"
             style={{ 
               writingMode: 'vertical-rl',
-              transform: isDowntown ? 'rotate(180deg) translateX(-5px)' : 'rotate(180deg)'
+              transform: isDowntown ? 'rotate(180deg) translateX(-5px)' : 'rotate(180deg) translateX(1px)'
             }}
             data-testid="text-direction"
           >
@@ -103,7 +103,7 @@ export default function TrackCard({
               WebkitLineClamp: 1,
               WebkitBoxOrient: 'vertical',
               lineHeight: '1',
-              transform: 'translateY(-170px)'
+              transform: 'translateY(-165px)'
             }}
           >
             {subtitle}
