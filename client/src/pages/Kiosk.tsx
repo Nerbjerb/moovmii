@@ -166,7 +166,7 @@ export default function Kiosk() {
                 time={sampleWeather[0].time}
               />
             </div>
-            <div className="absolute" style={{ left: '586px', top: '50%', transform: 'translateY(-50%)' }}>
+            <div className="absolute" style={{ left: '596px', top: '50%', transform: 'translateY(-50%)' }}>
               <WeatherTile
                 icon={sampleWeather[1].icon as "sun" | "rain"}
                 temperature={sampleWeather[1].temperature}
