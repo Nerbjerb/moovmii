@@ -84,7 +84,8 @@ export default function TrackCard({
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              lineHeight: '1.1'
+              lineHeight: '1.1',
+              transform: 'translateY(-200px)'
             }}
           >
             {destination}
@@ -101,7 +102,8 @@ export default function TrackCard({
               display: '-webkit-box',
               WebkitLineClamp: 1,
               WebkitBoxOrient: 'vertical',
-              lineHeight: '1'
+              lineHeight: '1',
+              transform: 'translateY(-200px)'
             }}
           >
             {subtitle}
