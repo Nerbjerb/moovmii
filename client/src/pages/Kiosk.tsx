@@ -43,7 +43,12 @@ export default function Kiosk() {
   };
 
   const getFutureWeatherTime = () => {
-    const futureTime = new Date(currentTime.getTime() + 3 * 60 * 60 * 1000); // 3 hours later
+    // Start from next round hour, then add 3 hours
+    const nextHour = new Date(currentTime);
+    nextHour.setHours(currentTime.getHours() + 1);
+    nextHour.setMinutes(0, 0, 0);
+    
+    const futureTime = new Date(nextHour.getTime() + 3 * 60 * 60 * 1000); // 3 hours after next round hour
     const hours = futureTime.getHours();
     const ampm = hours >= 12 ? "PM" : "AM";
     let h12 = hours % 12;
