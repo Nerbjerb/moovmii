@@ -54,7 +54,7 @@ export default function TrackCard({
         <div 
           className="grid h-[115px] flex-1" 
           style={{ 
-            paddingLeft: isDowntown ? '29px' : '24px', 
+            paddingLeft: '24px', 
             paddingRight: '24px',
             gridTemplateColumns: '96px 1fr 140px',
             gridTemplateRows: `18px var(--track-badge-height, 96px) var(--track-destination-height, 110px) 14px var(--track-subtitle-height, 20px) 1fr`
