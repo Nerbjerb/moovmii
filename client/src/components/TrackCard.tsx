@@ -118,7 +118,7 @@ export default function TrackCard({
           <div 
             ref={refs?.arrivalsRef}
             className="w-[140px] text-center flex flex-col" 
-            style={{ gridRow: '1 / 7', gridColumn: '3', alignSelf: 'start', paddingTop: '18px' }}
+            style={{ gridRow: '1 / 7', gridColumn: '3', alignSelf: 'start', paddingTop: '18px', transform: 'translateX(10px)' }}
           >
             <div className="text-[85px] font-bold leading-[0.8] text-black">
               {firstArrival}
