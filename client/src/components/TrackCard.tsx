@@ -85,7 +85,7 @@ export default function TrackCard({
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
               lineHeight: '1.1',
-              transform: 'translateY(-200px)'
+              transform: isDowntown ? 'translateY(-200px)' : 'translateY(0px)'
             }}
           >
             {destination}
