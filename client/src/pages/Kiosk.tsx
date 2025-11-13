@@ -158,7 +158,7 @@ export default function Kiosk() {
           </div>
 
           <div data-testid="section-weather">
-            <div className="absolute" style={{ left: '436px', top: '50%', transform: 'translateY(-50%)' }}>
+            <div className="absolute" style={{ left: '590px', top: '50%', transform: 'translateY(-50%)' }}>
               <WeatherTile
                 icon={sampleWeather[0].icon as "sun" | "rain"}
                 temperature={sampleWeather[0].temperature}
