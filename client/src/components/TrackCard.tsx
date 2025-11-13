@@ -151,7 +151,6 @@ export default function TrackCard({
                   src={iconSrc}
                   alt={`${line} train`}
                   className="w-[28px] h-[28px] object-contain"
-                  style={{ transform: !isDowntown ? 'translateX(-5px)' : 'none' }}
                 />
               ) : (
                 <span className="text-sm font-bold text-primary-foreground">{line}</span>
