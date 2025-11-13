@@ -137,7 +137,7 @@ export default function TrackCard({
                 <img
                   src={iconSrc}
                   alt={`${line} train`}
-                  className="w-[28px] h-[28px] object-contain"
+                  className="w-[33.6px] h-[33.6px] object-contain"
                 />
               ) : (
                 <span className="text-sm font-bold text-primary-foreground">{line}</span>
@@ -155,7 +155,7 @@ export default function TrackCard({
                 <img
                   src={iconSrc}
                   alt={`${line} train`}
-                  className="w-[28px] h-[28px] object-contain"
+                  className="w-[33.6px] h-[33.6px] object-contain"
                 />
               ) : (
                 <span className="text-sm font-bold text-primary-foreground">{line}</span>
