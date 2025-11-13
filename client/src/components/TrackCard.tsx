@@ -43,7 +43,7 @@ export default function TrackCard({
             className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-black text-center"
             style={{ 
               writingMode: 'vertical-rl',
-              transform: isDowntown ? 'rotate(180deg) translateX(-5px)' : 'rotate(180deg) translateX(3px)'
+              transform: 'rotate(180deg)'
             }}
             data-testid="text-direction"
           >
