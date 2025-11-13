@@ -40,7 +40,7 @@ export default function TrackCard({
       <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30 w-[570px]">
         <div className="w-10 bg-[#D9D9D9] flex items-center justify-center self-stretch rounded-l-[18px]">
           <div 
-            className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-black text-center"
+            className="text-[17px] font-bold tracking-[0.14em] whitespace-nowrap text-black text-center"
             style={{ 
               writingMode: 'vertical-rl',
               transform: 'rotate(180deg)'
