@@ -99,7 +99,7 @@ export default function TrackCard({
           {/* Subtitle - with line clamp */}
           <div 
             ref={refs?.subtitleRef}
-            className="text-[20px] text-black/70 overflow-hidden" 
+            className="text-[20px] text-black overflow-hidden" 
             style={{ 
               gridRow: '5', 
               gridColumn: '2', 
