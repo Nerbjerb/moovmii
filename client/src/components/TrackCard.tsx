@@ -71,7 +71,7 @@ export default function TrackCard({
                 src={iconSrc} 
                 alt={`${line} train`} 
                 className="w-[72px] h-[72px] object-contain"
-                style={{ transform: isDowntown ? 'translate(-5px, -10px)' : 'translateY(-10px)' }}
+                style={{ transform: isDowntown ? 'translate(-20px, -10px)' : 'translate(-15px, -10px)' }}
               />
             ) : (
               <span className="text-[48px] font-bold text-primary-foreground">{line}</span>
