@@ -9,6 +9,12 @@ interface TrackCardProps {
   subtitle: string;
   arrivalMinutes: number[];
   isDowntown?: boolean;
+  refs?: {
+    badgeRef?: (el: HTMLDivElement | null) => void;
+    destinationRef?: (el: HTMLDivElement | null) => void;
+    subtitleRef?: (el: HTMLDivElement | null) => void;
+    arrivalsRef?: (el: HTMLDivElement | null) => void;
+  };
 }
 
 const lineIcons: Record<string, string> = {
@@ -23,6 +29,7 @@ export default function TrackCard({
   subtitle,
   arrivalMinutes,
   isDowntown = false,
+  refs,
 }: TrackCardProps) {
   const iconSrc = lineIcons[line];
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
@@ -44,9 +51,21 @@ export default function TrackCard({
           </div>
         </div>
 
-        <div className="flex items-start gap-4 h-[115px] flex-1 pt-[18px]" style={{ paddingLeft: isDowntown ? '29px' : '24px', paddingRight: '24px' }}>
-          {/* Train icon column */}
-          <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0">
+        <div 
+          className="grid h-[115px] flex-1" 
+          style={{ 
+            paddingLeft: isDowntown ? '29px' : '24px', 
+            paddingRight: '24px',
+            gridTemplateColumns: '96px 1fr 140px',
+            gridTemplateRows: '18px var(--badge-height, 96px) var(--destination-block, 50px) 14px var(--subtitle-block, 20px) 1fr'
+          }}
+        >
+          {/* Train icon - badge row */}
+          <div 
+            ref={refs?.badgeRef}
+            className="w-24 h-24 rounded-full flex items-center justify-center" 
+            style={{ gridRow: '2', gridColumn: '1' }}
+          >
             {iconSrc ? (
               <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
             ) : (
@@ -54,23 +73,46 @@ export default function TrackCard({
             )}
           </div>
 
-          {/* Text column with grid for vertical alignment */}
-          <div className="flex-1 grid" style={{ gridTemplateRows: '8px 50px 14px 20px 1fr', height: '97px' }}>
-            <div></div>
-            {/* Destination */}
-            <div className="text-[50px] font-bold leading-none text-black overflow-hidden whitespace-nowrap" style={{ textOverflow: 'ellipsis', alignSelf: 'start' }}>
-              {destination}
-            </div>
-            <div></div>
-            {/* Subtitle */}
-            <div className="text-[20px] leading-none text-black/70 overflow-hidden whitespace-nowrap" style={{ textOverflow: 'ellipsis', alignSelf: 'start' }}>
-              {subtitle}
-            </div>
-            <div></div>
+          {/* Destination - with line clamp */}
+          <div 
+            ref={refs?.destinationRef}
+            className="text-[50px] font-bold text-black overflow-hidden" 
+            style={{ 
+              gridRow: '3', 
+              gridColumn: '2', 
+              alignSelf: 'start',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              lineHeight: '1.1'
+            }}
+          >
+            {destination}
           </div>
 
-          {/* Arrival time column */}
-          <div className="w-[140px] text-center flex flex-col flex-shrink-0">
+          {/* Subtitle - with line clamp */}
+          <div 
+            ref={refs?.subtitleRef}
+            className="text-[20px] text-black/70 overflow-hidden" 
+            style={{ 
+              gridRow: '5', 
+              gridColumn: '2', 
+              alignSelf: 'start',
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              lineHeight: '1'
+            }}
+          >
+            {subtitle}
+          </div>
+
+          {/* Arrival time */}
+          <div 
+            ref={refs?.arrivalsRef}
+            className="w-[140px] text-center flex flex-col" 
+            style={{ gridRow: '1 / 7', gridColumn: '3', alignSelf: 'start', paddingTop: '18px' }}
+          >
             <div className="text-[85px] font-bold leading-[0.8] text-black">
               {firstArrival}
             </div>

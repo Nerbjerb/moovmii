@@ -3,11 +3,13 @@ import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
 import KioskControls from "@/components/KioskControls";
+import { useTrackAlignment } from "@/hooks/useTrackAlignment";
 import type { SubwayArrival, WeatherData } from "@shared/schema";
 
 export default function Kiosk() {
   const [timeFormat, setTimeFormat] = useState<"12" | "24">("12");
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { containerRef, registerCard } = useTrackAlignment();
 
   const sampleTracks: SubwayArrival[] = [
     {
@@ -138,7 +140,7 @@ export default function Kiosk() {
           className="bg-[#0b0b0b] rounded-md shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col"
           style={{ width: '800px', height: '480px' }}
         >
-        <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
+        <section ref={containerRef} className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
           {tracks.map((track, idx) => (
             <TrackCard
               key={idx}
@@ -148,6 +150,7 @@ export default function Kiosk() {
               subtitle={track.subtitle}
               arrivalMinutes={track.arrivalMinutes}
               isDowntown={idx === 1}
+              refs={registerCard(`track-${idx}`)}
             />
           ))}
         </section>
