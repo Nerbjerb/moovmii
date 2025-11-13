@@ -143,7 +143,7 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{line}</span>
               )}
             </div>
-            <div className="text-base font-medium text-black">{secondArrival}</div>
+            <div className="text-[22px] font-medium text-black">{secondArrival}</div>
             <div className="text-xs -mt-1 text-black">Min</div>
           </div>
         )}
@@ -161,7 +161,7 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{line}</span>
               )}
             </div>
-            <div className="text-base font-medium text-black">{thirdArrival}</div>
+            <div className="text-[22px] font-medium text-black">{thirdArrival}</div>
             <div className="text-xs -mt-1 text-black">Min</div>
           </div>
         )}
