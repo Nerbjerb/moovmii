@@ -43,8 +43,8 @@ export default function Kiosk() {
   };
 
   const sampleWeather: WeatherData[] = [
-    { icon: "sun", temperature: "70°F", description: "Sunny", time: getCurrentWeatherTime() },
-    { icon: "rain", temperature: "61°F", description: "Showers", time: getFutureWeatherTime() },
+    { icon: "sun", temperature: "70°", description: "Sunny", time: getCurrentWeatherTime() },
+    { icon: "rain", temperature: "61°", description: "Showers", time: getFutureWeatherTime() },
   ];
 
   const [tracks, setTracks] = useState(sampleTracks);
