@@ -108,7 +108,17 @@ Preferred communication style: Simple, everyday language.
 - Weather times calculated dynamically (current + 9 hours ahead)
 - Subway arrival data currently static but structured for future real-time updates
 
+**Cross-Card Element Alignment**
+- Custom hook `useTrackAlignment` synchronizes element heights across both train cards
+- Uses ResizeObserver to measure actual rendered heights of badge, destination, subtitle, and arrivals
+- Measurements batched via requestAnimationFrame to prevent infinite render loops
+- Writes CSS custom properties directly to DOM (avoids React state re-renders)
+- TrackCard grid templates consume CSS variables like `var(--track-badge-height, 96px)`
+- Ensures paired elements (icons, destinations, subtitles, arrivals) align perfectly across cards
+- Adapts dynamically to content variations (long destination names, wrapping text, etc.)
+
 **Performance Optimizations**
 - React Query configured with disabled refetching (staleTime: Infinity)
 - Component examples isolated in `client/src/components/examples/` for development
 - Minimal re-renders through proper React patterns
+- Cross-card alignment uses DOM mutations instead of React state to avoid render cascades

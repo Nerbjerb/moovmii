@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo, useEffect } from 'react';
 
 interface TrackElementRefs {
   badge: HTMLDivElement | null;
@@ -21,31 +21,65 @@ export function useTrackAlignment(): TrackAlignmentHook {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefsMap = useRef<Map<string, TrackElementRefs>>(new Map());
   const observersMap = useRef<Map<HTMLDivElement, ResizeObserver>>(new Map());
+  const rafId = useRef<number | null>(null);
+  const measurementPending = useRef(false);
+  
+  // Current CSS variable values to detect changes
+  const currentHeights = useRef({
+    badge: 96,
+    destination: 110,
+    subtitle: 20,
+    arrivals: 68,
+  });
 
   const measureAndSync = useCallback(() => {
-    if (!containerRef.current || cardRefsMap.current.size === 0) return;
+    if (measurementPending.current || rafId.current !== null) return;
+    
+    measurementPending.current = true;
+    rafId.current = requestAnimationFrame(() => {
+      measurementPending.current = false;
+      rafId.current = null;
+      
+      if (!containerRef.current || cardRefsMap.current.size === 0) return;
+      
+      const allBadges: number[] = [];
+      const allDestinations: number[] = [];
+      const allSubtitles: number[] = [];
+      const allArrivals: number[] = [];
 
-    const allBadges: number[] = [];
-    const allDestinations: number[] = [];
-    const allSubtitles: number[] = [];
-    const allArrivals: number[] = [];
+      cardRefsMap.current.forEach((refs) => {
+        if (refs.badge) allBadges.push(refs.badge.offsetHeight);
+        if (refs.destination) allDestinations.push(refs.destination.offsetHeight);
+        if (refs.subtitle) allSubtitles.push(refs.subtitle.offsetHeight);
+        if (refs.arrivals) allArrivals.push(refs.arrivals.offsetHeight);
+      });
 
-    cardRefsMap.current.forEach((refs) => {
-      if (refs.badge) allBadges.push(refs.badge.scrollHeight);
-      if (refs.destination) allDestinations.push(refs.destination.scrollHeight);
-      if (refs.subtitle) allSubtitles.push(refs.subtitle.scrollHeight);
-      if (refs.arrivals) allArrivals.push(refs.arrivals.scrollHeight);
+      const maxBadgeHeight = Math.max(...allBadges, 96);
+      const maxDestinationHeight = Math.max(...allDestinations, 110);
+      const maxSubtitleHeight = Math.max(...allSubtitles, 20);
+      const maxArrivalsHeight = Math.max(...allArrivals, 68);
+
+      // Only update CSS custom properties if values have changed
+      if (
+        maxBadgeHeight !== currentHeights.current.badge ||
+        maxDestinationHeight !== currentHeights.current.destination ||
+        maxSubtitleHeight !== currentHeights.current.subtitle ||
+        maxArrivalsHeight !== currentHeights.current.arrivals
+      ) {
+        currentHeights.current = {
+          badge: maxBadgeHeight,
+          destination: maxDestinationHeight,
+          subtitle: maxSubtitleHeight,
+          arrivals: maxArrivalsHeight,
+        };
+        
+        // Write directly to DOM via CSS custom properties (no React state)
+        containerRef.current.style.setProperty('--track-badge-height', `${maxBadgeHeight}px`);
+        containerRef.current.style.setProperty('--track-destination-height', `${maxDestinationHeight}px`);
+        containerRef.current.style.setProperty('--track-subtitle-height', `${maxSubtitleHeight}px`);
+        containerRef.current.style.setProperty('--track-arrivals-height', `${maxArrivalsHeight}px`);
+      }
     });
-
-    const maxBadgeHeight = Math.max(...allBadges, 96);
-    const maxDestinationHeight = Math.max(...allDestinations, 50);
-    const maxSubtitleHeight = Math.max(...allSubtitles, 20);
-    const maxArrivalsHeight = Math.max(...allArrivals, 68);
-
-    containerRef.current.style.setProperty('--badge-height', `${maxBadgeHeight}px`);
-    containerRef.current.style.setProperty('--destination-block', `${maxDestinationHeight}px`);
-    containerRef.current.style.setProperty('--subtitle-block', `${maxSubtitleHeight}px`);
-    containerRef.current.style.setProperty('--arrivals-block', `${maxArrivalsHeight}px`);
   }, []);
 
   const observeElement = useCallback((el: HTMLDivElement) => {
@@ -66,54 +100,56 @@ export function useTrackAlignment(): TrackAlignmentHook {
       observersMap.current.delete(el);
     }
   }, []);
+  
+  // Stable registerCard function using useMemo to maintain hook order
+  const registerCard = useMemo(() => {
+    return (cardId: string) => {
+      if (!cardRefsMap.current.has(cardId)) {
+        cardRefsMap.current.set(cardId, {
+          badge: null,
+          destination: null,
+          subtitle: null,
+          arrivals: null,
+        });
+      }
 
-  const registerCard = useCallback((cardId: string) => {
-    if (!cardRefsMap.current.has(cardId)) {
-      cardRefsMap.current.set(cardId, {
-        badge: null,
-        destination: null,
-        subtitle: null,
-        arrivals: null,
-      });
-    }
+      const refs = cardRefsMap.current.get(cardId)!;
 
-    const refs = cardRefsMap.current.get(cardId)!;
-
-    return {
-      badgeRef: (el: HTMLDivElement | null) => {
-        if (refs.badge) unobserveElement(refs.badge);
-        refs.badge = el;
-        if (el) {
-          observeElement(el);
-          measureAndSync();
-        }
-      },
-      destinationRef: (el: HTMLDivElement | null) => {
-        if (refs.destination) unobserveElement(refs.destination);
-        refs.destination = el;
-        if (el) {
-          observeElement(el);
-          measureAndSync();
-        }
-      },
-      subtitleRef: (el: HTMLDivElement | null) => {
-        if (refs.subtitle) unobserveElement(refs.subtitle);
-        refs.subtitle = el;
-        if (el) {
-          observeElement(el);
-          measureAndSync();
-        }
-      },
-      arrivalsRef: (el: HTMLDivElement | null) => {
-        if (refs.arrivals) unobserveElement(refs.arrivals);
-        refs.arrivals = el;
-        if (el) {
-          observeElement(el);
-          measureAndSync();
-        }
-      },
+      return {
+        badgeRef: (el: HTMLDivElement | null) => {
+          if (refs.badge) unobserveElement(refs.badge);
+          refs.badge = el;
+          if (el) observeElement(el);
+        },
+        destinationRef: (el: HTMLDivElement | null) => {
+          if (refs.destination) unobserveElement(refs.destination);
+          refs.destination = el;
+          if (el) observeElement(el);
+        },
+        subtitleRef: (el: HTMLDivElement | null) => {
+          if (refs.subtitle) unobserveElement(refs.subtitle);
+          refs.subtitle = el;
+          if (el) observeElement(el);
+        },
+        arrivalsRef: (el: HTMLDivElement | null) => {
+          if (refs.arrivals) unobserveElement(refs.arrivals);
+          refs.arrivals = el;
+          if (el) observeElement(el);
+        },
+      };
     };
-  }, [measureAndSync, observeElement, unobserveElement]);
+  }, [observeElement, unobserveElement]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current);
+      }
+      observersMap.current.forEach(observer => observer.disconnect());
+      observersMap.current.clear();
+    };
+  }, []);
 
   return { containerRef, registerCard };
 }

@@ -57,7 +57,7 @@ export default function TrackCard({
             paddingLeft: isDowntown ? '29px' : '24px', 
             paddingRight: '24px',
             gridTemplateColumns: '96px 1fr 140px',
-            gridTemplateRows: '18px var(--badge-height, 96px) var(--destination-block, 50px) 14px var(--subtitle-block, 20px) 1fr'
+            gridTemplateRows: `18px var(--track-badge-height, 96px) var(--track-destination-height, 110px) 14px var(--track-subtitle-height, 20px) 1fr`
           }}
         >
           {/* Train icon - badge row */}
