@@ -30,7 +30,16 @@ export default function Kiosk() {
 
   // Calculate weather times dynamically
   const getCurrentWeatherTime = () => {
-    return "Current";
+    // Round up to the next hour
+    const nextHour = new Date(currentTime);
+    nextHour.setHours(currentTime.getHours() + 1);
+    nextHour.setMinutes(0, 0, 0);
+    
+    const hours = nextHour.getHours();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    let h12 = hours % 12;
+    if (h12 === 0) h12 = 12;
+    return `${h12}:00${ampm}`;
   };
 
   const getFutureWeatherTime = () => {
