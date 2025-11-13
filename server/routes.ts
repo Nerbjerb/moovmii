@@ -22,6 +22,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`OpenWeatherMap API error (${response.status}): ${errorText}`);
         throw new Error(`OpenWeatherMap API error: ${response.statusText}`);
       }
 
