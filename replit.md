@@ -81,10 +81,14 @@ Preferred communication style: Simple, everyday language.
 - **Replit-specific plugins**: cartographer, dev-banner, runtime-error-modal for enhanced development experience
 - **ESBuild** for server-side code bundling in production
 
-**External APIs (Not Yet Implemented)**
-- Real-time MTA subway data (currently using mock data)
-- Weather forecast API (currently using mock data)
-- These would typically be fetched server-side and exposed via `/api` endpoints
+**External APIs**
+- **OpenWeatherMap API**: Live weather data for NYC (Broadway, Astoria coordinates: 40.7614, -73.9176)
+  - 5-day/3-hour forecast endpoint with imperial units
+  - Automatic 10-minute refresh interval on frontend
+  - Weather icon mapping system supporting 50+ conditions with day/night variants
+  - Comprehensive condition code mapping in `shared/weatherIconMapper.ts`
+- **MTA Real-time Subway Data**: Not yet implemented (currently using mock data)
+- All external APIs accessed server-side via `/api` endpoints
 
 ### Key Architectural Decisions
 
@@ -105,8 +109,17 @@ Preferred communication style: Simple, everyday language.
 
 **Real-time Updates**
 - Clock updates every second via `setInterval`
-- Weather times calculated dynamically (current + 9 hours ahead)
+- Weather data fetched every 10 minutes from OpenWeatherMap API
+- Weather forecast shows next round hour in NYC time + 3 hours ahead
 - Subway arrival data currently static but structured for future real-time updates
+
+**NYC Timezone Handling**
+- All weather times displayed in NYC Eastern Time (America/New_York)
+- Uses `Intl.DateTimeFormat` with `formatToParts` for DST-safe timezone conversion
+- Finds first future forecast at a round NYC hour (minute = 0)
+- Works correctly on any server timezone (not dependent on UTC environment)
+- Automatically handles DST transitions (EST ↔ EDT)
+- Day/night icon selection based on NYC hour (6 AM - 6 PM = day)
 
 **Cross-Card Element Alignment**
 - Custom hook `useTrackAlignment` synchronizes element heights across both train cards
