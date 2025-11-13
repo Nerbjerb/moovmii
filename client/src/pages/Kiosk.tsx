@@ -34,7 +34,7 @@ export default function Kiosk() {
   };
 
   const getFutureWeatherTime = () => {
-    const futureTime = new Date(currentTime.getTime() + 9 * 60 * 60 * 1000); // 9 hours later
+    const futureTime = new Date(currentTime.getTime() + 3 * 60 * 60 * 1000); // 3 hours later
     const hours = futureTime.getHours();
     const ampm = hours >= 12 ? "PM" : "AM";
     let h12 = hours % 12;
