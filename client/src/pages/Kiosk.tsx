@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
 import KioskControls from "@/components/KioskControls";
 import { useTrackAlignment } from "@/hooks/useTrackAlignment";
 import type { SubwayArrival, WeatherData } from "@shared/schema";
+import type { WeatherIconName } from "@shared/weatherIconMapper";
 
 export default function Kiosk() {
   const [timeFormat, setTimeFormat] = useState<"12" | "24">("12");
@@ -28,38 +30,29 @@ export default function Kiosk() {
     },
   ];
 
-  // Calculate weather times dynamically
-  const getCurrentWeatherTime = () => {
-    // Round up to the next hour
-    const nextHour = new Date(currentTime);
-    nextHour.setHours(currentTime.getHours() + 1);
-    nextHour.setMinutes(0, 0, 0);
-    
-    const hours = nextHour.getHours();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    let h12 = hours % 12;
-    if (h12 === 0) h12 = 12;
-    return `${h12}:00${ampm}`;
-  };
+  // Fetch real weather data from OpenWeatherMap
+  const { data: weatherData, isLoading: isWeatherLoading } = useQuery<Array<{
+    icon: WeatherIconName;
+    temperature: string;
+    description: string;
+    time: string;
+  }>>({
+    queryKey: ['/api/weather'],
+    refetchInterval: 10 * 60 * 1000, // Refresh every 10 minutes
+  });
 
-  const getFutureWeatherTime = () => {
-    // Start from next round hour, then add 3 hours
-    const nextHour = new Date(currentTime);
-    nextHour.setHours(currentTime.getHours() + 1);
-    nextHour.setMinutes(0, 0, 0);
-    
-    const futureTime = new Date(nextHour.getTime() + 3 * 60 * 60 * 1000); // 3 hours after next round hour
-    const hours = futureTime.getHours();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    let h12 = hours % 12;
-    if (h12 === 0) h12 = 12;
-    return `${h12}:00${ampm}`;
-  };
-
-  const sampleWeather: WeatherData[] = [
-    { icon: "sun", temperature: "70°", description: "Sunny", time: getCurrentWeatherTime() },
-    { icon: "rain", temperature: "61°", description: "Showers", time: getFutureWeatherTime() },
+  // Fallback weather data while loading
+  const defaultWeather: Array<{
+    icon: WeatherIconName;
+    temperature: string;
+    description: string;
+    time: string;
+  }> = [
+    { icon: "day-sunny", temperature: "--°", description: "Loading", time: "..." },
+    { icon: "day-cloudy", temperature: "--°", description: "Loading", time: "..." },
   ];
+
+  const displayWeather = weatherData || defaultWeather;
 
   const [tracks, setTracks] = useState(sampleTracks);
 
@@ -177,18 +170,18 @@ export default function Kiosk() {
           <div data-testid="section-weather">
             <div className="absolute" style={{ left: '490px', top: '50%', transform: 'translateY(calc(-50% - 3px))' }}>
               <WeatherTile
-                icon={sampleWeather[0].icon as "sun" | "rain"}
-                temperature={sampleWeather[0].temperature}
-                description={sampleWeather[0].description}
-                time={sampleWeather[0].time}
+                icon={displayWeather[0].icon}
+                temperature={displayWeather[0].temperature}
+                description={displayWeather[0].description}
+                time={displayWeather[0].time}
               />
             </div>
             <div className="absolute" style={{ left: '606px', top: '50%', transform: 'translateY(calc(-50% - 3px))' }}>
               <WeatherTile
-                icon={sampleWeather[1].icon as "sun" | "rain"}
-                temperature={sampleWeather[1].temperature}
-                description={sampleWeather[1].description}
-                time={sampleWeather[1].time}
+                icon={displayWeather[1].icon}
+                temperature={displayWeather[1].temperature}
+                description={displayWeather[1].description}
+                time={displayWeather[1].time}
               />
             </div>
           </div>
@@ -197,7 +190,7 @@ export default function Kiosk() {
       </div>
 
       <footer className="mt-4 text-sm text-muted-foreground" data-testid="text-footer">
-        Prototype — data mocked. Replace mocked fetch functions with MTA/OpenWeather calls.
+        Live weather powered by OpenWeatherMap • Subway data mocked (replace with MTA feed)
       </footer>
     </div>
   );

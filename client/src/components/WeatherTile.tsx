@@ -1,28 +1,115 @@
-import sunnyIcon from "@assets/moovmii/Weather Icons/svg/wi-day-sunny.svg";
-import showersIcon from "@assets/moovmii/Weather Icons/svg/wi-day-showers.svg";
-import rainIcon from "@assets/moovmii/Weather Icons/svg/wi-day-rain.svg";
-import cloudyIcon from "@assets/moovmii/Weather Icons/svg/wi-day-cloudy.svg";
-import snowIcon from "@assets/moovmii/Weather Icons/svg/wi-day-snow.svg";
-import thunderstormIcon from "@assets/moovmii/Weather Icons/svg/wi-day-storm-showers.svg";
-import fogIcon from "@assets/moovmii/Weather Icons/svg/wi-day-fog.svg";
-import windyIcon from "@assets/moovmii/Weather Icons/svg/wi-day-cloudy-windy.svg";
+import type { WeatherIconName } from "@shared/weatherIconMapper";
+
+// Import all weather icons we might need
+import daySunnyIcon from "@assets/moovmii/Weather Icons/svg/wi-day-sunny.svg";
+import dayCloudyIcon from "@assets/moovmii/Weather Icons/svg/wi-day-cloudy.svg";
+import dayRainIcon from "@assets/moovmii/Weather Icons/svg/wi-day-rain.svg";
+import dayShowersIcon from "@assets/moovmii/Weather Icons/svg/wi-day-showers.svg";
+import daySprinkleIcon from "@assets/moovmii/Weather Icons/svg/wi-day-sprinkle.svg";
+import dayThunderstormIcon from "@assets/moovmii/Weather Icons/svg/wi-day-thunderstorm.svg";
+import dayLightningIcon from "@assets/moovmii/Weather Icons/svg/wi-day-lightning.svg";
+import daySnowIcon from "@assets/moovmii/Weather Icons/svg/wi-day-snow.svg";
+import daySleetIcon from "@assets/moovmii/Weather Icons/svg/wi-day-sleet.svg";
+import dayFogIcon from "@assets/moovmii/Weather Icons/svg/wi-day-fog.svg";
+import dayHazeIcon from "@assets/moovmii/Weather Icons/svg/wi-day-haze.svg";
+import dayRainMixIcon from "@assets/moovmii/Weather Icons/svg/wi-day-rain-mix.svg";
+import dayStormShowersIcon from "@assets/moovmii/Weather Icons/svg/wi-day-storm-showers.svg";
+import dayHailIcon from "@assets/moovmii/Weather Icons/svg/wi-day-hail.svg";
+import nightClearIcon from "@assets/moovmii/Weather Icons/svg/wi-night-clear.svg";
+import nightAltCloudyIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-cloudy.svg";
+import nightAltPartlyCloudyIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-partly-cloudy.svg";
+import nightAltRainIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-rain.svg";
+import nightAltShowersIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-showers.svg";
+import nightAltSprinkleIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-sprinkle.svg";
+import nightAltThunderstormIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-thunderstorm.svg";
+import nightAltLightningIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-lightning.svg";
+import nightAltSnowIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-snow.svg";
+import nightAltSleetIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-sleet.svg";
+import nightFogIcon from "@assets/moovmii/Weather Icons/svg/wi-night-fog.svg";
+import nightAltRainMixIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-rain-mix.svg";
+import nightAltStormShowersIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-storm-showers.svg";
+import nightAltHailIcon from "@assets/moovmii/Weather Icons/svg/wi-night-alt-hail.svg";
+import cloudyIcon from "@assets/moovmii/Weather Icons/svg/wi-cloudy.svg";
+import rainIcon from "@assets/moovmii/Weather Icons/svg/wi-rain.svg";
+import showersIcon from "@assets/moovmii/Weather Icons/svg/wi-showers.svg";
+import sprinkleIcon from "@assets/moovmii/Weather Icons/svg/wi-sprinkle.svg";
+import thunderstormIcon from "@assets/moovmii/Weather Icons/svg/wi-thunderstorm.svg";
+import lightningIcon from "@assets/moovmii/Weather Icons/svg/wi-lightning.svg";
+import snowIcon from "@assets/moovmii/Weather Icons/svg/wi-snow.svg";
+import sleetIcon from "@assets/moovmii/Weather Icons/svg/wi-sleet.svg";
+import fogIcon from "@assets/moovmii/Weather Icons/svg/wi-fog.svg";
+import smokeIcon from "@assets/moovmii/Weather Icons/svg/wi-smoke.svg";
+import dustIcon from "@assets/moovmii/Weather Icons/svg/wi-dust.svg";
+import tornadoIcon from "@assets/moovmii/Weather Icons/svg/wi-tornado.svg";
+import hurricaneIcon from "@assets/moovmii/Weather Icons/svg/wi-hurricane.svg";
+import windyIcon from "@assets/moovmii/Weather Icons/svg/wi-windy.svg";
+import strongWindIcon from "@assets/moovmii/Weather Icons/svg/wi-strong-wind.svg";
+import cloudyGustsIcon from "@assets/moovmii/Weather Icons/svg/wi-cloudy-gusts.svg";
+import rainMixIcon from "@assets/moovmii/Weather Icons/svg/wi-rain-mix.svg";
+import stormShowersIcon from "@assets/moovmii/Weather Icons/svg/wi-storm-showers.svg";
+import hailIcon from "@assets/moovmii/Weather Icons/svg/wi-hail.svg";
+import snowflakeColdIcon from "@assets/moovmii/Weather Icons/svg/wi-snowflake-cold.svg";
+import hotIcon from "@assets/moovmii/Weather Icons/svg/wi-hot.svg";
+import cloudIcon from "@assets/moovmii/Weather Icons/svg/wi-cloud.svg";
 
 interface WeatherTileProps {
-  icon: "sun" | "rain" | "showers" | "cloudy" | "snow" | "thunderstorm" | "fog" | "windy";
+  icon: WeatherIconName;
   temperature: string;
   description: string;
   time: string;
 }
 
-const weatherIcons: Record<string, string> = {
-  sun: sunnyIcon,
-  rain: rainIcon,
-  showers: showersIcon,
-  cloudy: cloudyIcon,
-  snow: snowIcon,
-  thunderstorm: thunderstormIcon,
-  fog: fogIcon,
-  windy: windyIcon,
+const weatherIcons: Record<WeatherIconName, string> = {
+  'day-sunny': daySunnyIcon,
+  'day-cloudy': dayCloudyIcon,
+  'day-rain': dayRainIcon,
+  'day-showers': dayShowersIcon,
+  'day-sprinkle': daySprinkleIcon,
+  'day-thunderstorm': dayThunderstormIcon,
+  'day-lightning': dayLightningIcon,
+  'day-snow': daySnowIcon,
+  'day-sleet': daySleetIcon,
+  'day-fog': dayFogIcon,
+  'day-haze': dayHazeIcon,
+  'day-rain-mix': dayRainMixIcon,
+  'day-storm-showers': dayStormShowersIcon,
+  'day-hail': dayHailIcon,
+  'night-clear': nightClearIcon,
+  'night-alt-cloudy': nightAltCloudyIcon,
+  'night-alt-partly-cloudy': nightAltPartlyCloudyIcon,
+  'night-alt-rain': nightAltRainIcon,
+  'night-alt-showers': nightAltShowersIcon,
+  'night-alt-sprinkle': nightAltSprinkleIcon,
+  'night-alt-thunderstorm': nightAltThunderstormIcon,
+  'night-alt-lightning': nightAltLightningIcon,
+  'night-alt-snow': nightAltSnowIcon,
+  'night-alt-sleet': nightAltSleetIcon,
+  'night-fog': nightFogIcon,
+  'night-alt-rain-mix': nightAltRainMixIcon,
+  'night-alt-storm-showers': nightAltStormShowersIcon,
+  'night-alt-hail': nightAltHailIcon,
+  'cloudy': cloudyIcon,
+  'rain': rainIcon,
+  'showers': showersIcon,
+  'sprinkle': sprinkleIcon,
+  'thunderstorm': thunderstormIcon,
+  'lightning': lightningIcon,
+  'snow': snowIcon,
+  'sleet': sleetIcon,
+  'fog': fogIcon,
+  'smoke': smokeIcon,
+  'dust': dustIcon,
+  'tornado': tornadoIcon,
+  'hurricane': hurricaneIcon,
+  'windy': windyIcon,
+  'strong-wind': strongWindIcon,
+  'cloudy-gusts': cloudyGustsIcon,
+  'rain-mix': rainMixIcon,
+  'storm-showers': stormShowersIcon,
+  'hail': hailIcon,
+  'snowflake-cold': snowflakeColdIcon,
+  'hot': hotIcon,
+  'cloud': cloudIcon,
 };
 
 export default function WeatherTile({ icon, temperature, description, time }: WeatherTileProps) {
