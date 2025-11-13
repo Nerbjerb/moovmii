@@ -67,7 +67,12 @@ export default function TrackCard({
             style={{ gridRow: '2', gridColumn: '1' }}
           >
             {iconSrc ? (
-              <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
+              <img 
+                src={iconSrc} 
+                alt={`${line} train`} 
+                className="w-[72px] h-[72px] object-contain"
+                style={{ transform: isDowntown ? 'translateX(-5px)' : 'none' }}
+              />
             ) : (
               <span className="text-[48px] font-bold text-primary-foreground">{line}</span>
             )}
