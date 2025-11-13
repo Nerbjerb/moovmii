@@ -44,8 +44,9 @@ export default function TrackCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 p-6 pr-6 h-[115px] flex-1" style={{ paddingLeft: isDowntown ? '29px' : '24px' }}>
-          <div className="flex-shrink-0 w-24 h-24 rounded-full flex items-center justify-center">
+        <div className="flex items-start gap-4 h-[115px] flex-1 pt-[18px]" style={{ paddingLeft: isDowntown ? '29px' : '24px', paddingRight: '24px' }}>
+          {/* Train icon column */}
+          <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0">
             {iconSrc ? (
               <img src={iconSrc} alt={`${line} train`} className="w-[72px] h-[72px] object-contain" />
             ) : (
@@ -53,14 +54,23 @@ export default function TrackCard({
             )}
           </div>
 
-          <div className="flex-1 flex flex-col justify-center gap-3 min-w-0">
-            <div className="text-[50px] font-bold leading-none text-black">
+          {/* Text column with grid for vertical alignment */}
+          <div className="flex-1 grid" style={{ gridTemplateRows: '8px 50px 14px 20px 1fr', height: '97px' }}>
+            <div></div>
+            {/* Destination */}
+            <div className="text-[50px] font-bold leading-none text-black overflow-hidden whitespace-nowrap" style={{ textOverflow: 'ellipsis', alignSelf: 'start' }}>
               {destination}
             </div>
-            <div className="text-[20px] leading-none text-black/70">{subtitle}</div>
+            <div></div>
+            {/* Subtitle */}
+            <div className="text-[20px] leading-none text-black/70 overflow-hidden whitespace-nowrap" style={{ textOverflow: 'ellipsis', alignSelf: 'start' }}>
+              {subtitle}
+            </div>
+            <div></div>
           </div>
 
-          <div className="w-[140px] text-center flex-shrink-0 flex flex-col justify-center">
+          {/* Arrival time column */}
+          <div className="w-[140px] text-center flex flex-col flex-shrink-0">
             <div className="text-[85px] font-bold leading-[0.8] text-black">
               {firstArrival}
             </div>
