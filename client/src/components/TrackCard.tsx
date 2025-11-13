@@ -70,7 +70,7 @@ export default function TrackCard({
               <img 
                 src={iconSrc} 
                 alt={`${line} train`} 
-                className="w-[79.2px] h-[79.2px] object-contain"
+                className="w-[87.12px] h-[87.12px] object-contain"
                 style={{ transform: 'translate(-15px, -10px)' }}
               />
             ) : (
