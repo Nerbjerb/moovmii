@@ -137,7 +137,7 @@ export default function Kiosk() {
         </div>
 
         <main 
-          className="bg-[#0b0b0b] rounded-md shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col"
+          className="bg-[#0b0b0b] rounded-md shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11"
           style={{ width: '800px', height: '480px' }}
         >
         <section ref={containerRef} className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
