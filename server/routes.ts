@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { mapOWMCodeToIcon } from "@shared/weatherIconMapper";
+import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Weather API route - fetches current and 3-hour forecast for NYC
@@ -122,6 +123,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching weather:", error);
       res.status(500).json({ error: "Failed to fetch weather data" });
+    }
+  });
+
+  // Subway API route - fetches real-time N/W train arrivals at Broadway-Astoria
+  app.get("/api/subway", async (req, res) => {
+    try {
+      const apiKey = process.env.MTA_API_KEY;
+      if (!apiKey) {
+        console.error("MTA_API_KEY environment variable not configured");
+        return res.status(500).json({ error: "MTA API key not configured" });
+      }
+
+      // Fetch GTFS-realtime feed for NQRW lines with API key header
+      const response = await fetch(
+        "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
+        {
+          headers: {
+            "x-api-key": apiKey,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`MTA API error (${response.status}): ${errorText}`);
+        return res.status(502).json({ 
+          error: "Failed to fetch MTA data", 
+          details: `Upstream returned ${response.status}` 
+        });
+      }
+
+      // Decode Protocol Buffer data
+      const buffer = await response.arrayBuffer();
+      const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+        new Uint8Array(buffer)
+      );
+
+      // Broadway-Astoria stop IDs (R05N = Northbound, R05S = Southbound)
+      const BROADWAY_ASTORIA_NORTH = "R05N";
+      const BROADWAY_ASTORIA_SOUTH = "R05S";
+
+      // Track arrivals by direction and line
+      const uptownArrivals: { line: string; minutes: number }[] = [];
+      const downtownArrivals: { line: string; minutes: number }[] = [];
+
+      const now = Math.floor(Date.now() / 1000); // Current time in seconds
+
+      // Process each entity in the feed
+      for (const entity of feed.entity) {
+        if (!entity.tripUpdate) continue;
+
+        const trip = entity.tripUpdate.trip;
+        const routeId = trip?.routeId;
+
+        // Filter for N and W trains only
+        if (routeId !== "N" && routeId !== "W") continue;
+
+        // Process stop time updates
+        for (const stopTimeUpdate of entity.tripUpdate.stopTimeUpdate || []) {
+          const stopId = stopTimeUpdate.stopId;
+          const arrival = stopTimeUpdate.arrival;
+
+          if (!arrival?.time) continue;
+
+          const arrivalTime = typeof arrival.time === 'number' 
+            ? arrival.time 
+            : Number(arrival.time);
+          const minutesUntil = Math.floor((arrivalTime - now) / 60);
+
+          // Only include future arrivals
+          if (minutesUntil < 0) continue;
+
+          // Categorize by direction
+          if (stopId === BROADWAY_ASTORIA_NORTH) {
+            uptownArrivals.push({ line: routeId, minutes: minutesUntil });
+          } else if (stopId === BROADWAY_ASTORIA_SOUTH) {
+            downtownArrivals.push({ line: routeId, minutes: minutesUntil });
+          }
+        }
+      }
+
+      // Sort by arrival time and take top 3 for each direction
+      uptownArrivals.sort((a, b) => a.minutes - b.minutes);
+      downtownArrivals.sort((a, b) => a.minutes - b.minutes);
+
+      // Determine primary line for each direction (most frequent)
+      const uptownLine = uptownArrivals.length > 0 ? uptownArrivals[0].line : "N";
+      const downtownLine = downtownArrivals.length > 0 ? downtownArrivals[0].line : "W";
+
+      // Format response matching SubwayArrival schema
+      const subwayData = [
+        {
+          direction: "Uptown",
+          line: uptownLine,
+          destination: "Queens",
+          subtitle: "Astoria-Ditmars Blvd",
+          arrivalMinutes: uptownArrivals.slice(0, 3).map(a => a.minutes),
+        },
+        {
+          direction: "Downtown",
+          line: downtownLine,
+          destination: "Manhattan",
+          subtitle: "Coney Island-Stillwell Ave",
+          arrivalMinutes: downtownArrivals.slice(0, 3).map(a => a.minutes),
+        },
+      ];
+
+      res.json(subwayData);
+    } catch (error) {
+      console.error("Error fetching subway data:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({ 
+        error: "Failed to fetch subway data",
+        details: errorMessage
+      });
     }
   });
 

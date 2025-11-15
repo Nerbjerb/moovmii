@@ -11,23 +11,6 @@ export default function Kiosk() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { containerRef, registerCard } = useTrackAlignment();
 
-  const sampleTracks: SubwayArrival[] = [
-    {
-      direction: "Uptown",
-      line: "N",
-      destination: "Queens",
-      subtitle: "Astoria-Ditmars Blvd",
-      arrivalMinutes: [12, 15, 20],
-    },
-    {
-      direction: "Downtown",
-      line: "W",
-      destination: "Manhattan",
-      subtitle: "Coney Island-Stillwell Ave",
-      arrivalMinutes: [2, 8, 14],
-    },
-  ];
-
   // Fetch real weather data from OpenWeatherMap
   const { data: weatherData, isLoading: isWeatherLoading } = useQuery<Array<{
     icon: WeatherIconName;
@@ -37,6 +20,12 @@ export default function Kiosk() {
   }>>({
     queryKey: ['/api/weather'],
     refetchInterval: 10 * 60 * 1000, // Refresh every 10 minutes
+  });
+
+  // Fetch real-time subway data from MTA
+  const { data: subwayData, isLoading: isSubwayLoading } = useQuery<SubwayArrival[]>({
+    queryKey: ['/api/subway'],
+    refetchInterval: 30 * 1000, // Refresh every 30 seconds for real-time updates
   });
 
   // Fallback weather data while loading
@@ -50,9 +39,26 @@ export default function Kiosk() {
     { icon: "day-cloudy", temperature: "--°", description: "Loading", time: "..." },
   ];
 
-  const displayWeather = weatherData || defaultWeather;
+  // Fallback subway data while loading
+  const defaultSubway: SubwayArrival[] = [
+    {
+      direction: "Uptown",
+      line: "N",
+      destination: "Queens",
+      subtitle: "Astoria-Ditmars Blvd",
+      arrivalMinutes: [],
+    },
+    {
+      direction: "Downtown",
+      line: "W",
+      destination: "Manhattan",
+      subtitle: "Coney Island-Stillwell Ave",
+      arrivalMinutes: [],
+    },
+  ];
 
-  const [tracks, setTracks] = useState(sampleTracks);
+  const displayWeather = weatherData || defaultWeather;
+  const displaySubway = subwayData || defaultSubway;
 
   useEffect(() => {
     // Update current time every minute
@@ -63,22 +69,6 @@ export default function Kiosk() {
     return () => clearInterval(timeInterval);
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTracks((prevTracks) =>
-        prevTracks.map((track) => {
-          const updatedMinutes = track.arrivalMinutes.map((min) => Math.max(1, min - 1));
-          if (updatedMinutes[0] <= 0) {
-            updatedMinutes.push(updatedMinutes.shift()! + 6);
-          }
-          return { ...track, arrivalMinutes: updatedMinutes };
-        })
-      );
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8">
       <div className="relative">
@@ -87,7 +77,7 @@ export default function Kiosk() {
           style={{ width: '800px', height: '480px' }}
         >
         <section ref={containerRef} className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
-          {tracks.map((track, idx) => (
+          {displaySubway.map((track, idx) => (
             <TrackCard
               key={idx}
               direction={track.direction}
@@ -129,7 +119,7 @@ export default function Kiosk() {
       </div>
 
       <footer className="mt-4 text-sm text-muted-foreground" data-testid="text-footer">
-        Live weather powered by OpenWeatherMap • Subway data mocked (replace with MTA feed)
+        Live data: OpenWeatherMap • MTA Real-time Subway Feed
       </footer>
     </div>
   );
