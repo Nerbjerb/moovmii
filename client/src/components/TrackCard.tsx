@@ -84,17 +84,14 @@ export default function TrackCard({
             )}
           </div>
 
-          {/* Destination - single line */}
+          {/* Destination - single line, no truncation */}
           <div 
             ref={refs?.destinationRef}
-            className="text-[30px] font-bold text-black overflow-hidden" 
+            className="text-[30px] font-bold text-black whitespace-nowrap" 
             style={{ 
               gridRow: '3', 
               gridColumn: '2', 
               alignSelf: 'start',
-              display: '-webkit-box',
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: 'vertical',
               lineHeight: '1.1',
               transform: isDowntown ? 'translateY(-100px)' : 'translateY(-100px)'
             }}
