@@ -90,7 +90,7 @@ export default function TrackCard({
           {/* Destination - single line, no truncation */}
           <div 
             ref={refs?.destinationRef}
-            className="text-[30px] font-bold text-black whitespace-nowrap" 
+            className="text-[50px] font-bold text-black whitespace-nowrap" 
             style={{ 
               gridRow: '3', 
               gridColumn: '2', 
