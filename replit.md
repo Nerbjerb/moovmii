@@ -94,7 +94,7 @@ Preferred communication style: Simple, everyday language.
   - Route separation: N and W train arrivals tracked separately by route and direction
   - Line selection: Displays the line (N or W) with the soonest arrival for each direction
   - Headsign extraction: Uses actual trip headsigns from GTFS feed with fallback to defaults
-  - Zero-minute arrivals: Trains arriving now (0 minutes) display "Now" instead of "0 Min"
+  - Zero-minute arrivals: Trains arriving now (0 minutes) display "1 Min" instead of "0 Min"
   - Automatic 30-second refresh interval on frontend
   - Uses `gtfs-realtime-bindings` package to decode Protocol Buffer data
 - All external APIs accessed server-side via `/api` endpoints
@@ -124,7 +124,7 @@ Preferred communication style: Simple, everyday language.
 - Live N/W train arrivals at Broadway-Astoria station (R05) displayed with up to 3 upcoming trains per direction
 - Each direction card shows only one line (N or W) based on which has the earliest arrival
 - All arrival times in a card belong to the same train line (no mixed N/W arrivals)
-- Zero-minute arrivals render as "Now" with adjusted typography (60px vs 85px for main display)
+- Zero-minute arrivals display "1 Min" to indicate trains arriving imminently
 
 **NYC Timezone Handling**
 - All weather times displayed in NYC Eastern Time (America/New_York)
