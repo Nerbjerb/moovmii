@@ -34,6 +34,12 @@ export default function TrackCard({
   const iconSrc = lineIcons[line];
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
 
+  // Helper to display arrival time (show "Now" for 0 minutes)
+  const formatMinutes = (mins: number | undefined): string | number => {
+    if (mins === undefined) return '';
+    return mins === 0 ? 'Now' : mins;
+  };
+
   return (
     <div className="relative flex items-center gap-3">
       {/* Main card - front layer */}
@@ -120,10 +126,10 @@ export default function TrackCard({
             className="w-[140px] text-center flex flex-col" 
             style={{ gridRow: '1 / 7', gridColumn: '3', alignSelf: 'start', paddingTop: '18px', transform: 'translate(20px, -10px)' }}
           >
-            <div className="text-[85px] font-bold leading-[0.8] text-black">
-              {firstArrival}
+            <div className={`font-bold leading-[0.8] text-black ${firstArrival === 0 ? 'text-[60px]' : 'text-[85px]'}`}>
+              {formatMinutes(firstArrival)}
             </div>
-            <div className="text-xl mt-1 text-black">Min</div>
+            {firstArrival !== 0 && <div className="text-xl mt-1 text-black">Min</div>}
           </div>
         </div>
       </Card>
@@ -143,8 +149,10 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{line}</span>
               )}
             </div>
-            <div className="text-[22px] font-medium text-black">{secondArrival}</div>
-            <div className="text-xs -mt-1 text-black">Min</div>
+            <div className={`font-medium text-black ${secondArrival === 0 ? 'text-[16px]' : 'text-[22px]'}`}>
+              {formatMinutes(secondArrival)}
+            </div>
+            {secondArrival !== 0 && <div className="text-xs -mt-1 text-black">Min</div>}
           </div>
         )}
 
@@ -161,8 +169,10 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{line}</span>
               )}
             </div>
-            <div className="text-[22px] font-medium text-black">{thirdArrival}</div>
-            <div className="text-xs -mt-1 text-black">Min</div>
+            <div className={`font-medium text-black ${thirdArrival === 0 ? 'text-[16px]' : 'text-[22px]'}`}>
+              {formatMinutes(thirdArrival)}
+            </div>
+            {thirdArrival !== 0 && <div className="text-xs -mt-1 text-black">Min</div>}
           </div>
         )}
       </div>

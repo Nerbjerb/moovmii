@@ -87,7 +87,13 @@ Preferred communication style: Simple, everyday language.
   - Automatic 10-minute refresh interval on frontend
   - Weather icon mapping system supporting 50+ conditions with day/night variants
   - Comprehensive condition code mapping in `shared/weatherIconMapper.ts`
-- **MTA Real-time Subway Data**: Not yet implemented (currently using mock data)
+- **MTA GTFS Real-time Feed**: Live subway arrival data for N/W trains at Broadway-Astoria
+  - GTFS-realtime Protocol Buffer format from `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw`
+  - No API key required (publicly accessible as of 2025)
+  - Stop IDs: R05N (Northbound/Uptown), R05S (Southbound/Downtown)
+  - Filters for N and W trains, calculates arrival times in minutes
+  - Automatic 30-second refresh interval on frontend
+  - Uses `gtfs-realtime-bindings` package to decode Protocol Buffer data
 - All external APIs accessed server-side via `/api` endpoints
 
 ### Key Architectural Decisions
@@ -102,16 +108,17 @@ Preferred communication style: Simple, everyday language.
 - Vite alias configuration (`@assets`) for clean asset imports
 - SVG icons imported directly into React components for better bundling
 
-**Fullscreen Kiosk Mode**
-- Fullscreen API integration for dedicated kiosk display
-- 12/24 hour time format toggle for user preference
-- Responsive design with breakpoint at 900px for mobile vs. desktop layouts
+**Kiosk Display Mode**
+- Clean 800x480 pixel kiosk display without navigation or controls
+- Removed moovmii logo, grid rulers, and time format toggle
+- Clock fixed to 12-hour format for consistent kiosk display
 
 **Real-time Updates**
-- Clock updates every second via `setInterval`
+- Clock always displays in 12-hour format (AM/PM)
 - Weather data fetched every 10 minutes from OpenWeatherMap API
 - Weather forecast shows next round hour in NYC time + 3 hours ahead
-- Subway arrival data currently static but structured for future real-time updates
+- Subway arrival data fetched every 30 seconds from MTA GTFS real-time feed
+- Live N/W train arrivals at Broadway-Astoria station (R05) displayed with up to 3 upcoming trains per direction
 
 **NYC Timezone Handling**
 - All weather times displayed in NYC Eastern Time (America/New_York)
