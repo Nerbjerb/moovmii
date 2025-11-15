@@ -96,7 +96,7 @@ export default function TrackCard({
               gridColumn: '2', 
               alignSelf: 'start',
               lineHeight: '1.1',
-              transform: isDowntown ? 'translateY(-100px)' : 'translateY(-100px)'
+              transform: isDowntown ? 'translateY(-90px)' : 'translateY(-90px)'
             }}
           >
             {displayDestination}
