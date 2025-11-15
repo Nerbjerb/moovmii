@@ -84,7 +84,7 @@ export default function TrackCard({
             )}
           </div>
 
-          {/* Destination - with line clamp */}
+          {/* Destination - single line */}
           <div 
             ref={refs?.destinationRef}
             className="text-[50px] font-bold text-black overflow-hidden" 
@@ -93,7 +93,7 @@ export default function TrackCard({
               gridColumn: '2', 
               alignSelf: 'start',
               display: '-webkit-box',
-              WebkitLineClamp: 2,
+              WebkitLineClamp: 1,
               WebkitBoxOrient: 'vertical',
               lineHeight: '1.1',
               transform: isDowntown ? 'translateY(-100px)' : 'translateY(-100px)'
