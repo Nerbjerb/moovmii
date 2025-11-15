@@ -7,7 +7,7 @@ export default function TrackCardExample() {
         direction="Uptown"
         line="N"
         destination="Queens"
-        subtitle="Astoria-Ditmars Blvd"
+        subtitle="Astoria-Ditmars"
         arrivalMinutes={[12, 15, 20]}
       />
       <TrackCard
