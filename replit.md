@@ -91,7 +91,10 @@ Preferred communication style: Simple, everyday language.
   - GTFS-realtime Protocol Buffer format from `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw`
   - No API key required (publicly accessible as of 2025)
   - Stop IDs: R05N (Northbound/Uptown), R05S (Southbound/Downtown)
-  - Filters for N and W trains, calculates arrival times in minutes
+  - Route separation: N and W train arrivals tracked separately by route and direction
+  - Line selection: Displays the line (N or W) with the soonest arrival for each direction
+  - Headsign extraction: Uses actual trip headsigns from GTFS feed with fallback to defaults
+  - Zero-minute arrivals: Trains arriving now (0 minutes) display "Now" instead of "0 Min"
   - Automatic 30-second refresh interval on frontend
   - Uses `gtfs-realtime-bindings` package to decode Protocol Buffer data
 - All external APIs accessed server-side via `/api` endpoints
@@ -119,6 +122,9 @@ Preferred communication style: Simple, everyday language.
 - Weather forecast shows next round hour in NYC time + 3 hours ahead
 - Subway arrival data fetched every 30 seconds from MTA GTFS real-time feed
 - Live N/W train arrivals at Broadway-Astoria station (R05) displayed with up to 3 upcoming trains per direction
+- Each direction card shows only one line (N or W) based on which has the earliest arrival
+- All arrival times in a card belong to the same train line (no mixed N/W arrivals)
+- Zero-minute arrivals render as "Now" with adjusted typography (60px vs 85px for main display)
 
 **NYC Timezone Handling**
 - All weather times displayed in NYC Eastern Time (America/New_York)
