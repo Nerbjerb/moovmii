@@ -87,7 +87,7 @@ export default function TrackCard({
           {/* Destination - single line */}
           <div 
             ref={refs?.destinationRef}
-            className="text-[50px] font-bold text-black overflow-hidden" 
+            className="text-[30px] font-bold text-black overflow-hidden" 
             style={{ 
               gridRow: '3', 
               gridColumn: '2', 
