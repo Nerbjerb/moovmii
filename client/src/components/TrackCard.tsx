@@ -40,6 +40,9 @@ export default function TrackCard({
     return mins === 0 ? 1 : mins;
   };
 
+  // Extract text before dash for destination
+  const displayDestination = destination.split('-')[0].trim();
+
   return (
     <div className="relative flex items-center gap-3">
       {/* Main card - front layer */}
@@ -96,7 +99,7 @@ export default function TrackCard({
               transform: isDowntown ? 'translateY(-100px)' : 'translateY(-100px)'
             }}
           >
-            {destination}
+            {displayDestination}
           </div>
 
           {/* Subtitle - with line clamp */}
