@@ -23,6 +23,7 @@ export type SubwayArrival = {
   destination: string;
   subtitle: string;
   arrivalMinutes: number[];
+  arrivalLines: string[];
 };
 
 export type WeatherData = {

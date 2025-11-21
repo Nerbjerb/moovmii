@@ -153,18 +153,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const BROADWAY_ASTORIA_NORTH = "R05N";
       const BROADWAY_ASTORIA_SOUTH = "R05S";
 
-      // Track arrivals by route and direction separately
-      const arrivalsByRoute: Record<string, { 
+      // Track arrivals by direction (merge N and W trains)
+      const northboundArrivals: { 
         line: string; 
         minutes: number; 
         headsign: string;
-        direction: 'north' | 'south';
-      }[]> = {
-        'N-north': [],
-        'N-south': [],
-        'W-north': [],
-        'W-south': [],
-      };
+      }[] = [];
+      const southboundArrivals: { 
+        line: string; 
+        minutes: number; 
+        headsign: string;
+      }[] = [];
 
       const now = Math.floor(Date.now() / 1000); // Current time in seconds
 
@@ -196,44 +195,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Include trains arriving now (0 minutes) and future arrivals
           if (minutesUntil < 0) continue;
 
-          // Categorize by route and direction
+          // Categorize by direction, mixing N and W trains
           if (stopId === BROADWAY_ASTORIA_NORTH) {
-            const key = `${routeId}-north`;
-            arrivalsByRoute[key].push({ 
+            northboundArrivals.push({ 
               line: routeId, 
               minutes: minutesUntil,
               headsign: tripHeadsign,
-              direction: 'north'
             });
           } else if (stopId === BROADWAY_ASTORIA_SOUTH) {
-            const key = `${routeId}-south`;
-            arrivalsByRoute[key].push({ 
+            southboundArrivals.push({ 
               line: routeId, 
               minutes: minutesUntil,
               headsign: tripHeadsign,
-              direction: 'south'
             });
           }
         }
       }
 
-      // Sort all arrays by arrival time
-      Object.keys(arrivalsByRoute).forEach(key => {
-        arrivalsByRoute[key].sort((a, b) => a.minutes - b.minutes);
-      });
+      // Sort by arrival time and take first 3 trains per direction
+      northboundArrivals.sort((a, b) => a.minutes - b.minutes);
+      southboundArrivals.sort((a, b) => a.minutes - b.minutes);
 
-      // Determine which line to show for each direction (earliest arrival)
-      const uptownNTimes = arrivalsByRoute['N-north'].slice(0, 3);
-      const uptownWTimes = arrivalsByRoute['W-north'].slice(0, 3);
-      const downtownNTimes = arrivalsByRoute['N-south'].slice(0, 3);
-      const downtownWTimes = arrivalsByRoute['W-south'].slice(0, 3);
-
-      // Pick the line with the soonest arrival for each direction
-      const uptownLine = uptownNTimes[0]?.minutes <= (uptownWTimes[0]?.minutes ?? Infinity) ? 'N' : 'W';
-      const downtownLine = downtownNTimes[0]?.minutes <= (downtownWTimes[0]?.minutes ?? Infinity) ? 'N' : 'W';
-
-      const uptownData = uptownLine === 'N' ? uptownNTimes : uptownWTimes;
-      const downtownData = downtownLine === 'N' ? downtownNTimes : downtownWTimes;
+      const uptownData = northboundArrivals.slice(0, 3);
+      const downtownData = southboundArrivals.slice(0, 3);
 
       // Helper to get destination from headsign or use default
       const getDestination = (data: typeof uptownData, defaultDest: string): string => {
@@ -244,20 +228,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Format response matching SubwayArrival schema
+      // Use the first train's line for the main display
       const subwayData = [
         {
           direction: "Uptown",
-          line: uptownLine,
+          line: uptownData[0]?.line || "N",
           destination: getDestination(uptownData, "Astoria - Ditmars Blvd"),
-          subtitle: uptownLine === 'N' ? "via Broadway" : "via Broadway (weekdays)",
+          subtitle: uptownData[0]?.line === 'N' ? "via Broadway" : "via Broadway (weekdays)",
           arrivalMinutes: uptownData.map(a => a.minutes),
+          arrivalLines: uptownData.map(a => a.line), // Include line info for each arrival
         },
         {
           direction: "Downtown",
-          line: downtownLine,
+          line: downtownData[0]?.line || "N",
           destination: getDestination(downtownData, "Coney Island - Stillwell Av"),
-          subtitle: downtownLine === 'N' ? "via Broadway" : "via Broadway (weekdays)",
+          subtitle: downtownData[0]?.line === 'N' ? "via Broadway" : "via Broadway (weekdays)",
           arrivalMinutes: downtownData.map(a => a.minutes),
+          arrivalLines: downtownData.map(a => a.line), // Include line info for each arrival
         },
       ];
 
