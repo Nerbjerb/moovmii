@@ -35,7 +35,7 @@ export default function TrackCard({
 }: TrackCardProps) {
   const iconSrc = lineIcons[line];
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
-  const [firstLine, secondLine, thirdLine] = arrivalLines;
+  const [firstLine, secondLine, thirdLine] = arrivalLines || [];
   
   const secondIconSrc = secondLine ? lineIcons[secondLine] : null;
   const thirdIconSrc = thirdLine ? lineIcons[thirdLine] : null;

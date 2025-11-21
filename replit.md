@@ -55,7 +55,7 @@ Preferred communication style: Simple, everyday language.
 - Currently minimal routes implemented (scaffolded in `server/routes.ts`)
 
 **Data Models**
-- `SubwayArrival`: direction, line, destination, subtitle, arrivalMinutes array
+- `SubwayArrival`: direction, line, destination, subtitle, arrivalMinutes array, arrivalLines array
 - `WeatherData`: icon, temperature, description, time
 - `User`: id, username, password (scaffolded for future authentication)
 
@@ -91,8 +91,8 @@ Preferred communication style: Simple, everyday language.
   - GTFS-realtime Protocol Buffer format from `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw`
   - No API key required (publicly accessible as of 2025)
   - Stop IDs: R05N (Northbound/Uptown), R05S (Southbound/Downtown)
-  - Route separation: N and W train arrivals tracked separately by route and direction
-  - Line selection: Displays the line (N or W) with the soonest arrival for each direction
+  - Chronological arrival display: N and W train arrivals merged and sorted by time for each direction
+  - Mixed line sequence: 2nd and 3rd cards show next consecutive trains regardless of line (e.g., N, W, N)
   - Headsign extraction: Uses actual trip headsigns from GTFS feed with fallback to defaults
   - Zero-minute arrivals: Trains arriving now (0 minutes) display "1 Min" instead of "0 Min"
   - Automatic 30-second refresh interval on frontend
@@ -122,8 +122,8 @@ Preferred communication style: Simple, everyday language.
 - Weather forecast shows next round hour in NYC time + 3 hours ahead
 - Subway arrival data fetched every 30 seconds from MTA GTFS real-time feed
 - Live N/W train arrivals at Broadway-Astoria station (R05) displayed with up to 3 upcoming trains per direction
-- Each direction card shows only one line (N or W) based on which has the earliest arrival
-- All arrival times in a card belong to the same train line (no mixed N/W arrivals)
+- Mixed chronological sequence: All three arrival cards (main, 2nd, 3rd) show the next trains in time order regardless of line (e.g., N, W, N)
+- Each card displays the appropriate train line icon (N or W) based on which train is arriving
 - Zero-minute arrivals display "1 Min" to indicate trains arriving imminently
 
 **NYC Timezone Handling**
