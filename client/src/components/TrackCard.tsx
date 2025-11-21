@@ -137,7 +137,7 @@ export default function TrackCard({
       {/* Secondary arrivals positioned outside main card */}
       <div className="flex gap-3 items-center z-40">
         {secondArrival !== undefined && (
-          <div className="bg-[#ABABAB] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
+          <div className="bg-[#D9D9D9] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {iconSrc ? (
                 <img
@@ -157,7 +157,7 @@ export default function TrackCard({
         )}
 
         {thirdArrival !== undefined && (
-          <div className="bg-[#7A7A7A] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
+          <div className="bg-[#D9D9D9] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {iconSrc ? (
                 <img
