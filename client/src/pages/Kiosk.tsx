@@ -47,6 +47,7 @@ export default function Kiosk() {
       destination: "Queens",
       subtitle: "Astoria-Ditmars Blvd",
       arrivalMinutes: [],
+      arrivalLines: [],
     },
     {
       direction: "Downtown",
@@ -54,6 +55,7 @@ export default function Kiosk() {
       destination: "Manhattan",
       subtitle: "Coney Island-Stillwell Ave",
       arrivalMinutes: [],
+      arrivalLines: [],
     },
   ];
 
@@ -85,6 +87,7 @@ export default function Kiosk() {
               destination={track.destination}
               subtitle={track.subtitle}
               arrivalMinutes={track.arrivalMinutes}
+              arrivalLines={track.arrivalLines}
               isDowntown={idx === 1}
               refs={registerCard(`track-${idx}`)}
             />

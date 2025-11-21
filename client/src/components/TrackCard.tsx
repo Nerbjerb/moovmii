@@ -8,6 +8,7 @@ interface TrackCardProps {
   destination: string;
   subtitle: string;
   arrivalMinutes: number[];
+  arrivalLines: string[];
   isDowntown?: boolean;
   refs?: {
     badgeRef?: (el: HTMLDivElement | null) => void;
@@ -28,11 +29,16 @@ export default function TrackCard({
   destination,
   subtitle,
   arrivalMinutes,
+  arrivalLines,
   isDowntown = false,
   refs,
 }: TrackCardProps) {
   const iconSrc = lineIcons[line];
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
+  const [firstLine, secondLine, thirdLine] = arrivalLines;
+  
+  const secondIconSrc = secondLine ? lineIcons[secondLine] : null;
+  const thirdIconSrc = thirdLine ? lineIcons[thirdLine] : null;
 
   // Helper to display arrival time (show "1" for 0 minutes)
   const formatMinutes = (mins: number | undefined): string | number => {
@@ -139,14 +145,14 @@ export default function TrackCard({
         {secondArrival !== undefined && (
           <div className="bg-[#D9D9D9] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              {iconSrc ? (
+              {secondIconSrc ? (
                 <img
-                  src={iconSrc}
-                  alt={`${line} train`}
+                  src={secondIconSrc}
+                  alt={`${secondLine} train`}
                   className="w-[33.6px] h-[33.6px] object-contain"
                 />
               ) : (
-                <span className="text-sm font-bold text-primary-foreground">{line}</span>
+                <span className="text-sm font-bold text-primary-foreground">{secondLine}</span>
               )}
             </div>
             <div className="text-[22px] font-medium text-black">
@@ -159,14 +165,14 @@ export default function TrackCard({
         {thirdArrival !== undefined && (
           <div className="bg-[#D9D9D9] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              {iconSrc ? (
+              {thirdIconSrc ? (
                 <img
-                  src={iconSrc}
-                  alt={`${line} train`}
+                  src={thirdIconSrc}
+                  alt={`${thirdLine} train`}
                   className="w-[33.6px] h-[33.6px] object-contain"
                 />
               ) : (
-                <span className="text-sm font-bold text-primary-foreground">{line}</span>
+                <span className="text-sm font-bold text-primary-foreground">{thirdLine}</span>
               )}
             </div>
             <div className="text-[22px] font-medium text-black">
