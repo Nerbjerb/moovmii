@@ -77,8 +77,8 @@ export default function Kiosk() {
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative"
           style={{ width: '800px', height: '480px' }}
         >
-        {/* Settings icon - bottom left corner */}
-        <div className="absolute bottom-[10px] left-[10px]">
+        {/* Settings icon - bottom right corner */}
+        <div className="absolute bottom-[10px] right-[10px]">
           <Settings className="w-5 h-5 text-white cursor-pointer" data-testid="button-settings" />
         </div>
 
