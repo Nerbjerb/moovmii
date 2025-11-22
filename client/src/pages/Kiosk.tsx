@@ -78,7 +78,7 @@ export default function Kiosk() {
           style={{ width: '800px', height: '480px' }}
         >
         {/* Settings icon - bottom left corner */}
-        <div className="absolute bottom-6 left-6">
+        <div className="absolute bottom-[10px] left-[10px]">
           <Settings className="w-5 h-5 text-white cursor-pointer" data-testid="button-settings" />
         </div>
 
