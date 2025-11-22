@@ -63,7 +63,7 @@ export default function TrackCard({
         {/* Train icon - absolute positioned */}
         <div 
           className="absolute w-24 h-24 rounded-full flex items-center justify-center" 
-          style={{ left: '84px', top: '18px' }}
+          style={{ left: '64px', top: '18px' }}
         >
           {iconSrc ? (
             <img 
@@ -81,7 +81,7 @@ export default function TrackCard({
         <div 
           className="absolute text-[35px] font-bold text-white whitespace-nowrap" 
           style={{ 
-            left: '180px',
+            left: '160px',
             top: '98px',
             lineHeight: '1.1',
             transform: 'translate(-30px, -75px)'
@@ -94,7 +94,7 @@ export default function TrackCard({
         <div 
           className="absolute text-[20px] text-white overflow-hidden" 
           style={{ 
-            left: '180px',
+            left: '160px',
             top: '178px',
             display: '-webkit-box',
             WebkitLineClamp: 1,
