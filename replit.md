@@ -134,17 +134,18 @@ Preferred communication style: Simple, everyday language.
 - Automatically handles DST transitions (EST ↔ EDT)
 - Day/night icon selection based on NYC hour (6 AM - 6 PM = day)
 
-**Cross-Card Element Alignment**
-- Custom hook `useTrackAlignment` synchronizes element heights across both train cards
-- Uses ResizeObserver to measure actual rendered heights of badge, destination, subtitle, and arrivals
-- Measurements batched via requestAnimationFrame to prevent infinite render loops
-- Writes CSS custom properties directly to DOM (avoids React state re-renders)
-- TrackCard grid templates consume CSS variables like `var(--track-badge-height, 96px)`
-- Ensures paired elements (icons, destinations, subtitles, arrivals) align perfectly across cards
-- Adapts dynamically to content variations (long destination names, wrapping text, etc.)
+**Fixed Element Positioning**
+- TrackCard uses fixed absolute positioning for all elements (icon, destination, subtitle, arrival minutes)
+- Card dimensions: 570px width × 115px height
+- Icon positioned at left: 24px, top: 18px with transform: translate(-35px, -10px)
+- Destination text positioned at left: 120px with transform: translate(-30px, -90px)
+- Subtitle text positioned at left: 120px with transform: translate(-30px/-29px, -165px)
+- Arrival minutes positioned at right: 24px with transform: translate(-30px, -10px)
+- Static positioning ensures elements don't shift when content changes
+- Both cards (Uptown/Downtown) use identical fixed positioning for visual consistency
 
 **Performance Optimizations**
 - React Query configured with disabled refetching (staleTime: Infinity)
 - Component examples isolated in `client/src/components/examples/` for development
 - Minimal re-renders through proper React patterns
-- Cross-card alignment uses DOM mutations instead of React state to avoid render cascades
+- Fixed positioning eliminates dynamic layout recalculations
