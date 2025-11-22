@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Settings } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
@@ -73,9 +74,14 @@ export default function Kiosk() {
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8">
       <div className="relative">
         <main 
-          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11"
+          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative"
           style={{ width: '800px', height: '480px' }}
         >
+        {/* Settings icon - bottom left corner */}
+        <div className="absolute bottom-6 left-6">
+          <Settings className="w-5 h-5 text-white cursor-pointer" data-testid="button-settings" />
+        </div>
+
         <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
           {displaySubway.map((track, idx) => (
             <TrackCard
