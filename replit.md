@@ -32,7 +32,7 @@ Preferred communication style: Simple, everyday language.
 
 **Design Principles**
 - Distance readability: Critical information readable from 10+ feet away
-- High contrast: Dark background (#000000) with light content cards (#e6e6e6)
+- High contrast: Dark background (#0b0b0b) with dark gray train cards (#2D2C31) and white text
 - Instant comprehension: Users should grasp arrival times within 1 second
 - Persistent display: Designed for always-on kiosk screens, not browsing sessions
 

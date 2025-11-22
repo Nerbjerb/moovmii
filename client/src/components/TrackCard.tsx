@@ -52,10 +52,10 @@ export default function TrackCard({
   return (
     <div className="relative flex items-center gap-3">
       {/* Main card - front layer */}
-      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#D9D9D9] z-30 w-[570px]">
-        <div className="w-10 bg-[#D9D9D9] flex items-center justify-center self-stretch rounded-l-[18px]">
+      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[570px]">
+        <div className="w-10 bg-[#2D2C31] flex items-center justify-center self-stretch rounded-l-[18px]">
           <div 
-            className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-black text-center"
+            className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-white text-center"
             style={{ 
               writingMode: 'vertical-rl',
               transform: 'rotate(180deg)'
@@ -96,7 +96,7 @@ export default function TrackCard({
           {/* Destination - single line, no truncation */}
           <div 
             ref={refs?.destinationRef}
-            className="text-[35px] font-bold text-black whitespace-nowrap" 
+            className="text-[35px] font-bold text-white whitespace-nowrap" 
             style={{ 
               gridRow: '3', 
               gridColumn: '2', 
@@ -111,7 +111,7 @@ export default function TrackCard({
           {/* Subtitle - with line clamp */}
           <div 
             ref={refs?.subtitleRef}
-            className="text-[20px] text-black overflow-hidden" 
+            className="text-[20px] text-white overflow-hidden" 
             style={{ 
               gridRow: '5', 
               gridColumn: '2', 
@@ -132,10 +132,10 @@ export default function TrackCard({
             className="w-[140px] text-center flex flex-col" 
             style={{ gridRow: '1 / 7', gridColumn: '3', alignSelf: 'start', paddingTop: '18px', transform: 'translate(20px, -10px)' }}
           >
-            <div className="text-[85px] font-bold leading-[0.8] text-black">
+            <div className="text-[85px] font-bold leading-[0.8] text-white">
               {formatMinutes(firstArrival)}
             </div>
-            <div className="text-xl mt-1 text-black">Min</div>
+            <div className="text-xl mt-1 text-white">Min</div>
           </div>
         </div>
       </Card>
@@ -143,7 +143,7 @@ export default function TrackCard({
       {/* Secondary arrivals positioned outside main card */}
       <div className="flex gap-3 items-center z-40">
         {secondArrival !== undefined && (
-          <div className="bg-[#D9D9D9] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
+          <div className="bg-[#2D2C31] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {secondIconSrc ? (
                 <img
@@ -155,15 +155,15 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{secondLine}</span>
               )}
             </div>
-            <div className="text-[22px] font-medium text-black">
+            <div className="text-[22px] font-medium text-white">
               {formatMinutes(secondArrival)}
             </div>
-            <div className="text-xs -mt-1 text-black">Min</div>
+            <div className="text-xs -mt-1 text-white">Min</div>
           </div>
         )}
 
         {thirdArrival !== undefined && (
-          <div className="bg-[#D9D9D9] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
+          <div className="bg-[#2D2C31] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {thirdIconSrc ? (
                 <img
@@ -175,10 +175,10 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{thirdLine}</span>
               )}
             </div>
-            <div className="text-[22px] font-medium text-black">
+            <div className="text-[22px] font-medium text-white">
               {formatMinutes(thirdArrival)}
             </div>
-            <div className="text-xs -mt-1 text-black">Min</div>
+            <div className="text-xs -mt-1 text-white">Min</div>
           </div>
         )}
       </div>
