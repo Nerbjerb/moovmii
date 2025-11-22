@@ -52,8 +52,8 @@ export default function TrackCard({
   return (
     <div className="relative flex items-center gap-3">
       {/* Main card - front layer */}
-      <Card className="relative flex items-start gap-0 p-0 rounded-[18px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[570px]">
-        <div className="w-10 bg-[#2D2C31] flex items-center justify-center self-stretch rounded-l-[18px]">
+      <Card className="relative flex items-start gap-0 p-0 rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[570px]">
+        <div className="w-10 bg-[#2D2C31] flex items-center justify-center self-stretch rounded-l-[9px]">
           <div 
             className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-white text-center"
             style={{ 
@@ -143,7 +143,7 @@ export default function TrackCard({
       {/* Secondary arrivals positioned outside main card */}
       <div className="flex gap-3 items-center z-40">
         {secondArrival !== undefined && (
-          <div className="bg-[#2D2C31] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
+          <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {secondIconSrc ? (
                 <img
@@ -163,7 +163,7 @@ export default function TrackCard({
         )}
 
         {thirdArrival !== undefined && (
-          <div className="bg-[#2D2C31] rounded-xl h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
+          <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[78.5px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {thirdIconSrc ? (
                 <img
