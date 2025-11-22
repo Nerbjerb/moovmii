@@ -10,12 +10,6 @@ interface TrackCardProps {
   arrivalMinutes: number[];
   arrivalLines: string[];
   isDowntown?: boolean;
-  refs?: {
-    badgeRef?: (el: HTMLDivElement | null) => void;
-    destinationRef?: (el: HTMLDivElement | null) => void;
-    subtitleRef?: (el: HTMLDivElement | null) => void;
-    arrivalsRef?: (el: HTMLDivElement | null) => void;
-  };
 }
 
 const lineIcons: Record<string, string> = {
@@ -31,7 +25,6 @@ export default function TrackCard({
   arrivalMinutes,
   arrivalLines,
   isDowntown = false,
-  refs,
 }: TrackCardProps) {
   const iconSrc = lineIcons[line];
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
@@ -51,9 +44,10 @@ export default function TrackCard({
 
   return (
     <div className="relative flex items-center gap-3">
-      {/* Main card - front layer */}
-      <Card className="relative flex items-start gap-0 p-0 rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[570px]">
-        <div className="w-10 bg-[#2D2C31] flex items-center justify-center self-stretch rounded-l-[9px]">
+      {/* Main card - front layer with fixed positioning */}
+      <Card className="relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[570px] h-[115px]">
+        {/* Direction label - left strip */}
+        <div className="absolute left-0 top-0 w-10 h-full bg-[#2D2C31] flex items-center justify-center rounded-l-[9px]">
           <div 
             className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-white text-center"
             style={{ 
@@ -66,77 +60,61 @@ export default function TrackCard({
           </div>
         </div>
 
+        {/* Train icon - absolute positioned */}
         <div 
-          className="grid h-[115px] flex-1" 
+          className="absolute w-24 h-24 rounded-full flex items-center justify-center" 
+          style={{ left: '24px', top: '18px' }}
+        >
+          {iconSrc ? (
+            <img 
+              src={iconSrc} 
+              alt={`${line} train`} 
+              className="w-[69.7px] h-[69.7px] object-contain"
+              style={{ transform: 'translate(-35px, -10px)' }}
+            />
+          ) : (
+            <span className="text-[48px] font-bold text-primary-foreground">{line}</span>
+          )}
+        </div>
+
+        {/* Destination - absolute positioned */}
+        <div 
+          className="absolute text-[35px] font-bold text-white whitespace-nowrap" 
           style={{ 
-            paddingLeft: '24px', 
-            paddingRight: '24px',
-            gridTemplateColumns: '96px 1fr 140px',
-            gridTemplateRows: `18px var(--track-badge-height, 96px) var(--track-destination-height, 110px) 14px var(--track-subtitle-height, 20px) 1fr`
+            left: '120px',
+            top: '18px',
+            lineHeight: '1.1',
+            transform: 'translate(-30px, -90px)'
           }}
         >
-          {/* Train icon - badge row */}
-          <div 
-            ref={refs?.badgeRef}
-            className="w-24 h-24 rounded-full flex items-center justify-center" 
-            style={{ gridRow: '2', gridColumn: '1' }}
-          >
-            {iconSrc ? (
-              <img 
-                src={iconSrc} 
-                alt={`${line} train`} 
-                className="w-[69.7px] h-[69.7px] object-contain"
-                style={{ transform: 'translate(-35px, -10px)' }}
-              />
-            ) : (
-              <span className="text-[48px] font-bold text-primary-foreground">{line}</span>
-            )}
-          </div>
+          {displayDestination}
+        </div>
 
-          {/* Destination - single line, no truncation */}
-          <div 
-            ref={refs?.destinationRef}
-            className="text-[35px] font-bold text-white whitespace-nowrap" 
-            style={{ 
-              gridRow: '3', 
-              gridColumn: '2', 
-              alignSelf: 'start',
-              lineHeight: '1.1',
-              transform: 'translate(-30px, -90px)'
-            }}
-          >
-            {displayDestination}
-          </div>
+        {/* Subtitle - absolute positioned */}
+        <div 
+          className="absolute text-[20px] text-white overflow-hidden" 
+          style={{ 
+            left: '120px',
+            top: '18px',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            lineHeight: '1',
+            transform: isDowntown ? 'translate(-30px, -165px)' : 'translate(-29px, -165px)'
+          }}
+        >
+          {subtitle}
+        </div>
 
-          {/* Subtitle - with line clamp */}
-          <div 
-            ref={refs?.subtitleRef}
-            className="text-[20px] text-white overflow-hidden" 
-            style={{ 
-              gridRow: '5', 
-              gridColumn: '2', 
-              alignSelf: 'start',
-              display: '-webkit-box',
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: 'vertical',
-              lineHeight: '1',
-              transform: isDowntown ? 'translate(-30px, -165px)' : 'translate(-29px, -165px)'
-            }}
-          >
-            {subtitle}
+        {/* Arrival time - absolute positioned */}
+        <div 
+          className="absolute w-[140px] text-center flex flex-col" 
+          style={{ right: '24px', top: '18px', transform: 'translate(-30px, -10px)' }}
+        >
+          <div className="text-[85px] font-bold leading-[0.8] text-white">
+            {formatMinutes(firstArrival)}
           </div>
-
-          {/* Arrival time */}
-          <div 
-            ref={refs?.arrivalsRef}
-            className="w-[140px] text-center flex flex-col" 
-            style={{ gridRow: '1 / 7', gridColumn: '3', alignSelf: 'start', paddingTop: '18px', transform: 'translate(-30px, -10px)' }}
-          >
-            <div className="text-[85px] font-bold leading-[0.8] text-white">
-              {formatMinutes(firstArrival)}
-            </div>
-            <div className="text-xl mt-1 text-white">Min</div>
-          </div>
+          <div className="text-xl mt-1 text-white">Min</div>
         </div>
       </Card>
 
