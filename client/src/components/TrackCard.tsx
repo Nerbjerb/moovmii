@@ -109,7 +109,7 @@ export default function TrackCard({
         {/* Arrival time - absolute positioned */}
         <div 
           className="absolute w-[140px] text-center flex flex-col" 
-          style={{ right: '-20px', top: '18px', transform: 'translate(-30px, -10px)' }}
+          style={{ right: '24px', top: '18px', transform: 'translateY(-10px)' }}
         >
           <div className="text-[85px] font-bold leading-[0.8] text-white">
             {formatMinutes(firstArrival)}
