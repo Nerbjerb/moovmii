@@ -52,7 +52,7 @@ export default function TrackCard({
   return (
     <div className="relative flex items-center gap-3">
       {/* Main card - front layer */}
-      <Card className="relative flex items-start gap-0 p-0 rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[520px]">
+      <Card className="relative flex items-start gap-0 p-0 rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[570px]">
         <div className="w-10 bg-[#2D2C31] flex items-center justify-center self-stretch rounded-l-[9px]">
           <div 
             className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-white text-center"
