@@ -100,7 +100,7 @@ export default function TrackCard({
             WebkitLineClamp: 1,
             WebkitBoxOrient: 'vertical',
             lineHeight: '1',
-            transform: isDowntown ? 'translate(-30px, -165px)' : 'translate(-29px, -95px)'
+            transform: isDowntown ? 'translate(-30px, -95px)' : 'translate(-29px, -95px)'
           }}
         >
           {subtitle}
