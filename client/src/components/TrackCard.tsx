@@ -95,7 +95,7 @@ export default function TrackCard({
           className="absolute text-[20px] text-white overflow-hidden" 
           style={{ 
             left: '120px',
-            top: '98px',
+            top: '178px',
             display: '-webkit-box',
             WebkitLineClamp: 1,
             WebkitBoxOrient: 'vertical',
