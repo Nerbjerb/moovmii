@@ -63,7 +63,7 @@ export default function TrackCard({
         {/* Train icon - absolute positioned */}
         <div 
           className="absolute w-24 h-24 rounded-full flex items-center justify-center" 
-          style={{ left: '64px', top: '18px' }}
+          style={{ left: '69px', top: '18px' }}
         >
           {iconSrc ? (
             <img 
