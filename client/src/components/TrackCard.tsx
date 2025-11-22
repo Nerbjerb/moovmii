@@ -82,7 +82,7 @@ export default function TrackCard({
           className="absolute text-[35px] font-bold text-white whitespace-nowrap" 
           style={{ 
             left: '120px',
-            top: '18px',
+            top: '98px',
             lineHeight: '1.1',
             transform: 'translate(-30px, -90px)'
           }}
@@ -95,7 +95,7 @@ export default function TrackCard({
           className="absolute text-[20px] text-white overflow-hidden" 
           style={{ 
             left: '120px',
-            top: '18px',
+            top: '98px',
             display: '-webkit-box',
             WebkitLineClamp: 1,
             WebkitBoxOrient: 'vertical',
