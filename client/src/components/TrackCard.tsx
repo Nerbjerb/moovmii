@@ -84,7 +84,7 @@ export default function TrackCard({
             left: '120px',
             top: '98px',
             lineHeight: '1.1',
-            transform: 'translate(-30px, -90px)'
+            transform: 'translate(-30px, -75px)'
           }}
         >
           {displayDestination}
