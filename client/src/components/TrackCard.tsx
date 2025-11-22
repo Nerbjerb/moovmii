@@ -102,7 +102,7 @@ export default function TrackCard({
               gridColumn: '2', 
               alignSelf: 'start',
               lineHeight: '1.1',
-              transform: isDowntown ? 'translateY(-90px)' : 'translateY(-90px)'
+              transform: 'translate(-20px, -90px)'
             }}
           >
             {displayDestination}
@@ -120,7 +120,7 @@ export default function TrackCard({
               WebkitLineClamp: 1,
               WebkitBoxOrient: 'vertical',
               lineHeight: '1',
-              transform: isDowntown ? 'translateY(-165px)' : 'translate(1px, -165px)'
+              transform: isDowntown ? 'translate(-20px, -165px)' : 'translate(-19px, -165px)'
             }}
           >
             {subtitle}
