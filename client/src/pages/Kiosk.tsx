@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
+import GridOverlay from "@/components/GridOverlay";
 import { useTrackAlignment } from "@/hooks/useTrackAlignment";
 import type { SubwayArrival, WeatherData } from "@shared/schema";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
@@ -124,6 +125,8 @@ export default function Kiosk() {
       <footer className="mt-4 text-sm text-muted-foreground" data-testid="text-footer">
         Live data: OpenWeatherMap • MTA Real-time Subway Feed
       </footer>
+      
+      <GridOverlay spacing={10} color="#00ff00" opacity={0.3} />
     </div>
   );
 }
