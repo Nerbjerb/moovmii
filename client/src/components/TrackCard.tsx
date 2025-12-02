@@ -43,7 +43,7 @@ export default function TrackCard({
   const displayDestination = destination.split('-')[0].trim();
 
   return (
-    <div className="relative flex items-center gap-[18px]">
+    <div className="relative flex items-center gap-[3px]">
       {/* Main card - front layer with fixed positioning */}
       <Card className="relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[510px] h-[115px]">
         {/* Direction label - left strip */}
@@ -119,7 +119,7 @@ export default function TrackCard({
       </Card>
 
       {/* Secondary arrivals positioned outside main card */}
-      <div className="flex gap-[18px] items-center z-40">
+      <div className="flex gap-[3px] items-center z-40">
         {secondArrival !== undefined && (
           <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
