@@ -43,7 +43,7 @@ export default function TrackCard({
   const displayDestination = destination.split('-')[0].trim();
 
   return (
-    <div className="relative flex items-center gap-[23px]">
+    <div className="relative flex items-center gap-[31px]">
       {/* Main card - front layer with fixed positioning */}
       <Card className="relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[510px] h-[115px]">
         {/* Direction label - left strip */}
