@@ -134,7 +134,7 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{secondLine}</span>
               )}
             </div>
-            <div className="text-[36px] font-medium text-white" style={{ transform: 'translateX(25px)' }}>
+            <div className="text-[45px] font-medium text-white" style={{ transform: 'translateX(25px)' }}>
               {formatMinutes(secondArrival)}
             </div>
             <div className="text-xs -mt-1 text-white" style={{ transform: 'translateX(25px)' }}>Min</div>
@@ -155,7 +155,7 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{thirdLine}</span>
               )}
             </div>
-            <div className="text-[36px] font-medium text-white" style={{ transform: 'translateX(25px)' }}>
+            <div className="text-[45px] font-medium text-white" style={{ transform: 'translateX(25px)' }}>
               {formatMinutes(thirdArrival)}
             </div>
             <div className="text-xs -mt-1 text-white" style={{ transform: 'translateX(25px)' }}>Min</div>
