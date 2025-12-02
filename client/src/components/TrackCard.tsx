@@ -134,10 +134,10 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{secondLine}</span>
               )}
             </div>
-            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(15px, -30px)' }}>
+            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(20px, -30px)' }}>
               {formatMinutes(secondArrival)}
             </div>
-            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(15px, -30px)' }}>Min</div>
+            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(20px, -30px)' }}>Min</div>
           </div>
         )}
 
@@ -155,10 +155,10 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{thirdLine}</span>
               )}
             </div>
-            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(15px, -30px)' }}>
+            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(20px, -30px)' }}>
               {formatMinutes(thirdArrival)}
             </div>
-            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(15px, -30px)' }}>Min</div>
+            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(20px, -30px)' }}>Min</div>
           </div>
         )}
       </div>
