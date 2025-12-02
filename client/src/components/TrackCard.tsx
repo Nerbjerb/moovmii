@@ -127,8 +127,8 @@ export default function TrackCard({
                 <img
                   src={secondIconSrc}
                   alt={`${secondLine} train`}
-                  className="w-[33.6px] h-[33.6px] object-contain"
-                  style={{ transform: 'translate(-30px, 45px)' }}
+                  className="w-[38.6px] h-[38.6px] object-contain"
+                  style={{ transform: 'translate(-35px, 45px)' }}
                 />
               ) : (
                 <span className="text-sm font-bold text-primary-foreground">{secondLine}</span>
@@ -148,8 +148,8 @@ export default function TrackCard({
                 <img
                   src={thirdIconSrc}
                   alt={`${thirdLine} train`}
-                  className="w-[33.6px] h-[33.6px] object-contain"
-                  style={{ transform: 'translate(-30px, 45px)' }}
+                  className="w-[38.6px] h-[38.6px] object-contain"
+                  style={{ transform: 'translate(-35px, 45px)' }}
                 />
               ) : (
                 <span className="text-sm font-bold text-primary-foreground">{thirdLine}</span>
