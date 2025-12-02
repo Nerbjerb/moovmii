@@ -128,16 +128,16 @@ export default function TrackCard({
                   src={secondIconSrc}
                   alt={`${secondLine} train`}
                   className="w-[33.6px] h-[33.6px] object-contain"
-                  style={{ transform: 'translate(-30px, 40px)' }}
+                  style={{ transform: 'translate(-30px, 50px)' }}
                 />
               ) : (
                 <span className="text-sm font-bold text-primary-foreground">{secondLine}</span>
               )}
             </div>
-            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(20px, -30px)' }}>
+            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(20px, -20px)' }}>
               {formatMinutes(secondArrival)}
             </div>
-            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(20px, -30px)' }}>Min</div>
+            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(20px, -20px)' }}>Min</div>
           </div>
         )}
 
@@ -149,16 +149,16 @@ export default function TrackCard({
                   src={thirdIconSrc}
                   alt={`${thirdLine} train`}
                   className="w-[33.6px] h-[33.6px] object-contain"
-                  style={{ transform: 'translate(-30px, 40px)' }}
+                  style={{ transform: 'translate(-30px, 50px)' }}
                 />
               ) : (
                 <span className="text-sm font-bold text-primary-foreground">{thirdLine}</span>
               )}
             </div>
-            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(20px, -30px)' }}>
+            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(20px, -20px)' }}>
               {formatMinutes(thirdArrival)}
             </div>
-            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(20px, -30px)' }}>Min</div>
+            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(20px, -20px)' }}>Min</div>
           </div>
         )}
       </div>
