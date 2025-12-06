@@ -163,10 +163,12 @@ export default function Settings() {
           />
 
           <div 
-            className="rounded-[6px]" 
+            className="rounded-[6px] flex items-center justify-center" 
             style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '20px' }}
             data-testid="card-settings-bottom"
-          />
+          >
+            <span className="text-white text-xl font-medium" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Settings</span>
+          </div>
 
           <div className="absolute bottom-[10px] right-[10px]">
             <Link href="/" data-testid="link-back">
