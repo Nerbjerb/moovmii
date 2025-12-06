@@ -57,8 +57,8 @@ export default function Settings() {
                     style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
                     data-testid="card-settings-9"
                   >
-                    <img src={sirIcon} alt="SIR" className="w-[38px] h-[38px]" />
-                    <img src={pathIcon} alt="PATH" className="h-[28px] object-contain" />
+                    <img src={sirIcon} alt="SIR" className="w-[29px] h-[29px]" />
+                    <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
                     <img src={lirrIcon} alt="LIRR" className="h-[14px] object-contain" />
                     <img src={metroNorthIcon} alt="Metro-North" className="h-[14px] object-contain" />
                     <img src={njTransitIcon} alt="NJ Transit" className="h-[14px] object-contain" />
