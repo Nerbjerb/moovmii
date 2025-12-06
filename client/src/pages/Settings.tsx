@@ -6,6 +6,22 @@ import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
 import train4Icon from "@assets/moovmii/MTA Icons/src/svg/4.svg";
 import train5Icon from "@assets/moovmii/MTA Icons/src/svg/5.svg";
 import train6Icon from "@assets/moovmii/MTA Icons/src/svg/6.svg";
+import train7Icon from "@assets/moovmii/MTA Icons/src/svg/7.svg";
+import trainAIcon from "@assets/moovmii/MTA Icons/src/svg/a.svg";
+import trainCIcon from "@assets/moovmii/MTA Icons/src/svg/c.svg";
+import trainEIcon from "@assets/moovmii/MTA Icons/src/svg/e.svg";
+import trainBIcon from "@assets/moovmii/MTA Icons/src/svg/b.svg";
+import trainDIcon from "@assets/moovmii/MTA Icons/src/svg/d.svg";
+import trainFIcon from "@assets/moovmii/MTA Icons/src/svg/f.svg";
+import trainMIcon from "@assets/moovmii/MTA Icons/src/svg/m.svg";
+import trainNIcon from "@assets/moovmii/MTA Icons/src/svg/n.svg";
+import trainQIcon from "@assets/moovmii/MTA Icons/src/svg/q.svg";
+import trainRIcon from "@assets/moovmii/MTA Icons/src/svg/r.svg";
+import trainWIcon from "@assets/moovmii/MTA Icons/src/svg/w.svg";
+import trainLIcon from "@assets/moovmii/MTA Icons/src/svg/l.svg";
+import trainGIcon from "@assets/moovmii/MTA Icons/src/svg/g.svg";
+import trainJIcon from "@assets/moovmii/MTA Icons/src/svg/j.svg";
+import trainZIcon from "@assets/moovmii/MTA Icons/src/svg/z.svg";
 import sirIcon from "@assets/moovmii/MTA Icons/src/svg/sir.svg";
 import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 import lirrIcon from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
@@ -34,6 +50,42 @@ export default function Settings() {
                     <img src={train2Icon} alt="2 train" className="w-[38px] h-[38px]" />
                     <img src={train3Icon} alt="3 train" className="w-[38px] h-[38px]" />
                   </div>
+                ) : row === 1 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-2"
+                  >
+                    <img src={train7Icon} alt="7 train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : row === 2 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-4"
+                  >
+                    <img src={trainBIcon} alt="B train" className="w-[38px] h-[38px]" />
+                    <img src={trainDIcon} alt="D train" className="w-[38px] h-[38px]" />
+                    <img src={trainFIcon} alt="F train" className="w-[38px] h-[38px]" />
+                    <img src={trainMIcon} alt="M train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : row === 3 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-6"
+                  >
+                    <img src={trainLIcon} alt="L train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : row === 4 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-8"
+                  >
+                    <img src={trainJIcon} alt="J train" className="w-[38px] h-[38px]" />
+                    <img src={trainZIcon} alt="Z train" className="w-[38px] h-[38px]" />
+                  </div>
                 ) : (
                   <div 
                     className="rounded-[6px]" 
@@ -50,6 +102,35 @@ export default function Settings() {
                     <img src={train4Icon} alt="4 train" className="w-[38px] h-[38px]" />
                     <img src={train5Icon} alt="5 train" className="w-[38px] h-[38px]" />
                     <img src={train6Icon} alt="6 train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : row === 1 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-3"
+                  >
+                    <img src={trainAIcon} alt="A train" className="w-[38px] h-[38px]" />
+                    <img src={trainCIcon} alt="C train" className="w-[38px] h-[38px]" />
+                    <img src={trainEIcon} alt="E train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : row === 2 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-5"
+                  >
+                    <img src={trainNIcon} alt="N train" className="w-[38px] h-[38px]" />
+                    <img src={trainQIcon} alt="Q train" className="w-[38px] h-[38px]" />
+                    <img src={trainRIcon} alt="R train" className="w-[38px] h-[38px]" />
+                    <img src={trainWIcon} alt="W train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : row === 3 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-7"
+                  >
+                    <img src={trainGIcon} alt="G train" className="w-[38px] h-[38px]" />
                   </div>
                 ) : row === 4 ? (
                   <div 
