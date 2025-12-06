@@ -172,10 +172,6 @@ export default function Kiosk() {
         </section>
         </main>
       </div>
-
-      <footer className="mt-4 text-sm text-muted-foreground" data-testid="text-footer">
-        Live data: OpenWeatherMap • MTA Real-time Subway Feed
-      </footer>
     </div>
   );
 }
