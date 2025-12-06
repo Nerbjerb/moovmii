@@ -12,10 +12,24 @@ import type { WeatherIconName } from "@shared/weatherIconMapper";
 export default function Kiosk() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const lastTapRef = useRef<number>(0);
-  const doubleTapDelay = 300; // ms
+  
+  // Double-tap detection with improved reliability
+  const lastTapTimeRef = useRef<number>(0);
+  const lastTapPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const isTogglingRef = useRef<boolean>(false);
+  const doubleTapDelay = 450; // Increased from 300ms for touch screen latency
+  const maxTapDistance = 50; // Maximum pixels between taps to count as double-tap
 
   const toggleFullscreen = useCallback(() => {
+    // Debounce: prevent rapid re-triggering
+    if (isTogglingRef.current) return;
+    isTogglingRef.current = true;
+    
+    // Reset debounce after 500ms
+    setTimeout(() => {
+      isTogglingRef.current = false;
+    }, 500);
+
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().then(() => {
         setIsFullscreen(true);
@@ -31,17 +45,54 @@ export default function Kiosk() {
     }
   }, []);
 
-  const handleDoubleTap = useCallback(() => {
+  // Calculate distance between two points
+  const getDistance = (x1: number, y1: number, x2: number, y2: number): number => {
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  };
+
+  // Handle touch start - track when finger first touches
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+
     const now = Date.now();
-    if (now - lastTapRef.current < doubleTapDelay) {
-      toggleFullscreen();
-      lastTapRef.current = 0; // Reset to prevent triple-tap triggering
-    } else {
-      lastTapRef.current = now;
+    const currentPosition = { x: touch.clientX, y: touch.clientY };
+
+    // Check if this is a double-tap
+    if (lastTapPositionRef.current && now - lastTapTimeRef.current < doubleTapDelay) {
+      const distance = getDistance(
+        lastTapPositionRef.current.x,
+        lastTapPositionRef.current.y,
+        currentPosition.x,
+        currentPosition.y
+      );
+
+      // Only trigger if taps are close enough together
+      if (distance <= maxTapDistance) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFullscreen();
+        // Reset after successful double-tap
+        lastTapTimeRef.current = 0;
+        lastTapPositionRef.current = null;
+        return;
+      }
     }
+
+    // Store this tap for potential double-tap detection
+    lastTapTimeRef.current = now;
+    lastTapPositionRef.current = currentPosition;
   }, [toggleFullscreen]);
 
-  const handleDoubleClick = useCallback(() => {
+  // Handle touch end - prevent default behaviors
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Prevent ghost clicks and other default behaviors
+    e.preventDefault();
+  }, []);
+
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     toggleFullscreen();
   }, [toggleFullscreen]);
 
@@ -121,7 +172,8 @@ export default function Kiosk() {
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative cursor-pointer select-none"
           style={{ width: '800px', height: '480px', touchAction: 'manipulation' }}
           onDoubleClick={handleDoubleClick}
-          onTouchEnd={handleDoubleTap}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           data-testid="kiosk-main"
         >
         {/* Settings icon - bottom right corner */}
