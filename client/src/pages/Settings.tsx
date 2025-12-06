@@ -1,5 +1,6 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Square } from "lucide-react";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
@@ -29,6 +30,28 @@ import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_w
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
 
 export default function Settings() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error('Error attempting to enable fullscreen:', err);
+      });
+    } else {
+      document.exitFullscreen().catch((err) => {
+        console.error('Error attempting to exit fullscreen:', err);
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8">
       <div className="relative">
@@ -170,7 +193,17 @@ export default function Settings() {
             <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Settings</span>
           </div>
 
-          <div className="absolute bottom-[10px] right-[10px]">
+          <div className="absolute bottom-[10px] right-[10px] flex items-center gap-3">
+            <button 
+              onClick={toggleFullscreen}
+              className="cursor-pointer"
+              data-testid="button-fullscreen-toggle"
+            >
+              <Square 
+                className={`w-5 h-5 ${isFullscreen ? 'text-[#ffd200]' : 'text-white'}`} 
+                fill={isFullscreen ? '#ffd200' : 'none'}
+              />
+            </button>
             <Link href="/" data-testid="link-back">
               <ArrowLeft className="w-5 h-5 text-white cursor-pointer" data-testid="button-back" />
             </Link>
