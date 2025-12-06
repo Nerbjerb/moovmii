@@ -58,11 +58,11 @@ export default function Settings() {
                     data-testid="card-settings-9"
                   >
                     <img src={sirIcon} alt="SIR" className="w-[29px] h-[29px]" />
-                    <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
                     <div className="flex flex-col items-center gap-1">
                       <img src={lirrIcon} alt="LIRR" className="h-[14px] object-contain" />
                       <img src={metroNorthIcon} alt="Metro-North" className="h-[14px] object-contain" />
                     </div>
+                    <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
                     <img src={njTransitIcon} alt="NJ Transit" className="h-[14px] object-contain" />
                   </div>
                 ) : (
