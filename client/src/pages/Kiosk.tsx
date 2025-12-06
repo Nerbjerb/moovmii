@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Settings } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
@@ -10,6 +10,39 @@ import type { WeatherIconName } from "@shared/weatherIconMapper";
 
 export default function Kiosk() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const lastTapRef = useRef<number>(0);
+  const doubleTapDelay = 300; // ms
+
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch((err) => {
+        console.log('Fullscreen request failed:', err);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      }).catch((err) => {
+        console.log('Exit fullscreen failed:', err);
+      });
+    }
+  }, []);
+
+  const handleDoubleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapRef.current < doubleTapDelay) {
+      toggleFullscreen();
+      lastTapRef.current = 0; // Reset to prevent triple-tap triggering
+    } else {
+      lastTapRef.current = now;
+    }
+  }, [toggleFullscreen]);
+
+  const handleDoubleClick = useCallback(() => {
+    toggleFullscreen();
+  }, [toggleFullscreen]);
 
   // Fetch real weather data from OpenWeatherMap
   const { data: weatherData, isLoading: isWeatherLoading } = useQuery<Array<{
@@ -71,12 +104,24 @@ export default function Kiosk() {
     return () => clearInterval(timeInterval);
   }, []);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8">
       <div className="relative">
         <main 
-          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative"
-          style={{ width: '800px', height: '480px' }}
+          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative cursor-pointer select-none"
+          style={{ width: '800px', height: '480px', touchAction: 'manipulation' }}
+          onDoubleClick={handleDoubleClick}
+          onTouchEnd={handleDoubleTap}
+          data-testid="kiosk-main"
         >
         {/* Settings icon - bottom right corner */}
         <div className="absolute bottom-[10px] right-[10px]">
