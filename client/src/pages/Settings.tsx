@@ -35,7 +35,7 @@ export default function Settings() {
 
           <div 
             className="rounded-[6px]" 
-            style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31' }}
+            style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '20px' }}
             data-testid="card-settings-bottom"
           />
 
