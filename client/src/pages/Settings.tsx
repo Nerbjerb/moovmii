@@ -3,6 +3,9 @@ import { ArrowLeft } from "lucide-react";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
+import train4Icon from "@assets/moovmii/MTA Icons/src/svg/4.svg";
+import train5Icon from "@assets/moovmii/MTA Icons/src/svg/5.svg";
+import train6Icon from "@assets/moovmii/MTA Icons/src/svg/6.svg";
 
 export default function Settings() {
   return (
@@ -33,11 +36,23 @@ export default function Settings() {
                     data-testid={`card-settings-${row * 2}`}
                   />
                 )}
-                <div 
-                  className="rounded-[6px]" 
-                  style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-                  data-testid={`card-settings-${row * 2 + 1}`}
-                />
+                {row === 0 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-1"
+                  >
+                    <img src={train4Icon} alt="4 train" className="w-[38px] h-[38px]" />
+                    <img src={train5Icon} alt="5 train" className="w-[38px] h-[38px]" />
+                    <img src={train6Icon} alt="6 train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : (
+                  <div 
+                    className="rounded-[6px]" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid={`card-settings-${row * 2 + 1}`}
+                  />
+                )}
               </div>
             ))}
           </div>
