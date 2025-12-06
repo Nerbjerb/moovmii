@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Square } from "lucide-react";
+import { Home, Square } from "lucide-react";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
@@ -193,7 +193,7 @@ export default function Settings() {
             <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Advanced Settings</span>
           </div>
 
-          <div className="absolute bottom-[7px] left-[10px]">
+          <div className="absolute bottom-[5px] left-[10px]">
             <button 
               onClick={toggleFullscreen}
               className="cursor-pointer"
@@ -207,7 +207,7 @@ export default function Settings() {
           </div>
           <div className="absolute bottom-[10px] right-[10px]">
             <Link href="/" data-testid="link-back">
-              <ArrowLeft className="w-5 h-5 text-white cursor-pointer" data-testid="button-back" />
+              <Home className="w-5 h-5 text-white cursor-pointer" data-testid="button-home" />
             </Link>
           </div>
         </main>
