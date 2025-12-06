@@ -6,6 +6,11 @@ import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
 import train4Icon from "@assets/moovmii/MTA Icons/src/svg/4.svg";
 import train5Icon from "@assets/moovmii/MTA Icons/src/svg/5.svg";
 import train6Icon from "@assets/moovmii/MTA Icons/src/svg/6.svg";
+import sirIcon from "@assets/moovmii/MTA Icons/src/svg/sir.svg";
+import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
+import lirrIcon from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
+import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
+import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
 
 export default function Settings() {
   return (
@@ -45,6 +50,18 @@ export default function Settings() {
                     <img src={train4Icon} alt="4 train" className="w-[38px] h-[38px]" />
                     <img src={train5Icon} alt="5 train" className="w-[38px] h-[38px]" />
                     <img src={train6Icon} alt="6 train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : row === 4 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-9"
+                  >
+                    <img src={sirIcon} alt="SIR" className="w-[38px] h-[38px]" />
+                    <img src={pathIcon} alt="PATH" className="h-[28px] object-contain" />
+                    <img src={lirrIcon} alt="LIRR" className="h-[28px] object-contain" />
+                    <img src={metroNorthIcon} alt="Metro-North" className="h-[28px] object-contain" />
+                    <img src={njTransitIcon} alt="NJ Transit" className="h-[28px] object-contain" />
                   </div>
                 ) : (
                   <div 
