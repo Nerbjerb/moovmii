@@ -1,5 +1,8 @@
 import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
+import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
+import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
+import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
 
 export default function Settings() {
   return (
@@ -13,11 +16,23 @@ export default function Settings() {
           <div className="flex flex-col gap-[8px]">
             {[0, 1, 2, 3, 4].map((row) => (
               <div key={row} className="flex gap-[10px]">
-                <div 
-                  className="rounded-[6px]" 
-                  style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-                  data-testid={`card-settings-${row * 2}`}
-                />
+                {row === 0 ? (
+                  <div 
+                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid="card-settings-0"
+                  >
+                    <img src={train1Icon} alt="1 train" className="w-[38px] h-[38px]" />
+                    <img src={train2Icon} alt="2 train" className="w-[38px] h-[38px]" />
+                    <img src={train3Icon} alt="3 train" className="w-[38px] h-[38px]" />
+                  </div>
+                ) : (
+                  <div 
+                    className="rounded-[6px]" 
+                    style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                    data-testid={`card-settings-${row * 2}`}
+                  />
+                )}
                 <div 
                   className="rounded-[6px]" 
                   style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
