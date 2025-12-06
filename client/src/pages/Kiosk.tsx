@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Settings } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
@@ -125,7 +126,9 @@ export default function Kiosk() {
         >
         {/* Settings icon - bottom right corner */}
         <div className="absolute bottom-[10px] right-[10px]">
-          <Settings className="w-5 h-5 text-white cursor-pointer" data-testid="button-settings" />
+          <Link href="/settings" data-testid="link-settings">
+            <Settings className="w-5 h-5 text-white cursor-pointer" data-testid="button-settings" />
+          </Link>
         </div>
 
         <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
