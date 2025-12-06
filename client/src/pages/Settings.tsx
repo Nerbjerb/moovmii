@@ -59,9 +59,9 @@ export default function Settings() {
                   >
                     <img src={sirIcon} alt="SIR" className="w-[38px] h-[38px]" />
                     <img src={pathIcon} alt="PATH" className="h-[28px] object-contain" />
-                    <img src={lirrIcon} alt="LIRR" className="h-[28px] object-contain" />
-                    <img src={metroNorthIcon} alt="Metro-North" className="h-[28px] object-contain" />
-                    <img src={njTransitIcon} alt="NJ Transit" className="h-[28px] object-contain" />
+                    <img src={lirrIcon} alt="LIRR" className="h-[14px] object-contain" />
+                    <img src={metroNorthIcon} alt="Metro-North" className="h-[14px] object-contain" />
+                    <img src={njTransitIcon} alt="NJ Transit" className="h-[14px] object-contain" />
                   </div>
                 ) : (
                   <div 
