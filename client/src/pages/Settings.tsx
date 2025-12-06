@@ -193,7 +193,7 @@ export default function Settings() {
             <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Settings</span>
           </div>
 
-          <div className="absolute bottom-[10px] left-[10px]">
+          <div className="absolute bottom-[7px] left-[10px]">
             <button 
               onClick={toggleFullscreen}
               className="cursor-pointer"
