@@ -53,7 +53,7 @@ export default function Settings() {
                   </div>
                 ) : row === 4 ? (
                   <div 
-                    className="rounded-[6px] flex items-center justify-center gap-2" 
+                    className="rounded-[6px] flex items-center justify-center gap-[20px]" 
                     style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
                     data-testid="card-settings-9"
                   >
