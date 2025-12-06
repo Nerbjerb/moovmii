@@ -28,14 +28,13 @@ export default function Settings() {
           </div>
 
           <div 
-            className="my-[8px]" 
-            style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a' }}
+            style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a', marginTop: '25px' }}
             data-testid="separator-line"
           />
 
           <div 
             className="rounded-[6px]" 
-            style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '20px' }}
+            style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '25px' }}
             data-testid="card-settings-bottom"
           />
 
