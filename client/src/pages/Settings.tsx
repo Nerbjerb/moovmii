@@ -167,7 +167,7 @@ export default function Settings() {
             style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '20px' }}
             data-testid="card-settings-bottom"
           >
-            <span className="text-white text-xl font-medium" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Settings</span>
+            <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Settings</span>
           </div>
 
           <div className="absolute bottom-[10px] right-[10px]">
