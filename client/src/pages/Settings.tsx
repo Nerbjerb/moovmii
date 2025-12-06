@@ -193,7 +193,7 @@ export default function Settings() {
             <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Settings</span>
           </div>
 
-          <div className="absolute bottom-[10px] right-[10px] flex items-center gap-3">
+          <div className="absolute bottom-[10px] left-[10px]">
             <button 
               onClick={toggleFullscreen}
               className="cursor-pointer"
@@ -204,6 +204,8 @@ export default function Settings() {
                 fill={isFullscreen ? '#ffd200' : 'none'}
               />
             </button>
+          </div>
+          <div className="absolute bottom-[10px] right-[10px]">
             <Link href="/" data-testid="link-back">
               <ArrowLeft className="w-5 h-5 text-white cursor-pointer" data-testid="button-back" />
             </Link>
