@@ -1215,8 +1215,8 @@ export default function Settings() {
     
     return (
       <div 
-        className="relative flex flex-col items-center"
-        style={{ height: '322px', width: '760px' }}
+        className="relative flex flex-col items-center justify-center flex-1"
+        style={{ width: '760px' }}
       >
         {canScrollUp && (
           <div 
