@@ -1416,13 +1416,13 @@ export default function Settings() {
                                 style={{ 
                                   width: '70px', 
                                   height: '26px', 
-                                  backgroundColor: '#2D2C31'
+                                  backgroundColor: '#FFFFFF'
                                 }}
                                 data-testid={`button-row-${selectedRow}-selected`}
                               >
                                 <span 
-                                  className="text-white font-medium"
-                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                  className="font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px', color: '#000000' }}
                                 >
                                   Row {selectedRow}
                                 </span>
