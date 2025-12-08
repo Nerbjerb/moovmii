@@ -1245,31 +1245,34 @@ export default function Settings() {
           `}</style>
           <div className="flex py-4" style={{ overflow: 'visible', marginLeft: '20px' }}>
             <div className="relative flex flex-col items-center mr-3" style={{ overflow: 'visible' }}>
-              <div 
-                className="absolute w-[5px]"
-                style={{ 
-                  backgroundColor: lineColor,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  top: '7px',
-                  bottom: '7px'
-                }}
-              />
               {stops.map((_, index) => (
                 <div 
                   key={index}
-                  className="relative z-10"
+                  className="relative z-10 flex flex-col items-center"
                   style={{ 
-                    width: '14px',
-                    height: '14px',
-                    borderRadius: '50%',
-                    backgroundColor: '#FFFFFF',
-                    border: '2px solid #000000',
-                    marginBottom: index < stops.length - 1 ? '18px' : '0',
                     marginTop: index === 0 ? '5px' : '0',
                     flexShrink: 0
                   }}
-                />
+                >
+                  <div
+                    style={{ 
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '50%',
+                      backgroundColor: '#FFFFFF',
+                      border: '2px solid #000000'
+                    }}
+                  />
+                  {index < stops.length - 1 && (
+                    <div
+                      style={{
+                        width: '5px',
+                        height: '18px',
+                        backgroundColor: lineColor
+                      }}
+                    />
+                  )}
+                </div>
               ))}
             </div>
             <div className="flex flex-col" style={{ overflow: 'visible' }}>
@@ -1280,9 +1283,10 @@ export default function Settings() {
                   style={{ 
                     fontFamily: 'Helvetica, Arial, sans-serif',
                     fontSize: '18px',
-                    lineHeight: '24px',
-                    marginBottom: index < stops.length - 1 ? '8px' : '0',
-                    height: '24px'
+                    lineHeight: '14px',
+                    marginTop: index === 0 ? '5px' : '0',
+                    marginBottom: index < stops.length - 1 ? '18px' : '0',
+                    height: '14px'
                   }}
                   onClick={() => handleStopSelect(stop)}
                   data-testid={`stop-${index}`}
