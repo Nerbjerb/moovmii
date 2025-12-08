@@ -1239,7 +1239,7 @@ export default function Settings() {
     return (
       <div 
         className="flex items-center"
-        style={{ width: '760px', height: '370px', margin: 'auto', paddingLeft: '210px' }}
+        style={{ width: '760px', height: '370px', margin: 'auto', paddingLeft: '170px' }}
       >
         {/* Station list container */}
         <div 
@@ -1249,7 +1249,7 @@ export default function Settings() {
           {canScrollUp && (
             <div 
               className="absolute z-20"
-              style={{ top: '-30px', left: '120px' }}
+              style={{ top: '-30px', left: '80px' }}
               data-testid="scroll-up-indicator"
             >
               <ChevronUp className="w-5 h-5 text-white/60" />
@@ -1429,7 +1429,7 @@ export default function Settings() {
           {canScrollDown && (
             <div 
               className="absolute z-20"
-              style={{ bottom: '-30px', left: '120px' }}
+              style={{ bottom: '-30px', left: '80px' }}
               data-testid="scroll-down-indicator"
             >
               <ChevronDown className="w-5 h-5 text-white/60" />
