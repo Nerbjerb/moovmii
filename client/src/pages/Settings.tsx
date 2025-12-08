@@ -1315,10 +1315,10 @@ export default function Settings() {
           data-testid="settings-main"
         >
           {(selectedGroup || selectedLine) && (
-            <div className="absolute top-[10px] left-[10px]">
+            <div className="absolute top-[5px] left-[5px]">
               <button 
                 onClick={handleBack}
-                className="cursor-pointer"
+                className="cursor-pointer p-3"
                 data-testid="button-back-to-groups"
               >
                 <ArrowLeft className="w-5 h-5 text-white" />
