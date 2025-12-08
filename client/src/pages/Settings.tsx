@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "wouter";
-import { Home, Square, ArrowLeft } from "lucide-react";
+import { Home, Square, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
@@ -996,6 +996,24 @@ export default function Settings() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+  const stopsContainerRef = useRef<HTMLDivElement>(null);
+
+  const checkScrollPosition = useCallback(() => {
+    const container = stopsContainerRef.current;
+    if (container) {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      setCanScrollUp(scrollTop > 5);
+      setCanScrollDown(scrollTop + clientHeight < scrollHeight - 5);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedLine) {
+      setTimeout(checkScrollPosition, 50);
+    }
+  }, [selectedLine, checkScrollPosition]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -1197,49 +1215,83 @@ export default function Settings() {
     
     return (
       <div 
-        className="flex items-start justify-center overflow-y-auto"
+        className="relative flex flex-col items-center"
         style={{ height: '322px', width: '760px' }}
-        data-testid="stops-container"
       >
-        <div className="flex py-4">
-          <div className="relative flex flex-col items-center mr-4">
-            <div 
-              className="absolute top-0 bottom-0 w-[3px]"
-              style={{ 
-                background: `repeating-linear-gradient(to bottom, ${lineColor} 0px, ${lineColor} 8px, transparent 8px, transparent 14px)`,
-                left: '50%',
-                transform: 'translateX(-50%)'
-              }}
-            />
-            {stops.map((_, index) => (
+        {canScrollUp && (
+          <div 
+            className="absolute top-0 left-1/2 transform -translate-x-1/2 z-20"
+            data-testid="scroll-up-indicator"
+          >
+            <ChevronUp className="w-5 h-5 text-white/60" />
+          </div>
+        )}
+        
+        <div 
+          ref={stopsContainerRef}
+          className="flex-1 overflow-y-auto flex justify-center"
+          style={{ 
+            width: '100%',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+          onScroll={checkScrollPosition}
+          data-testid="stops-container"
+        >
+          <style>{`
+            [data-testid="stops-container"]::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+          <div className="flex py-4">
+            <div className="relative flex flex-col items-center mr-4">
               <div 
-                key={index}
-                className="relative z-10 w-[12px] h-[12px] rounded-full border-2 bg-[#0b0b0b]"
+                className="absolute top-0 bottom-0 w-[3px]"
                 style={{ 
-                  borderColor: lineColor,
-                  marginBottom: index < stops.length - 1 ? '20px' : '0'
+                  background: `repeating-linear-gradient(to bottom, ${lineColor} 0px, ${lineColor} 8px, transparent 8px, transparent 14px)`,
+                  left: '50%',
+                  transform: 'translateX(-50%)'
                 }}
               />
-            ))}
-          </div>
-          <div className="flex flex-col">
-            {stops.map((stop, index) => (
-              <div 
-                key={index}
-                className="text-white text-sm cursor-pointer hover:opacity-80 transition-opacity"
-                style={{ 
-                  fontFamily: 'Helvetica, Arial, sans-serif',
-                  marginBottom: index < stops.length - 1 ? '14px' : '0',
-                  lineHeight: '18px'
-                }}
-                onClick={() => handleStopSelect(stop)}
-                data-testid={`stop-${index}`}
-              >
-                {stop}
-              </div>
-            ))}
+              {stops.map((_, index) => (
+                <div 
+                  key={index}
+                  className="relative z-10 w-[12px] h-[12px] rounded-full border-2 bg-[#0b0b0b]"
+                  style={{ 
+                    borderColor: lineColor,
+                    marginBottom: index < stops.length - 1 ? '20px' : '0'
+                  }}
+                />
+              ))}
+            </div>
+            <div className="flex flex-col">
+              {stops.map((stop, index) => (
+                <div 
+                  key={index}
+                  className="text-white text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{ 
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    marginBottom: index < stops.length - 1 ? '14px' : '0',
+                    lineHeight: '18px'
+                  }}
+                  onClick={() => handleStopSelect(stop)}
+                  data-testid={`stop-${index}`}
+                >
+                  {stop}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+        
+        {canScrollDown && (
+          <div 
+            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-20"
+            data-testid="scroll-down-indicator"
+          >
+            <ChevronDown className="w-5 h-5 text-white/60" />
+          </div>
+        )}
       </div>
     );
   };
