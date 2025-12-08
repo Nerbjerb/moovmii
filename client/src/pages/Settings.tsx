@@ -1338,14 +1338,14 @@ export default function Settings() {
         {/* Row selection popup cards */}
         {selectedStop && (
           <div 
-            className="flex flex-col gap-2 ml-8"
+            className="flex flex-row gap-2 ml-6"
             data-testid="row-selection-popup"
           >
             <div 
               className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
               style={{ 
-                width: '160px', 
-                height: '48px', 
+                width: '70px', 
+                height: '32px', 
                 backgroundColor: '#2D2C31'
               }}
               onClick={() => {
@@ -1355,17 +1355,17 @@ export default function Settings() {
               data-testid="button-select-row-1"
             >
               <span 
-                className="text-white text-sm font-medium"
-                style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+                className="text-white font-medium"
+                style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
               >
-                Select as Row 1
+                Row 1
               </span>
             </div>
             <div 
               className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
               style={{ 
-                width: '160px', 
-                height: '48px', 
+                width: '70px', 
+                height: '32px', 
                 backgroundColor: '#2D2C31'
               }}
               onClick={() => {
@@ -1375,10 +1375,10 @@ export default function Settings() {
               data-testid="button-select-row-2"
             >
               <span 
-                className="text-white text-sm font-medium"
-                style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+                className="text-white font-medium"
+                style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
               >
-                Select as Row 2
+                Row 2
               </span>
             </div>
           </div>
