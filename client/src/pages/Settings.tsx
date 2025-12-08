@@ -1220,7 +1220,8 @@ export default function Settings() {
       >
         {canScrollUp && (
           <div 
-            className="absolute top-0 left-1/2 transform -translate-x-1/2 z-20"
+            className="absolute left-1/2 transform -translate-x-1/2 z-20"
+            style={{ top: '-20px' }}
             data-testid="scroll-up-indicator"
           >
             <ChevronUp className="w-5 h-5 text-white/60" />
@@ -1289,7 +1290,8 @@ export default function Settings() {
         
         {canScrollDown && (
           <div 
-            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-20"
+            className="absolute left-1/2 transform -translate-x-1/2 z-20"
+            style={{ bottom: '-20px' }}
             data-testid="scroll-down-indicator"
           >
             <ChevronDown className="w-5 h-5 text-white/60" />
