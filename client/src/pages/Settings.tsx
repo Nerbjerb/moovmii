@@ -1243,14 +1243,16 @@ export default function Settings() {
               display: none;
             }
           `}</style>
-          <div className="flex py-4">
-            <div className="relative flex flex-col items-center mr-3">
+          <div className="flex py-4" style={{ overflow: 'visible' }}>
+            <div className="relative flex flex-col items-center mr-3" style={{ overflow: 'visible' }}>
               <div 
-                className="absolute top-0 bottom-0 w-[5px]"
+                className="absolute w-[5px]"
                 style={{ 
                   backgroundColor: lineColor,
                   left: '50%',
-                  transform: 'translateX(-50%)'
+                  transform: 'translateX(-50%)',
+                  top: '7px',
+                  bottom: '7px'
                 }}
               />
               {stops.map((_, index) => (
@@ -1261,14 +1263,15 @@ export default function Settings() {
                     width: '14px',
                     height: '14px',
                     borderRadius: '50%',
-                    background: 'white',
-                    boxShadow: 'inset 0 0 0 2px black, 0 0 0 0 white',
-                    marginBottom: index < stops.length - 1 ? '18px' : '0'
+                    backgroundColor: '#FFFFFF',
+                    border: '2px solid #000000',
+                    marginBottom: index < stops.length - 1 ? '18px' : '0',
+                    flexShrink: 0
                   }}
                 />
               ))}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col" style={{ overflow: 'visible' }}>
               {stops.map((stop, index) => (
                 <div 
                   key={index}
