@@ -1266,6 +1266,7 @@ export default function Settings() {
                     backgroundColor: '#FFFFFF',
                     border: '2px solid #000000',
                     marginBottom: index < stops.length - 1 ? '18px' : '0',
+                    marginTop: index === 0 ? '5px' : '0',
                     flexShrink: 0
                   }}
                 />
@@ -1275,11 +1276,13 @@ export default function Settings() {
               {stops.map((stop, index) => (
                 <div 
                   key={index}
-                  className="text-white text-sm cursor-pointer hover:opacity-80 transition-opacity flex items-center"
+                  className="text-white cursor-pointer hover:opacity-80 transition-opacity flex items-center"
                   style={{ 
                     fontFamily: 'Helvetica, Arial, sans-serif',
-                    marginBottom: index < stops.length - 1 ? '14px' : '0',
-                    height: '18px'
+                    fontSize: '18px',
+                    lineHeight: '24px',
+                    marginBottom: index < stops.length - 1 ? '8px' : '0',
+                    height: '24px'
                   }}
                   onClick={() => handleStopSelect(stop)}
                   data-testid={`stop-${index}`}
