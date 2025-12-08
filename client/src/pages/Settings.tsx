@@ -284,7 +284,10 @@ export default function Settings() {
     if (!currentGroup) return null;
     
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div 
+        className="flex items-center justify-center"
+        style={{ height: '322px', width: '760px' }}
+      >
         <div className="flex flex-col gap-[8px]">
           {currentGroup.lines.map((line) => (
             <div 
@@ -330,7 +333,7 @@ export default function Settings() {
           {selectedGroup ? renderSubView() : renderMainView()}
 
           <div 
-            style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a', marginTop: selectedGroup ? 'auto' : '20px' }}
+            style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a', marginTop: '20px' }}
             data-testid="separator-line"
           />
 
