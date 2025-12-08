@@ -1332,18 +1332,22 @@ export default function Settings() {
 
           {renderCurrentView()}
 
-          <div 
-            style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a', marginTop: '20px' }}
-            data-testid="separator-line"
-          />
+          {!selectedGroup && !selectedLine && (
+            <>
+              <div 
+                style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a', marginTop: '20px' }}
+                data-testid="separator-line"
+              />
 
-          <div 
-            className="rounded-[6px] flex items-center justify-center" 
-            style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '20px' }}
-            data-testid="card-settings-bottom"
-          >
-            <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Advanced Settings</span>
-          </div>
+              <div 
+                className="rounded-[6px] flex items-center justify-center" 
+                style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '20px' }}
+                data-testid="card-settings-bottom"
+              >
+                <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Advanced Settings</span>
+              </div>
+            </>
+          )}
 
           <div className="absolute bottom-[5px] left-[10px]">
             <button 
