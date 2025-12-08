@@ -1256,8 +1256,13 @@ export default function Settings() {
               {stops.map((_, index) => (
                 <div 
                   key={index}
-                  className="relative z-10 w-[14px] h-[14px] rounded-full border-2 border-black bg-white"
+                  className="relative z-10"
                   style={{ 
+                    width: '14px',
+                    height: '14px',
+                    borderRadius: '50%',
+                    background: 'white',
+                    boxShadow: 'inset 0 0 0 2px black, 0 0 0 0 white',
                     marginBottom: index < stops.length - 1 ? '18px' : '0'
                   }}
                 />
@@ -1314,7 +1319,7 @@ export default function Settings() {
           data-testid="settings-main"
         >
           {(selectedGroup || selectedLine) && (
-            <div className="absolute top-[5px] left-[5px]">
+            <div className="absolute top-[5px] left-[5px] z-30">
               <button 
                 onClick={handleBack}
                 className="cursor-pointer p-3"
