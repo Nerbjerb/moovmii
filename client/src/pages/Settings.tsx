@@ -984,8 +984,8 @@ const groups: GroupItem[] = [
     id: "regional",
     lines: [
       { id: "SIR", icon: sirIcon, alt: "SIR", size: "29px", isRegional: true },
-      { id: "LIRR", icon: lirrIcon, alt: "LIRR", size: "24px", isRegional: true },
-      { id: "MetroNorth", icon: metroNorthIcon, alt: "Metro-North", size: "24px", isRegional: true },
+      { id: "LIRR", icon: lirrIcon, alt: "LIRR", size: "26px", isRegional: true },
+      { id: "MetroNorth", icon: metroNorthIcon, alt: "Metro-North", size: "26px", isRegional: true },
       { id: "PATH", icon: pathIcon, alt: "PATH", size: "28px", isRegional: true },
       { id: "NJT", icon: njTransitIcon, alt: "NJ Transit", size: "22px", isRegional: true },
     ]
