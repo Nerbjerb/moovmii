@@ -1305,33 +1305,30 @@ export default function Settings() {
                 {stops.map((stop, index) => (
                   <div 
                     key={index}
-                    className="cursor-pointer hover:opacity-80 transition-opacity flex items-center text-white"
+                    className="cursor-pointer hover:opacity-80 transition-opacity flex items-center"
                     style={{ 
-                      fontFamily: 'Helvetica, Arial, sans-serif',
-                      fontSize: '18px',
-                      lineHeight: '14px',
                       marginTop: index === 0 ? '5px' : '0',
                       marginBottom: index < stops.length - 1 ? '18px' : '0',
-                      height: '14px'
+                      height: '18px'
                     }}
                     onClick={() => handleStopSelect(stop)}
                     data-testid={`stop-${index}`}
                   >
-                    {stop}
-                    {selectedStop === stop && (
-                      <svg 
-                        width="12" 
-                        height="18" 
-                        viewBox="0 0 12 18" 
-                        className="ml-2"
-                        style={{ flexShrink: 0 }}
-                      >
-                        <polygon 
-                          points="6,0 12,0 12,18 6,18 0,9" 
-                          fill="white"
-                        />
-                      </svg>
-                    )}
+                    <span
+                      style={{ 
+                        fontFamily: 'Helvetica, Arial, sans-serif',
+                        fontSize: '18px',
+                        lineHeight: '18px',
+                        color: selectedStop === stop ? '#000000' : '#FFFFFF',
+                        backgroundColor: selectedStop === stop ? '#FFFFFF' : 'transparent',
+                        padding: selectedStop === stop ? '2px 10px 2px 14px' : '0',
+                        marginLeft: selectedStop === stop ? '-6px' : '0',
+                        clipPath: selectedStop === stop ? 'polygon(8px 0, 100% 0, 100% 100%, 8px 100%, 0 50%)' : 'none',
+                        display: 'inline-block'
+                      }}
+                    >
+                      {stop}
+                    </span>
                   </div>
                 ))}
               </div>
