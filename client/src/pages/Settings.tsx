@@ -1284,37 +1284,37 @@ export default function Settings() {
                     style={{ width: '80px', height: '14px', marginRight: '8px' }}
                   >
                     {(row1Station === stop || row2Station === stop) && (
-                      <span
-                        className="flex items-center"
-                        style={{ marginTop: '-6px' }}
+                      <div
+                        className="relative flex items-center"
+                        style={{ marginTop: '-6px', height: '26px' }}
                       >
+                        <svg 
+                          width="60" 
+                          height="26" 
+                          viewBox="0 0 60 26"
+                          style={{ position: 'absolute', left: 0, top: 0 }}
+                        >
+                          <path 
+                            d="M3,0 L50,0 L50,10 L57,13 L50,16 L50,26 L3,26 Q0,26 0,23 L0,3 Q0,0 3,0 Z" 
+                            fill="white"
+                          />
+                        </svg>
                         <span
                           style={{ 
                             fontFamily: 'Helvetica, Arial, sans-serif',
                             fontSize: '18px',
                             lineHeight: '26px',
                             color: '#000000',
-                            backgroundColor: '#FFFFFF',
-                            padding: '0 4px 0 8px',
-                            borderRadius: '3px 0 0 3px',
+                            padding: '0 14px 0 8px',
                             display: 'inline-block',
-                            height: '26px'
+                            height: '26px',
+                            position: 'relative',
+                            zIndex: 1
                           }}
                         >
                           {row1Station === stop ? 'Row 1' : 'Row 2'}
                         </span>
-                        <svg 
-                          width="10" 
-                          height="26" 
-                          viewBox="0 0 10 26" 
-                          style={{ marginLeft: '-1px' }}
-                        >
-                          <path 
-                            d="M0,0 L0,26 L7,16 Q10,13 7,10 L0,0 Z" 
-                            fill="white"
-                          />
-                        </svg>
-                      </span>
+                      </div>
                     )}
                   </div>
                   {/* Circle and line column */}
@@ -1351,18 +1351,18 @@ export default function Settings() {
                     data-testid={`stop-${index}`}
                   >
                     {selectedStop === stop ? (
-                      <span
-                        className="flex items-center"
-                        style={{ marginLeft: '-6px', marginTop: '-6px' }}
+                      <div
+                        className="relative flex items-center"
+                        style={{ marginLeft: '-6px', marginTop: '-6px', height: '26px' }}
                       >
                         <svg 
-                          width="10" 
+                          width="200" 
                           height="26" 
-                          viewBox="0 0 10 26" 
-                          style={{ marginRight: '-1px' }}
+                          viewBox="0 0 200 26"
+                          style={{ position: 'absolute', left: 0, top: 0 }}
                         >
                           <path 
-                            d="M10,0 L10,26 L3,16 Q0,13 3,10 L10,0 Z" 
+                            d="M7,10 L0,13 L7,16 L7,23 Q7,26 10,26 L197,26 Q200,26 200,23 L200,3 Q200,0 197,0 L10,0 Q7,0 7,3 L7,10 Z" 
                             fill="white"
                           />
                         </svg>
@@ -1372,11 +1372,11 @@ export default function Settings() {
                             fontSize: '18px',
                             lineHeight: '26px',
                             color: '#000000',
-                            backgroundColor: '#FFFFFF',
-                            padding: '0 10px 0 4px',
-                            borderRadius: '0 3px 3px 0',
+                            padding: '0 10px 0 14px',
                             display: 'inline-block',
-                            height: '26px'
+                            height: '26px',
+                            position: 'relative',
+                            zIndex: 1
                           }}
                         >
                           {stop}
@@ -1431,7 +1431,7 @@ export default function Settings() {
                             </span>
                           </div>
                         </div>
-                      </span>
+                      </div>
                     ) : (
                       <span
                         style={{ 
