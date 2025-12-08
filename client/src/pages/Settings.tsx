@@ -1321,12 +1321,12 @@ export default function Settings() {
                       >
                         <svg 
                           width="10" 
-                          height="22" 
-                          viewBox="0 0 10 22" 
+                          height="26" 
+                          viewBox="0 0 10 26" 
                           style={{ marginRight: '-1px' }}
                         >
                           <path 
-                            d="M10,0 L10,22 L10,22 L2,14 Q0,11 2,8 L10,0 Z" 
+                            d="M10,0 L10,26 L3,16 Q0,13 3,10 L10,0 Z" 
                             fill="white"
                           />
                         </svg>
@@ -1334,12 +1334,13 @@ export default function Settings() {
                           style={{ 
                             fontFamily: 'Helvetica, Arial, sans-serif',
                             fontSize: '18px',
-                            lineHeight: '22px',
+                            lineHeight: '26px',
                             color: '#000000',
                             backgroundColor: '#FFFFFF',
-                            padding: '2px 10px 2px 4px',
+                            padding: '0 10px 0 4px',
                             borderRadius: '0 3px 3px 0',
-                            display: 'inline-block'
+                            display: 'inline-block',
+                            height: '26px'
                           }}
                         >
                           {stop}
