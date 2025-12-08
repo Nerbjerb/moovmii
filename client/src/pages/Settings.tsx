@@ -1243,7 +1243,7 @@ export default function Settings() {
               display: none;
             }
           `}</style>
-          <div className="flex py-4" style={{ overflow: 'visible' }}>
+          <div className="flex py-4" style={{ overflow: 'visible', marginLeft: '20px' }}>
             <div className="relative flex flex-col items-center mr-3" style={{ overflow: 'visible' }}>
               <div 
                 className="absolute w-[5px]"
