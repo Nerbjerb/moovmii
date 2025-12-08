@@ -996,6 +996,7 @@ export default function Settings() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
+  const [selectedStop, setSelectedStop] = useState<string | null>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
@@ -1050,6 +1051,7 @@ export default function Settings() {
     if (selectedLine) {
       // Check if this is a single-line group - if so, go back to main menu
       const group = groups.find(g => g.id === selectedGroup);
+      setSelectedStop(null);
       if (group && group.lines.length === 1) {
         setSelectedLine(null);
         setSelectedGroup(null);
@@ -1066,7 +1068,12 @@ export default function Settings() {
   };
 
   const handleStopSelect = (stopName: string) => {
-    console.log('Selected stop:', stopName);
+    // Toggle selection - if same stop clicked, deselect; otherwise select
+    if (selectedStop === stopName) {
+      setSelectedStop(null);
+    } else {
+      setSelectedStop(stopName);
+    }
   };
 
   const currentGroup = groups.find(g => g.id === selectedGroup);
@@ -1229,96 +1236,151 @@ export default function Settings() {
     
     return (
       <div 
-        className="relative flex flex-col items-center"
+        className="flex items-center justify-center"
         style={{ width: '760px', height: '370px', margin: 'auto' }}
       >
-        {canScrollUp && (
-          <div 
-            className="absolute left-1/2 transform -translate-x-1/2 z-20"
-            style={{ top: '-30px' }}
-            data-testid="scroll-up-indicator"
-          >
-            <ChevronUp className="w-5 h-5 text-white/60" />
-          </div>
-        )}
-        
+        {/* Station list container */}
         <div 
-          ref={stopsContainerRef}
-          className="overflow-y-auto flex justify-center w-full h-full"
-          style={{ 
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}
-          onScroll={checkScrollPosition}
-          data-testid="stops-container"
+          className="relative flex flex-col items-center"
+          style={{ height: '370px' }}
         >
-          <style>{`
-            [data-testid="stops-container"]::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-          <div className="flex py-4" style={{ overflow: 'visible', marginLeft: '20px' }}>
-            <div className="relative flex flex-col items-center mr-3" style={{ overflow: 'visible' }}>
-              {stops.map((_, index) => (
-                <div 
-                  key={index}
-                  className="relative z-10 flex flex-col items-center"
-                  style={{ 
-                    marginTop: index === 0 ? '5px' : '0',
-                    flexShrink: 0
-                  }}
-                >
-                  <div
+          {canScrollUp && (
+            <div 
+              className="absolute left-1/2 transform -translate-x-1/2 z-20"
+              style={{ top: '-30px' }}
+              data-testid="scroll-up-indicator"
+            >
+              <ChevronUp className="w-5 h-5 text-white/60" />
+            </div>
+          )}
+          
+          <div 
+            ref={stopsContainerRef}
+            className="overflow-y-auto flex justify-center h-full"
+            style={{ 
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+            onScroll={checkScrollPosition}
+            data-testid="stops-container"
+          >
+            <style>{`
+              [data-testid="stops-container"]::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+            <div className="flex py-4" style={{ overflow: 'visible', marginLeft: '20px' }}>
+              <div className="relative flex flex-col items-center mr-3" style={{ overflow: 'visible' }}>
+                {stops.map((_, index) => (
+                  <div 
+                    key={index}
+                    className="relative z-10 flex flex-col items-center"
                     style={{ 
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '50%',
-                      backgroundColor: '#FFFFFF',
-                      border: '2px solid #000000'
+                      marginTop: index === 0 ? '5px' : '0',
+                      flexShrink: 0
                     }}
-                  />
-                  {index < stops.length - 1 && (
+                  >
                     <div
-                      style={{
-                        width: '5px',
-                        height: '18px',
-                        backgroundColor: lineColor
+                      style={{ 
+                        width: '14px',
+                        height: '14px',
+                        borderRadius: '50%',
+                        backgroundColor: '#FFFFFF',
+                        border: '2px solid #000000'
                       }}
                     />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col" style={{ overflow: 'visible' }}>
-              {stops.map((stop, index) => (
-                <div 
-                  key={index}
-                  className="text-white cursor-pointer hover:opacity-80 transition-opacity flex items-center"
-                  style={{ 
-                    fontFamily: 'Helvetica, Arial, sans-serif',
-                    fontSize: '18px',
-                    lineHeight: '14px',
-                    marginTop: index === 0 ? '5px' : '0',
-                    marginBottom: index < stops.length - 1 ? '18px' : '0',
-                    height: '14px'
-                  }}
-                  onClick={() => handleStopSelect(stop)}
-                  data-testid={`stop-${index}`}
-                >
-                  {stop}
-                </div>
-              ))}
+                    {index < stops.length - 1 && (
+                      <div
+                        style={{
+                          width: '5px',
+                          height: '18px',
+                          backgroundColor: lineColor
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col" style={{ overflow: 'visible' }}>
+                {stops.map((stop, index) => (
+                  <div 
+                    key={index}
+                    className={`cursor-pointer hover:opacity-80 transition-opacity flex items-center ${selectedStop === stop ? 'text-[#ffd200]' : 'text-white'}`}
+                    style={{ 
+                      fontFamily: 'Helvetica, Arial, sans-serif',
+                      fontSize: '18px',
+                      lineHeight: '14px',
+                      marginTop: index === 0 ? '5px' : '0',
+                      marginBottom: index < stops.length - 1 ? '18px' : '0',
+                      height: '14px'
+                    }}
+                    onClick={() => handleStopSelect(stop)}
+                    data-testid={`stop-${index}`}
+                  >
+                    {stop}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+          
+          {canScrollDown && (
+            <div 
+              className="absolute left-1/2 transform -translate-x-1/2 z-20"
+              style={{ bottom: '-30px' }}
+              data-testid="scroll-down-indicator"
+            >
+              <ChevronDown className="w-5 h-5 text-white/60" />
+            </div>
+          )}
         </div>
-        
-        {canScrollDown && (
+
+        {/* Row selection popup cards */}
+        {selectedStop && (
           <div 
-            className="absolute left-1/2 transform -translate-x-1/2 z-20"
-            style={{ bottom: '-30px' }}
-            data-testid="scroll-down-indicator"
+            className="flex flex-col gap-2 ml-8"
+            data-testid="row-selection-popup"
           >
-            <ChevronDown className="w-5 h-5 text-white/60" />
+            <div 
+              className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ 
+                width: '160px', 
+                height: '48px', 
+                backgroundColor: '#2D2C31'
+              }}
+              onClick={() => {
+                console.log('Selected as Row 1:', selectedStop);
+                setSelectedStop(null);
+              }}
+              data-testid="button-select-row-1"
+            >
+              <span 
+                className="text-white text-sm font-medium"
+                style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+              >
+                Select as Row 1
+              </span>
+            </div>
+            <div 
+              className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ 
+                width: '160px', 
+                height: '48px', 
+                backgroundColor: '#2D2C31'
+              }}
+              onClick={() => {
+                console.log('Selected as Row 2:', selectedStop);
+                setSelectedStop(null);
+              }}
+              data-testid="button-select-row-2"
+            >
+              <span 
+                className="text-white text-sm font-medium"
+                style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+              >
+                Select as Row 2
+              </span>
+            </div>
           </div>
         )}
       </div>
