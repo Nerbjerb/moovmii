@@ -997,6 +997,8 @@ export default function Settings() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
+  const [row1Station, setRow1Station] = useState<string | null>(null);
+  const [row2Station, setRow2Station] = useState<string | null>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
@@ -1276,6 +1278,45 @@ export default function Settings() {
                   className="flex items-start"
                   style={{ flexShrink: 0 }}
                 >
+                  {/* Row label to the left of circle */}
+                  <div 
+                    className="flex items-center justify-end"
+                    style={{ width: '60px', height: '14px', marginRight: '8px' }}
+                  >
+                    {(row1Station === stop || row2Station === stop) && (
+                      <span
+                        className="flex items-center"
+                        style={{ marginTop: '0px' }}
+                      >
+                        <span
+                          style={{ 
+                            fontFamily: 'Helvetica, Arial, sans-serif',
+                            fontSize: '11px',
+                            lineHeight: '18px',
+                            color: '#000000',
+                            backgroundColor: '#FFFFFF',
+                            padding: '0 4px 0 6px',
+                            borderRadius: '3px 0 0 3px',
+                            display: 'inline-block',
+                            height: '18px'
+                          }}
+                        >
+                          {row1Station === stop ? 'Row 1' : 'Row 2'}
+                        </span>
+                        <svg 
+                          width="8" 
+                          height="18" 
+                          viewBox="0 0 8 18" 
+                          style={{ marginLeft: '-1px' }}
+                        >
+                          <path 
+                            d="M0,0 L0,18 L5,11 Q8,9 5,7 L0,0 Z" 
+                            fill="white"
+                          />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
                   {/* Circle and line column */}
                   <div className="flex flex-col items-center mr-3">
                     <div
@@ -1355,6 +1396,7 @@ export default function Settings() {
                             onClick={(e) => {
                               e.stopPropagation();
                               console.log('Selected as Row 1:', selectedStop);
+                              setRow1Station(selectedStop);
                               setSelectedStop(null);
                             }}
                             data-testid="button-select-row-1"
@@ -1376,6 +1418,7 @@ export default function Settings() {
                             onClick={(e) => {
                               e.stopPropagation();
                               console.log('Selected as Row 2:', selectedStop);
+                              setRow2Station(selectedStop);
                               setSelectedStop(null);
                             }}
                             data-testid="button-select-row-2"
