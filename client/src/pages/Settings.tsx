@@ -1269,24 +1269,23 @@ export default function Settings() {
                 display: none;
               }
             `}</style>
-            <div className="flex py-4" style={{ overflow: 'visible', marginLeft: '20px' }}>
-              <div className="relative flex flex-col items-center mr-3" style={{ overflow: 'visible' }}>
-                {stops.map((_, index) => (
-                  <div 
-                    key={index}
-                    className="relative z-10 flex flex-col items-center"
-                    style={{ 
-                      marginTop: index === 0 ? '5px' : '0',
-                      flexShrink: 0
-                    }}
-                  >
+            <div className="flex flex-col py-4" style={{ overflow: 'visible', marginLeft: '20px' }}>
+              {stops.map((stop, index) => (
+                <div 
+                  key={index}
+                  className="flex items-start"
+                  style={{ flexShrink: 0 }}
+                >
+                  {/* Circle and line column */}
+                  <div className="flex flex-col items-center mr-3">
                     <div
                       style={{ 
                         width: '14px',
                         height: '14px',
                         borderRadius: '50%',
                         backgroundColor: '#FFFFFF',
-                        border: '2px solid #000000'
+                        border: '2px solid #000000',
+                        flexShrink: 0
                       }}
                     />
                     {index < stops.length - 1 && (
@@ -1294,22 +1293,18 @@ export default function Settings() {
                         style={{
                           width: '5px',
                           height: '18px',
-                          backgroundColor: lineColor
+                          backgroundColor: lineColor,
+                          flexShrink: 0
                         }}
                       />
                     )}
                   </div>
-                ))}
-              </div>
-              <div className="flex flex-col" style={{ overflow: 'visible' }}>
-                {stops.map((stop, index) => (
+                  {/* Text column */}
                   <div 
-                    key={index}
                     className="cursor-pointer hover:opacity-80 transition-opacity flex items-center"
                     style={{ 
-                      marginTop: index === 0 ? '5px' : '0',
-                      marginBottom: index < stops.length - 1 ? '18px' : '0',
-                      height: '18px'
+                      height: '14px',
+                      marginBottom: index < stops.length - 1 ? '18px' : '0'
                     }}
                     onClick={() => handleStopSelect(stop)}
                     data-testid={`stop-${index}`}
@@ -1317,7 +1312,7 @@ export default function Settings() {
                     {selectedStop === stop ? (
                       <span
                         className="flex items-center"
-                        style={{ marginLeft: '-6px' }}
+                        style={{ marginLeft: '-6px', marginTop: '-6px' }}
                       >
                         <svg 
                           width="10" 
@@ -1351,7 +1346,7 @@ export default function Settings() {
                         style={{ 
                           fontFamily: 'Helvetica, Arial, sans-serif',
                           fontSize: '18px',
-                          lineHeight: '18px',
+                          lineHeight: '14px',
                           color: '#FFFFFF'
                         }}
                       >
@@ -1359,8 +1354,8 @@ export default function Settings() {
                       </span>
                     )}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
           
