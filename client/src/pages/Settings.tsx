@@ -1244,11 +1244,11 @@ export default function Settings() {
             }
           `}</style>
           <div className="flex py-4">
-            <div className="relative flex flex-col items-center mr-4">
+            <div className="relative flex flex-col items-center mr-3">
               <div 
-                className="absolute top-0 bottom-0 w-[3px]"
+                className="absolute top-0 bottom-0 w-[5px]"
                 style={{ 
-                  background: `repeating-linear-gradient(to bottom, ${lineColor} 0px, ${lineColor} 8px, transparent 8px, transparent 14px)`,
+                  backgroundColor: lineColor,
                   left: '50%',
                   transform: 'translateX(-50%)'
                 }}
@@ -1256,10 +1256,9 @@ export default function Settings() {
               {stops.map((_, index) => (
                 <div 
                   key={index}
-                  className="relative z-10 w-[12px] h-[12px] rounded-full border-2 bg-[#0b0b0b]"
+                  className="relative z-10 w-[14px] h-[14px] rounded-full border-2 border-black bg-white"
                   style={{ 
-                    borderColor: lineColor,
-                    marginBottom: index < stops.length - 1 ? '20px' : '0'
+                    marginBottom: index < stops.length - 1 ? '18px' : '0'
                   }}
                 />
               ))}
@@ -1268,11 +1267,11 @@ export default function Settings() {
               {stops.map((stop, index) => (
                 <div 
                   key={index}
-                  className="text-white text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                  className="text-white text-sm cursor-pointer hover:opacity-80 transition-opacity flex items-center"
                   style={{ 
                     fontFamily: 'Helvetica, Arial, sans-serif',
                     marginBottom: index < stops.length - 1 ? '14px' : '0',
-                    lineHeight: '18px'
+                    height: '18px'
                   }}
                   onClick={() => handleStopSelect(stop)}
                   data-testid={`stop-${index}`}
