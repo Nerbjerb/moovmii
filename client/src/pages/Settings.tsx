@@ -1236,18 +1236,18 @@ export default function Settings() {
     
     return (
       <div 
-        className="flex items-center justify-center"
-        style={{ width: '760px', height: '370px', margin: 'auto' }}
+        className="flex items-center"
+        style={{ width: '760px', height: '370px', margin: 'auto', paddingLeft: '200px' }}
       >
         {/* Station list container */}
         <div 
-          className="relative flex flex-col items-center"
-          style={{ height: '370px' }}
+          className="relative flex flex-col"
+          style={{ height: '370px', flexShrink: 0 }}
         >
           {canScrollUp && (
             <div 
-              className="absolute left-1/2 transform -translate-x-1/2 z-20"
-              style={{ top: '-30px' }}
+              className="absolute z-20"
+              style={{ top: '-30px', left: '50px' }}
               data-testid="scroll-up-indicator"
             >
               <ChevronUp className="w-5 h-5 text-white/60" />
@@ -1256,7 +1256,7 @@ export default function Settings() {
           
           <div 
             ref={stopsContainerRef}
-            className="overflow-y-auto flex justify-center h-full"
+            className="overflow-y-auto h-full"
             style={{ 
               scrollbarWidth: 'none',
               msOverflowStyle: 'none'
@@ -1269,7 +1269,7 @@ export default function Settings() {
                 display: none;
               }
             `}</style>
-            <div className="flex flex-col py-4" style={{ overflow: 'visible', marginLeft: '20px' }}>
+            <div className="flex flex-col py-4" style={{ overflow: 'visible' }}>
               {stops.map((stop, index) => (
                 <div 
                   key={index}
@@ -1409,8 +1409,8 @@ export default function Settings() {
           
           {canScrollDown && (
             <div 
-              className="absolute left-1/2 transform -translate-x-1/2 z-20"
-              style={{ bottom: '-30px' }}
+              className="absolute z-20"
+              style={{ bottom: '-30px', left: '50px' }}
               data-testid="scroll-down-indicator"
             >
               <ChevronDown className="w-5 h-5 text-white/60" />
