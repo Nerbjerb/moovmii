@@ -1243,7 +1243,7 @@ export default function Settings() {
     return (
       <div 
         className="flex items-center"
-        style={{ width: '760px', height: '370px', margin: 'auto', paddingLeft: '90px' }}
+        style={{ width: '760px', height: '370px', margin: 'auto', paddingLeft: '65px' }}
       >
         {/* Station list container */}
         <div 
