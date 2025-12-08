@@ -1281,36 +1281,36 @@ export default function Settings() {
                   {/* Row label to the left of circle */}
                   <div 
                     className="flex items-center justify-end"
-                    style={{ width: '60px', height: '14px', marginRight: '8px' }}
+                    style={{ width: '80px', height: '14px', marginRight: '8px' }}
                   >
                     {(row1Station === stop || row2Station === stop) && (
                       <span
                         className="flex items-center"
-                        style={{ marginTop: '0px' }}
+                        style={{ marginTop: '-6px' }}
                       >
                         <span
                           style={{ 
                             fontFamily: 'Helvetica, Arial, sans-serif',
-                            fontSize: '11px',
-                            lineHeight: '18px',
+                            fontSize: '18px',
+                            lineHeight: '26px',
                             color: '#000000',
                             backgroundColor: '#FFFFFF',
-                            padding: '0 4px 0 6px',
+                            padding: '0 4px 0 8px',
                             borderRadius: '3px 0 0 3px',
                             display: 'inline-block',
-                            height: '18px'
+                            height: '26px'
                           }}
                         >
                           {row1Station === stop ? 'Row 1' : 'Row 2'}
                         </span>
                         <svg 
-                          width="8" 
-                          height="18" 
-                          viewBox="0 0 8 18" 
+                          width="10" 
+                          height="26" 
+                          viewBox="0 0 10 26" 
                           style={{ marginLeft: '-1px' }}
                         >
                           <path 
-                            d="M0,0 L0,18 L5,11 Q8,9 5,7 L0,0 Z" 
+                            d="M0,0 L0,26 L7,16 Q10,13 7,10 L0,0 Z" 
                             fill="white"
                           />
                         </svg>
