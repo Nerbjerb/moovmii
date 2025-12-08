@@ -1036,12 +1036,26 @@ export default function Settings() {
   };
 
   const handleGroupClick = (groupId: string) => {
-    setSelectedGroup(groupId);
+    const group = groups.find(g => g.id === groupId);
+    if (group && group.lines.length === 1) {
+      // For single-line groups (7, L, G), navigate directly to stops
+      setSelectedGroup(groupId);
+      setSelectedLine(group.lines[0].id);
+    } else {
+      setSelectedGroup(groupId);
+    }
   };
 
   const handleBack = () => {
     if (selectedLine) {
-      setSelectedLine(null);
+      // Check if this is a single-line group - if so, go back to main menu
+      const group = groups.find(g => g.id === selectedGroup);
+      if (group && group.lines.length === 1) {
+        setSelectedLine(null);
+        setSelectedGroup(null);
+      } else {
+        setSelectedLine(null);
+      }
     } else {
       setSelectedGroup(null);
     }
