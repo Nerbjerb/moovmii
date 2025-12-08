@@ -999,6 +999,7 @@ export default function Settings() {
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
   const [row1Station, setRow1Station] = useState<string | null>(null);
   const [row2Station, setRow2Station] = useState<string | null>(null);
+  const [selectedRow, setSelectedRow] = useState<1 | 2 | null>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
@@ -1054,6 +1055,7 @@ export default function Settings() {
       // Check if this is a single-line group - if so, go back to main menu
       const group = groups.find(g => g.id === selectedGroup);
       setSelectedStop(null);
+      setSelectedRow(null);
       if (group && group.lines.length === 1) {
         setSelectedLine(null);
         setSelectedGroup(null);
@@ -1073,8 +1075,10 @@ export default function Settings() {
     // Toggle selection - if same stop clicked, deselect; otherwise select
     if (selectedStop === stopName) {
       setSelectedStop(null);
+      setSelectedRow(null);
     } else {
       setSelectedStop(stopName);
+      setSelectedRow(null);
     }
   };
 
@@ -1362,50 +1366,123 @@ export default function Settings() {
                           className="flex flex-row gap-2 ml-4"
                           data-testid="row-selection-popup"
                         >
-                          <div 
-                            className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                            style={{ 
-                              width: '70px', 
-                              height: '26px', 
-                              backgroundColor: '#2D2C31'
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              console.log('Selected as Row 1:', selectedStop);
-                              setRow1Station(selectedStop);
-                              setSelectedStop(null);
-                            }}
-                            data-testid="button-select-row-1"
-                          >
-                            <span 
-                              className="text-white font-medium"
-                              style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
-                            >
-                              Row 1
-                            </span>
-                          </div>
-                          <div 
-                            className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                            style={{ 
-                              width: '70px', 
-                              height: '26px', 
-                              backgroundColor: '#2D2C31'
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              console.log('Selected as Row 2:', selectedStop);
-                              setRow2Station(selectedStop);
-                              setSelectedStop(null);
-                            }}
-                            data-testid="button-select-row-2"
-                          >
-                            <span 
-                              className="text-white font-medium"
-                              style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
-                            >
-                              Row 2
-                            </span>
-                          </div>
+                          {selectedRow === null ? (
+                            <>
+                              <div 
+                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                                style={{ 
+                                  width: '70px', 
+                                  height: '26px', 
+                                  backgroundColor: '#2D2C31'
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedRow(1);
+                                }}
+                                data-testid="button-select-row-1"
+                              >
+                                <span 
+                                  className="text-white font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                >
+                                  Row 1
+                                </span>
+                              </div>
+                              <div 
+                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                                style={{ 
+                                  width: '70px', 
+                                  height: '26px', 
+                                  backgroundColor: '#2D2C31'
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedRow(2);
+                                }}
+                                data-testid="button-select-row-2"
+                              >
+                                <span 
+                                  className="text-white font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                >
+                                  Row 2
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div 
+                                className="rounded-[6px] flex items-center justify-center"
+                                style={{ 
+                                  width: '70px', 
+                                  height: '26px', 
+                                  backgroundColor: '#2D2C31'
+                                }}
+                                data-testid={`button-row-${selectedRow}-selected`}
+                              >
+                                <span 
+                                  className="text-white font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                >
+                                  Row {selectedRow}
+                                </span>
+                              </div>
+                              <div 
+                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                                style={{ 
+                                  width: '70px', 
+                                  height: '26px', 
+                                  backgroundColor: '#2D2C31'
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log(`Selected as Row ${selectedRow} Uptown:`, selectedStop);
+                                  if (selectedRow === 1) {
+                                    setRow1Station(selectedStop);
+                                  } else {
+                                    setRow2Station(selectedStop);
+                                  }
+                                  setSelectedStop(null);
+                                  setSelectedRow(null);
+                                }}
+                                data-testid="button-select-uptown"
+                              >
+                                <span 
+                                  className="text-white font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                >
+                                  Uptown
+                                </span>
+                              </div>
+                              <div 
+                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                                style={{ 
+                                  width: '70px', 
+                                  height: '26px', 
+                                  backgroundColor: '#2D2C31'
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log(`Selected as Row ${selectedRow} Downtown:`, selectedStop);
+                                  if (selectedRow === 1) {
+                                    setRow1Station(selectedStop);
+                                  } else {
+                                    setRow2Station(selectedStop);
+                                  }
+                                  setSelectedStop(null);
+                                  setSelectedRow(null);
+                                }}
+                                data-testid="button-select-downtown"
+                              >
+                                <span 
+                                  className="text-white font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                >
+                                  Downtown
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </span>
                     ) : (
