@@ -1182,10 +1182,10 @@ export default function Settings() {
     
     return (
       <div 
-        className="flex items-center justify-center"
-        style={{ height: '322px', width: '760px' }}
+        className="flex items-center justify-center flex-1"
+        style={{ width: '760px' }}
       >
-        <div className="flex flex-col gap-[8px]">
+        <div className="flex flex-col gap-[8px] items-center">
           {currentGroup.lines.map((line) => (
             <div 
               key={line.id}
