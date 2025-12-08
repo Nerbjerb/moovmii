@@ -1314,21 +1314,49 @@ export default function Settings() {
                     onClick={() => handleStopSelect(stop)}
                     data-testid={`stop-${index}`}
                   >
-                    <span
-                      style={{ 
-                        fontFamily: 'Helvetica, Arial, sans-serif',
-                        fontSize: '18px',
-                        lineHeight: '18px',
-                        color: selectedStop === stop ? '#000000' : '#FFFFFF',
-                        backgroundColor: selectedStop === stop ? '#FFFFFF' : 'transparent',
-                        padding: selectedStop === stop ? '2px 10px 2px 14px' : '0',
-                        marginLeft: selectedStop === stop ? '-6px' : '0',
-                        clipPath: selectedStop === stop ? 'polygon(8px 0, 100% 0, 100% 100%, 8px 100%, 0 50%)' : 'none',
-                        display: 'inline-block'
-                      }}
-                    >
-                      {stop}
-                    </span>
+                    {selectedStop === stop ? (
+                      <span
+                        className="flex items-center"
+                        style={{ marginLeft: '-6px' }}
+                      >
+                        <svg 
+                          width="10" 
+                          height="22" 
+                          viewBox="0 0 10 22" 
+                          style={{ marginRight: '-1px' }}
+                        >
+                          <path 
+                            d="M10,0 L10,22 L10,22 L2,14 Q0,11 2,8 L10,0 Z" 
+                            fill="white"
+                          />
+                        </svg>
+                        <span
+                          style={{ 
+                            fontFamily: 'Helvetica, Arial, sans-serif',
+                            fontSize: '18px',
+                            lineHeight: '22px',
+                            color: '#000000',
+                            backgroundColor: '#FFFFFF',
+                            padding: '2px 10px 2px 4px',
+                            borderRadius: '0 3px 3px 0',
+                            display: 'inline-block'
+                          }}
+                        >
+                          {stop}
+                        </span>
+                      </span>
+                    ) : (
+                      <span
+                        style={{ 
+                          fontFamily: 'Helvetica, Arial, sans-serif',
+                          fontSize: '18px',
+                          lineHeight: '18px',
+                          color: '#FFFFFF'
+                        }}
+                      >
+                        {stop}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
