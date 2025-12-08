@@ -1340,6 +1340,54 @@ export default function Settings() {
                         >
                           {stop}
                         </span>
+                        {/* Row selection buttons inline with selected station */}
+                        <div 
+                          className="flex flex-row gap-2 ml-4"
+                          data-testid="row-selection-popup"
+                        >
+                          <div 
+                            className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{ 
+                              width: '70px', 
+                              height: '26px', 
+                              backgroundColor: '#2D2C31'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Selected as Row 1:', selectedStop);
+                              setSelectedStop(null);
+                            }}
+                            data-testid="button-select-row-1"
+                          >
+                            <span 
+                              className="text-white font-medium"
+                              style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                            >
+                              Row 1
+                            </span>
+                          </div>
+                          <div 
+                            className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{ 
+                              width: '70px', 
+                              height: '26px', 
+                              backgroundColor: '#2D2C31'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Selected as Row 2:', selectedStop);
+                              setSelectedStop(null);
+                            }}
+                            data-testid="button-select-row-2"
+                          >
+                            <span 
+                              className="text-white font-medium"
+                              style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                            >
+                              Row 2
+                            </span>
+                          </div>
+                        </div>
                       </span>
                     ) : (
                       <span
@@ -1369,55 +1417,6 @@ export default function Settings() {
             </div>
           )}
         </div>
-
-        {/* Row selection popup cards */}
-        {selectedStop && (
-          <div 
-            className="flex flex-row gap-2 ml-6"
-            data-testid="row-selection-popup"
-          >
-            <div 
-              className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-              style={{ 
-                width: '70px', 
-                height: '32px', 
-                backgroundColor: '#2D2C31'
-              }}
-              onClick={() => {
-                console.log('Selected as Row 1:', selectedStop);
-                setSelectedStop(null);
-              }}
-              data-testid="button-select-row-1"
-            >
-              <span 
-                className="text-white font-medium"
-                style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
-              >
-                Row 1
-              </span>
-            </div>
-            <div 
-              className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-              style={{ 
-                width: '70px', 
-                height: '32px', 
-                backgroundColor: '#2D2C31'
-              }}
-              onClick={() => {
-                console.log('Selected as Row 2:', selectedStop);
-                setSelectedStop(null);
-              }}
-              data-testid="button-select-row-2"
-            >
-              <span 
-                className="text-white font-medium"
-                style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
-              >
-                Row 2
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     );
   };
