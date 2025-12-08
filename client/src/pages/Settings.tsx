@@ -1215,7 +1215,7 @@ export default function Settings() {
     
     return (
       <div 
-        className="relative flex flex-col items-center justify-center flex-1"
+        className="relative flex flex-col items-center flex-1"
         style={{ width: '760px' }}
       >
         {canScrollUp && (
@@ -1229,11 +1229,11 @@ export default function Settings() {
         
         <div 
           ref={stopsContainerRef}
-          className="flex-1 overflow-y-auto flex justify-center"
+          className="flex-1 overflow-y-auto flex justify-center w-full"
           style={{ 
-            width: '100%',
             scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
+            msOverflowStyle: 'none',
+            maxHeight: '100%'
           }}
           onScroll={checkScrollPosition}
           data-testid="stops-container"
