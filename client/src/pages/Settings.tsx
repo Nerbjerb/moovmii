@@ -1285,35 +1285,21 @@ export default function Settings() {
                   >
                     {(row1Station === stop || row2Station === stop) && (
                       <span
-                        className="flex items-center"
-                        style={{ marginTop: '-6px' }}
+                        style={{ 
+                          marginTop: '-6px',
+                          fontFamily: 'Helvetica, Arial, sans-serif',
+                          fontSize: '18px',
+                          lineHeight: '26px',
+                          color: '#000000',
+                          backgroundColor: '#FFFFFF',
+                          padding: '0 12px 0 8px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          height: '26px',
+                          clipPath: 'polygon(0 3px, 3px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 3px 100%, 0 calc(100% - 3px))'
+                        }}
                       >
-                        <span
-                          style={{ 
-                            fontFamily: 'Helvetica, Arial, sans-serif',
-                            fontSize: '18px',
-                            lineHeight: '26px',
-                            color: '#000000',
-                            backgroundColor: '#FFFFFF',
-                            padding: '0 2px 0 8px',
-                            borderRadius: '3px 0 0 3px',
-                            display: 'inline-block',
-                            height: '26px'
-                          }}
-                        >
-                          {row1Station === stop ? 'Row 1' : 'Row 2'}
-                        </span>
-                        <svg 
-                          width="12" 
-                          height="26" 
-                          viewBox="0 0 12 26" 
-                          style={{ marginLeft: '-1px', display: 'block' }}
-                        >
-                          <polygon 
-                            points="0,0 4,0 4,10 12,13 4,16 4,26 0,26" 
-                            fill="white"
-                          />
-                        </svg>
+                        {row1Station === stop ? 'Row 1' : 'Row 2'}
                       </span>
                     )}
                   </div>
@@ -1355,17 +1341,6 @@ export default function Settings() {
                         className="flex items-center"
                         style={{ marginLeft: '-6px', marginTop: '-6px' }}
                       >
-                        <svg 
-                          width="12" 
-                          height="26" 
-                          viewBox="0 0 12 26" 
-                          style={{ marginRight: '-1px', display: 'block' }}
-                        >
-                          <polygon 
-                            points="12,0 8,0 8,10 0,13 8,16 8,26 12,26" 
-                            fill="white"
-                          />
-                        </svg>
                         <span
                           style={{ 
                             fontFamily: 'Helvetica, Arial, sans-serif',
@@ -1373,10 +1348,11 @@ export default function Settings() {
                             lineHeight: '26px',
                             color: '#000000',
                             backgroundColor: '#FFFFFF',
-                            padding: '0 10px 0 2px',
-                            borderRadius: '0 3px 3px 0',
-                            display: 'inline-block',
-                            height: '26px'
+                            padding: '0 10px 0 14px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            height: '26px',
+                            clipPath: 'polygon(10px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 10px 100%, 0 50%)'
                           }}
                         >
                           {stop}
