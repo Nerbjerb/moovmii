@@ -997,8 +997,8 @@ export default function Settings() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
-  const [row1Station, setRow1Station] = useState<string | null>(null);
-  const [row2Station, setRow2Station] = useState<string | null>(null);
+  const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown' } | null>(null);
+  const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown' } | null>(null);
   const [selectedRow, setSelectedRow] = useState<1 | 2 | null>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
@@ -1285,14 +1285,14 @@ export default function Settings() {
                   {/* Row label to the left of circle */}
                   <div 
                     className="flex items-center justify-end"
-                    style={{ width: '80px', height: '14px', marginRight: '8px' }}
+                    style={{ width: '140px', height: '14px', marginRight: '8px' }}
                   >
-                    {(row1Station === stop || row2Station === stop) && (
+                    {(row1Station?.stop === stop || row2Station?.stop === stop) && (
                       <span
                         style={{ 
                           marginTop: '-6px',
                           fontFamily: 'Helvetica, Arial, sans-serif',
-                          fontSize: '18px',
+                          fontSize: '14px',
                           lineHeight: '26px',
                           color: '#000000',
                           backgroundColor: '#FFFFFF',
@@ -1300,10 +1300,13 @@ export default function Settings() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           height: '26px',
+                          whiteSpace: 'nowrap',
                           clipPath: 'polygon(0 3px, 3px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 3px 100%, 0 calc(100% - 3px))'
                         }}
                       >
-                        {row1Station === stop ? 'Row 1' : 'Row 2'}
+                        {row1Station?.stop === stop 
+                          ? `Row 1 - ${row1Station.direction}` 
+                          : `Row 2 - ${row2Station?.direction}`}
                       </span>
                     )}
                   </div>
@@ -1437,10 +1440,12 @@ export default function Settings() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   console.log(`Selected as Row ${selectedRow} Uptown:`, selectedStop);
-                                  if (selectedRow === 1) {
-                                    setRow1Station(selectedStop);
-                                  } else {
-                                    setRow2Station(selectedStop);
+                                  if (selectedStop) {
+                                    if (selectedRow === 1) {
+                                      setRow1Station({ stop: selectedStop, direction: 'Uptown' });
+                                    } else {
+                                      setRow2Station({ stop: selectedStop, direction: 'Uptown' });
+                                    }
                                   }
                                   setSelectedStop(null);
                                   setSelectedRow(null);
@@ -1464,10 +1469,12 @@ export default function Settings() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   console.log(`Selected as Row ${selectedRow} Downtown:`, selectedStop);
-                                  if (selectedRow === 1) {
-                                    setRow1Station(selectedStop);
-                                  } else {
-                                    setRow2Station(selectedStop);
+                                  if (selectedStop) {
+                                    if (selectedRow === 1) {
+                                      setRow1Station({ stop: selectedStop, direction: 'Downtown' });
+                                    } else {
+                                      setRow2Station({ stop: selectedStop, direction: 'Downtown' });
+                                    }
                                   }
                                   setSelectedStop(null);
                                   setSelectedRow(null);
