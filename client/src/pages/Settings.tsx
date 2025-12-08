@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "wouter";
-import { Home, Square, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
+import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, ChevronRight } from "lucide-react";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
@@ -1305,7 +1305,7 @@ export default function Settings() {
                 {stops.map((stop, index) => (
                   <div 
                     key={index}
-                    className={`cursor-pointer hover:opacity-80 transition-opacity flex items-center ${selectedStop === stop ? 'text-[#ffd200]' : 'text-white'}`}
+                    className="cursor-pointer hover:opacity-80 transition-opacity flex items-center text-white"
                     style={{ 
                       fontFamily: 'Helvetica, Arial, sans-serif',
                       fontSize: '18px',
@@ -1318,6 +1318,9 @@ export default function Settings() {
                     data-testid={`stop-${index}`}
                   >
                     {stop}
+                    {selectedStop === stop && (
+                      <ChevronRight className="w-4 h-4 text-white ml-2" />
+                    )}
                   </div>
                 ))}
               </div>
