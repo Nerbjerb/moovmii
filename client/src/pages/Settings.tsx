@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "wouter";
-import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, ChevronRight } from "lucide-react";
+import { Home, Square, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
@@ -1319,7 +1319,18 @@ export default function Settings() {
                   >
                     {stop}
                     {selectedStop === stop && (
-                      <ChevronRight className="w-4 h-4 text-white ml-2" />
+                      <svg 
+                        width="12" 
+                        height="18" 
+                        viewBox="0 0 12 18" 
+                        className="ml-2"
+                        style={{ flexShrink: 0 }}
+                      >
+                        <polygon 
+                          points="6,0 12,0 12,18 6,18 0,9" 
+                          fill="white"
+                        />
+                      </svg>
                     )}
                   </div>
                 ))}
