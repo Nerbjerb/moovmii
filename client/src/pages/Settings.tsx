@@ -94,6 +94,11 @@ const lineColors: Record<string, string> = {
   "MNR-4": "#EE0034",    // New Canaan
   "MNR-5": "#EE0034",    // Danbury
   "MNR-6": "#EE0034",    // Waterbury
+  // PATH Routes
+  "PATH-NWK": "#D93A30",    // Newark-WTC (red/orange)
+  "PATH-JSQ": "#F0A01E",    // JSQ-33 (yellow)
+  "PATH-HOB-WTC": "#4CAF50", // Hoboken-WTC (green)
+  "PATH-HOB-33": "#0078D7",  // Hoboken-33 (blue)
 };
 
 // Color groups for universal favorite selection across same-color lines
@@ -1203,6 +1208,15 @@ const groups: GroupItem[] = [
       { id: "MNR-6", icon: metroNorthIcon, alt: "Waterbury", size: "26px", isRegional: true, branchName: "Waterbury" },
     ]
   },
+  {
+    id: "path",
+    lines: [
+      { id: "PATH-NWK", icon: pathIcon, alt: "Newark-WTC", size: "26px", isRegional: true, branchName: "Newark - WTC" },
+      { id: "PATH-JSQ", icon: pathIcon, alt: "JSQ-33", size: "26px", isRegional: true, branchName: "JSQ - 33 Street" },
+      { id: "PATH-HOB-WTC", icon: pathIcon, alt: "Hoboken-WTC", size: "26px", isRegional: true, branchName: "Hoboken - WTC" },
+      { id: "PATH-HOB-33", icon: pathIcon, alt: "Hoboken-33", size: "26px", isRegional: true, branchName: "Hoboken - 33 Street" },
+    ]
+  },
 ];
 
 export default function Settings() {
@@ -1338,6 +1352,15 @@ export default function Settings() {
     }
     if (lineId === "MetroNorth") {
       setSelectedRegionalService("mnr");
+      return;
+    }
+    if (lineId === "PATH") {
+      setSelectedRegionalService("path");
+      return;
+    }
+    // PATH routes are not yet implemented - stay on sub-menu
+    if (lineId.startsWith("PATH-")) {
+      // TODO: Implement PATH station selection when API integration is ready
       return;
     }
     setSelectedLine(lineId);
@@ -1477,6 +1500,51 @@ export default function Settings() {
   );
 
   const renderSubView = () => {
+    // Handle PATH route selection with colored vertical lines
+    if (selectedRegionalService === "path") {
+      const serviceGroup = groups.find(g => g.id === "path");
+      if (!serviceGroup) return null;
+      
+      return (
+        <div 
+          className="flex items-center justify-center"
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
+        >
+          <div className="flex flex-col gap-[8px] items-center">
+            {serviceGroup.lines.map((line) => (
+              <div 
+                key={line.id}
+                className="rounded-[6px] flex items-center cursor-pointer hover:opacity-80 transition-opacity" 
+                style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31', paddingLeft: '24px' }}
+                onClick={() => handleLineSelect(line.id)}
+                data-testid={`card-line-${line.id}`}
+              >
+                <div 
+                  style={{ 
+                    width: '4px', 
+                    height: '32px', 
+                    backgroundColor: lineColors[line.id] || '#FFFFFF',
+                    borderRadius: '2px',
+                    marginRight: '16px'
+                  }}
+                />
+                <span 
+                  style={{ 
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 600,
+                    color: '#FFFFFF'
+                  }}
+                >
+                  {line.branchName}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
     // Handle LIRR/MNR branch selection with two-column layout
     if (selectedRegionalService) {
       const serviceGroup = groups.find(g => g.id === selectedRegionalService);
