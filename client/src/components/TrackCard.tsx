@@ -143,8 +143,9 @@ export default function TrackCard({
   // Check if a line is Metro-North (should show text instead of logo)
   const isMnrLine = (lineName: string) => lineName === 'MetroNorth' || lineName.startsWith('MNR-');
 
-  // Get display direction - LIRR, 7, L, J, Z trains use Inbound/Outbound
+  // Get display direction - LIRR, MNR, 7, L, J, Z trains use Inbound/Outbound
   // LIRR: Inbound = towards Manhattan (Uptown), Outbound = away from Manhattan (Downtown)
+  // MNR: Inbound = towards Grand Central (Downtown), Outbound = away from Grand Central (Uptown)
   // 7 train: Inbound = towards 34 St-Hudson Yards (Downtown), Outbound = towards Flushing-Main St (Uptown)
   // L train: Inbound = towards 8 Av (Downtown), Outbound = towards Canarsie (Uptown)
   // J/Z trains: Inbound = towards Broad St (Downtown), Outbound = towards Jamaica Center (Uptown)
@@ -153,7 +154,7 @@ export default function TrackCard({
       if (direction === 'Uptown') return 'Inbound';
       if (direction === 'Downtown') return 'Outbound';
     }
-    if (line === '7' || line === 'L' || line === 'J' || line === 'Z') {
+    if (isMnrLine(line) || line === '7' || line === 'L' || line === 'J' || line === 'Z') {
       if (direction === 'Uptown') return 'Outbound';
       if (direction === 'Downtown') return 'Inbound';
     }

@@ -1656,11 +1656,11 @@ export default function Settings() {
                           >
                             {(() => {
                               const isLIRR = selectedLine?.startsWith('LIRR');
-                              const is7orLorJZ = selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z';
+                              const is7orLorJZorMNR = selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR');
                               let displayDir: string = selection.direction || '';
                               if (isLIRR) {
                                 displayDir = selection.direction === 'Uptown' ? 'Inbound' : 'Outbound';
-                              } else if (is7orLorJZ) {
+                              } else if (is7orLorJZorMNR) {
                                 displayDir = selection.direction === 'Uptown' ? 'Outbound' : 'Inbound';
                               }
                               return selection.isRow1 
@@ -1751,7 +1751,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('LIRR') ? 'Inbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z') ? 'Outbound' : 'Uptown'}
+                                  {selectedLine?.startsWith('LIRR') ? 'Inbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Outbound' : 'Uptown'}
                                 </span>
                               </div>
                               <div 
@@ -1771,7 +1771,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('LIRR') ? 'Outbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z') ? 'Inbound' : 'Downtown'}
+                                  {selectedLine?.startsWith('LIRR') ? 'Outbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Inbound' : 'Downtown'}
                                 </span>
                               </div>
                             </>
@@ -1792,7 +1792,7 @@ export default function Settings() {
                                 >
                                   {selectedLine?.startsWith('LIRR')
                                     ? (selectedDirection === 'Uptown' ? 'Inbound' : 'Outbound')
-                                    : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z')
+                                    : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR'))
                                     ? (selectedDirection === 'Uptown' ? 'Outbound' : 'Inbound')
                                     : selectedDirection}
                                 </span>

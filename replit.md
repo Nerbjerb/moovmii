@@ -175,6 +175,7 @@ Preferred communication style: Simple, everyday language.
   - L train: Inbound (towards 8 Av) / Outbound (towards Canarsie-Rockaway Pkwy)
   - J/Z trains: Inbound (towards Broad St) / Outbound (towards Jamaica Center)
   - LIRR: Inbound (towards Manhattan) / Outbound (away from Manhattan)
+  - Metro-North: Inbound (towards Grand Central) / Outbound (away from Grand Central)
 - Internal state always uses Uptown/Downtown, UI displays appropriate terminology
 - Universal favorite selection: Selecting a station on one line automatically shows flag on same-color lines
   - Color groups: NQRW (yellow), ACE (blue), 123 (red), 456 (green), BDFM (orange), JZ (brown), 7 (purple), L (gray), G (light green)
