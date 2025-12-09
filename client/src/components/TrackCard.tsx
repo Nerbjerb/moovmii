@@ -127,6 +127,9 @@ export default function TrackCard({
     return mins === 0 ? 1 : mins;
   };
 
+  // Check if a line is LIRR (should show text instead of logo)
+  const isLirrLine = (lineName: string) => lineName === 'LIRR' || lineName.startsWith('LIRR-');
+
   // Extract text before dash for destination
   const displayDestination = destination.split('-')[0].trim();
 
@@ -153,7 +156,18 @@ export default function TrackCard({
           className="absolute w-24 h-24 rounded-full flex items-center justify-center" 
           style={{ left: '67px', top: '18px' }}
         >
-          {iconSrc ? (
+          {isLirrLine(line) ? (
+            <span 
+              className="font-bold text-white"
+              style={{ 
+                fontSize: '28px',
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                transform: 'translate(-35px, -10px)'
+              }}
+            >
+              LIRR
+            </span>
+          ) : iconSrc ? (
             <img 
               src={iconSrc} 
               alt={`${line} train`} 
@@ -208,7 +222,18 @@ export default function TrackCard({
         {secondArrival !== undefined && (
           <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              {secondIconSrc ? (
+              {secondLine && isLirrLine(secondLine) ? (
+                <span 
+                  className="font-bold text-white"
+                  style={{ 
+                    fontSize: '14px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    transform: 'translate(-32px, 45px)'
+                  }}
+                >
+                  LIRR
+                </span>
+              ) : secondIconSrc ? (
                 <img
                   src={secondIconSrc}
                   alt={`${secondLine} train`}
@@ -229,7 +254,18 @@ export default function TrackCard({
         {thirdArrival !== undefined && (
           <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              {thirdIconSrc ? (
+              {thirdLine && isLirrLine(thirdLine) ? (
+                <span 
+                  className="font-bold text-white"
+                  style={{ 
+                    fontSize: '14px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    transform: 'translate(-32px, 45px)'
+                  }}
+                >
+                  LIRR
+                </span>
+              ) : thirdIconSrc ? (
                 <img
                   src={thirdIconSrc}
                   alt={`${thirdLine} train`}
