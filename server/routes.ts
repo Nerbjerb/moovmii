@@ -322,14 +322,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const lineList = (lines as string).split(",");
-      const directionSuffix = direction === "Uptown" ? "N" : "S";
-      const fullStopId = `${stopId}${directionSuffix}`;
+      
+      // Check if this is a commuter rail (LIRR or Metro-North)
+      const isLIRR = lineList.some(l => l.startsWith("LIRR"));
+      const isMNR = lineList.some(l => l.startsWith("MNR"));
+      const isCommuterRail = isLIRR || isMNR;
+      
+      // LIRR and Metro-North don't use N/S suffixes
+      let fullStopId: string;
+      if (isCommuterRail) {
+        fullStopId = stopId as string;
+      } else {
+        const directionSuffix = direction === "Uptown" ? "N" : "S";
+        fullStopId = `${stopId}${directionSuffix}`;
+      }
 
-      // Get all same-color lines for merging
+      // Get all same-color lines for merging (don't merge LIRR/MNR branches)
       const allLines = new Set<string>();
       for (const line of lineList) {
-        const sameColorLines = getSameColorLines(line);
-        sameColorLines.forEach(l => allLines.add(l));
+        if (isCommuterRail) {
+          // Don't merge LIRR/MNR branches - each is separate
+          allLines.add(line);
+        } else {
+          const sameColorLines = getSameColorLines(line);
+          sameColorLines.forEach(l => allLines.add(l));
+        }
       }
       const linesToFetch = Array.from(allLines);
 
@@ -373,6 +390,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const now = Math.floor(Date.now() / 1000);
 
+      // Map internal branch IDs to GTFS route IDs for LIRR/MNR
+      const branchToGtfsRoute: Record<string, string> = {
+        "LIRR-1": "1", "LIRR-2": "2", "LIRR-3": "3", "LIRR-4": "4", "LIRR-5": "5",
+        "LIRR-6": "6", "LIRR-7": "7", "LIRR-8": "8", "LIRR-9": "9", "LIRR-10": "10",
+        "MNR-1": "1", "MNR-2": "2", "MNR-3": "3", "MNR-4": "4", "MNR-5": "5", "MNR-6": "6",
+      };
+
       for (const feed of feeds) {
         if (!feed) continue;
         
@@ -382,8 +406,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const trip = entity.tripUpdate.trip;
           const routeId = trip?.routeId;
 
-          // Only include lines from our color group
-          if (!routeId || !linesToFetch.includes(routeId)) continue;
+          if (!routeId) continue;
+
+          // For commuter rail, map our branch IDs to GTFS route IDs
+          let matchesLine = false;
+          let matchedLine = "";
+          
+          if (isCommuterRail) {
+            // Check if any of our branches match this route
+            for (const line of linesToFetch) {
+              const gtfsRouteId = branchToGtfsRoute[line];
+              if (gtfsRouteId && routeId === gtfsRouteId) {
+                matchesLine = true;
+                matchedLine = line; // Keep our internal ID (LIRR-1, MNR-1, etc.)
+                break;
+              }
+            }
+          } else {
+            // Subway - direct match
+            matchesLine = linesToFetch.includes(routeId);
+            matchedLine = routeId;
+          }
+
+          if (!matchesLine) continue;
 
           const tripHeadsign = (trip as any)?.tripHeadsign || '';
 
@@ -404,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (minutesUntil < 0) continue;
 
             arrivals.push({ 
-              line: routeId, 
+              line: matchedLine, 
               minutes: minutesUntil,
               headsign: tripHeadsign,
             });
@@ -441,6 +486,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "J": { station: "Jamaica Center", borough: "Queens" },
           "Z": { station: "Jamaica Center", borough: "Queens" },
           "L": { station: "8 Av", borough: "Manhattan" },
+          // LIRR Branches - Eastbound/Outbound
+          "LIRR-1": { station: "Babylon", borough: "Long Island" },
+          "LIRR-2": { station: "Hempstead", borough: "Long Island" },
+          "LIRR-3": { station: "Oyster Bay", borough: "Long Island" },
+          "LIRR-4": { station: "Ronkonkoma", borough: "Long Island" },
+          "LIRR-5": { station: "Montauk", borough: "Long Island" },
+          "LIRR-6": { station: "Long Beach", borough: "Long Island" },
+          "LIRR-7": { station: "Far Rockaway", borough: "Queens" },
+          "LIRR-8": { station: "West Hempstead", borough: "Long Island" },
+          "LIRR-9": { station: "Port Washington", borough: "Long Island" },
+          "LIRR-10": { station: "Port Jefferson", borough: "Long Island" },
+          // Metro-North Lines - Northbound
+          "MNR-1": { station: "Poughkeepsie", borough: "Hudson Valley" },
+          "MNR-2": { station: "Wassaic", borough: "Hudson Valley" },
+          "MNR-3": { station: "New Haven", borough: "Connecticut" },
+          "MNR-4": { station: "New Canaan", borough: "Connecticut" },
+          "MNR-5": { station: "Danbury", borough: "Connecticut" },
+          "MNR-6": { station: "Waterbury", borough: "Connecticut" },
         },
         "Downtown": {
           "A": { station: "Far Rockaway", borough: "Queens" },
@@ -465,6 +528,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "J": { station: "Broad St", borough: "Manhattan" },
           "Z": { station: "Broad St", borough: "Manhattan" },
           "L": { station: "Canarsie-Rockaway Pkwy", borough: "Brooklyn" },
+          // LIRR Branches - Westbound/Inbound (to Penn Station)
+          "LIRR-1": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-2": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-3": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-4": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-5": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-6": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-7": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-8": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-9": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-10": { station: "Penn Station", borough: "Manhattan" },
+          // Metro-North Lines - Southbound (to Grand Central)
+          "MNR-1": { station: "Grand Central", borough: "Manhattan" },
+          "MNR-2": { station: "Grand Central", borough: "Manhattan" },
+          "MNR-3": { station: "Grand Central", borough: "Manhattan" },
+          "MNR-4": { station: "Grand Central", borough: "Manhattan" },
+          "MNR-5": { station: "Grand Central", borough: "Manhattan" },
+          "MNR-6": { station: "Grand Central", borough: "Manhattan" },
         },
       };
 

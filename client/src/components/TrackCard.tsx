@@ -32,6 +32,8 @@ import iconSr from "@assets/moovmii/MTA Icons/src/svg/sr.svg";
 import iconT from "@assets/moovmii/MTA Icons/src/svg/t.svg";
 import iconW from "@assets/moovmii/MTA Icons/src/svg/w.svg";
 import iconZ from "@assets/moovmii/MTA Icons/src/svg/z.svg";
+import iconLirr from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
+import iconMnr from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
 
 interface TrackCardProps {
   direction: string;
@@ -81,6 +83,26 @@ const lineIcons: Record<string, string> = {
   T: iconT,
   W: iconW,
   Z: iconZ,
+  // LIRR branches
+  LIRR: iconLirr,
+  "LIRR-1": iconLirr,
+  "LIRR-2": iconLirr,
+  "LIRR-3": iconLirr,
+  "LIRR-4": iconLirr,
+  "LIRR-5": iconLirr,
+  "LIRR-6": iconLirr,
+  "LIRR-7": iconLirr,
+  "LIRR-8": iconLirr,
+  "LIRR-9": iconLirr,
+  "LIRR-10": iconLirr,
+  // Metro-North lines
+  MetroNorth: iconMnr,
+  "MNR-1": iconMnr,
+  "MNR-2": iconMnr,
+  "MNR-3": iconMnr,
+  "MNR-4": iconMnr,
+  "MNR-5": iconMnr,
+  "MNR-6": iconMnr,
 };
 
 export default function TrackCard({

@@ -39,6 +39,7 @@ type LineItem = {
   alt: string;
   size?: string;
   isRegional?: boolean;
+  branchName?: string;
 };
 
 type GroupItem = {
@@ -74,6 +75,24 @@ const lineColors: Record<string, string> = {
   "MetroNorth": "#0039A6",
   "PATH": "#0039A6",
   "NJT": "#0039A6",
+  // LIRR Branches
+  "LIRR-1": "#00985F",   // Babylon
+  "LIRR-2": "#CE8E00",   // Hempstead
+  "LIRR-3": "#00AF3F",   // Oyster Bay
+  "LIRR-4": "#A626AA",   // Ronkonkoma
+  "LIRR-5": "#00B2A9",   // Montauk
+  "LIRR-6": "#FF6319",   // Long Beach
+  "LIRR-7": "#6E3219",   // Far Rockaway
+  "LIRR-8": "#00A1DE",   // West Hempstead
+  "LIRR-9": "#C60C30",   // Port Washington
+  "LIRR-10": "#006EC7",  // Port Jefferson
+  // Metro-North Lines
+  "MNR-1": "#009B3A",    // Hudson
+  "MNR-2": "#0039A6",    // Harlem
+  "MNR-3": "#EE0034",    // New Haven
+  "MNR-4": "#EE0034",    // New Canaan
+  "MNR-5": "#EE0034",    // Danbury
+  "MNR-6": "#EE0034",    // Waterbury
 };
 
 // Color groups for universal favorite selection across same-color lines
@@ -962,6 +981,98 @@ const lineStops: Record<string, string[]> = {
     "Botanical Garden",
     "Williams Bridge"
   ],
+  // LIRR Branches
+  "LIRR-1": [ // Babylon Branch
+    "Penn Station", "Jamaica", "St Albans", "Valley Stream", "Lynbrook", 
+    "Rockville Centre", "Baldwin", "Freeport", "Merrick", "Bellmore",
+    "Wantagh", "Seaford", "Massapequa", "Massapequa Park", "Amityville",
+    "Copiague", "Lindenhurst", "Babylon"
+  ],
+  "LIRR-2": [ // Hempstead Branch
+    "Penn Station", "Jamaica", "Hollis", "Queens Village", "Floral Park",
+    "Stewart Manor", "Nassau Boulevard", "Garden City", "Hempstead"
+  ],
+  "LIRR-3": [ // Oyster Bay Branch
+    "Penn Station", "Jamaica", "Mineola", "East Williston", "Albertson",
+    "Roslyn", "Greenvale", "Glen Street", "Sea Cliff", "Glen Head",
+    "Glen Cove", "Locust Valley", "Oyster Bay"
+  ],
+  "LIRR-4": [ // Ronkonkoma Branch
+    "Penn Station", "Woodside", "Forest Hills", "Kew Gardens", "Jamaica",
+    "Floral Park", "New Hyde Park", "Mineola", "Carle Place", "Westbury",
+    "Hicksville", "Bethpage", "Farmingdale", "Pinelawn", "Wyandanch",
+    "Deer Park", "Brentwood", "Central Islip", "Ronkonkoma"
+  ],
+  "LIRR-5": [ // Montauk Branch
+    "Penn Station", "Jamaica", "Babylon", "Bay Shore", "Islip",
+    "Great River", "Oakdale", "Sayville", "Patchogue", "Bellport",
+    "Speonk", "Westhampton", "Hampton Bays", "Southampton",
+    "Bridgehampton", "East Hampton", "Amagansett", "Montauk"
+  ],
+  "LIRR-6": [ // Long Beach Branch
+    "Penn Station", "Jamaica", "Valley Stream", "Lynbrook", "Centre Avenue",
+    "East Rockaway", "Oceanside", "Island Park", "Long Beach"
+  ],
+  "LIRR-7": [ // Far Rockaway Branch
+    "Penn Station", "Jamaica", "St Albans", "Locust Manor", "Valley Stream",
+    "Gibson", "Hewlett", "Woodmere", "Cedarhurst", "Lawrence",
+    "Inwood", "Far Rockaway"
+  ],
+  "LIRR-8": [ // West Hempstead Branch
+    "Penn Station", "Jamaica", "St Albans", "Valley Stream", "Westwood",
+    "Malverne", "Lakeview", "Hempstead Gardens", "West Hempstead"
+  ],
+  "LIRR-9": [ // Port Washington Branch
+    "Penn Station", "Woodside", "Flushing Main Street", "Murray Hill",
+    "Broadway", "Auburndale", "Bayside", "Douglaston", "Little Neck",
+    "Great Neck", "Manhasset", "Plandome", "Port Washington"
+  ],
+  "LIRR-10": [ // Port Jefferson Branch
+    "Penn Station", "Jamaica", "Mineola", "Hicksville", "Syosset",
+    "Cold Spring Harbor", "Huntington", "Greenlawn", "Northport",
+    "Kings Park", "Smithtown", "St James", "Stony Brook", "Port Jefferson"
+  ],
+  // Metro-North Lines
+  "MNR-1": [ // Hudson Line
+    "Grand Central", "Harlem-125 St", "Yankees-E 153 St", "Morris Heights",
+    "University Heights", "Marble Hill", "Spuyten Duyvil", "Riverdale",
+    "Ludlow", "Yonkers", "Glenwood", "Greystone", "Hastings-on-Hudson",
+    "Dobbs Ferry", "Ardsley-on-Hudson", "Irvington", "Tarrytown",
+    "Philipse Manor", "Scarborough", "Ossining", "Croton-Harmon",
+    "Cortlandt", "Peekskill", "Manitou", "Garrison", "Cold Spring",
+    "Breakneck Ridge", "Beacon", "New Hamburg", "Poughkeepsie"
+  ],
+  "MNR-2": [ // Harlem Line
+    "Grand Central", "Harlem-125 St", "Melrose", "Tremont", "Fordham",
+    "Botanical Garden", "Williams Bridge", "Woodlawn", "Wakefield",
+    "Mt Vernon West", "Fleetwood", "Bronxville", "Tuckahoe", "Crestwood",
+    "Scarsdale", "Hartsdale", "White Plains", "North White Plains",
+    "Valhalla", "Mt Pleasant", "Hawthorne", "Pleasantville", "Chappaqua",
+    "Mt Kisco", "Bedford Hills", "Katonah", "Goldens Bridge", "Purdy's",
+    "Croton Falls", "Brewster", "Southeast", "Patterson", "Pawling",
+    "Appalachian Trail", "Dover Plains", "Wassaic"
+  ],
+  "MNR-3": [ // New Haven Line
+    "Grand Central", "Harlem-125 St", "Fordham", "Mount Vernon East",
+    "Pelham", "New Rochelle", "Larchmont", "Mamaroneck", "Harrison",
+    "Rye", "Port Chester", "Greenwich", "Cos Cob", "Riverside",
+    "Old Greenwich", "Stamford", "Noroton Heights", "Darien", "Rowayton",
+    "South Norwalk", "East Norwalk", "Westport", "Green's Farms",
+    "Southport", "Fairfield", "Fairfield-Black Rock", "Bridgeport",
+    "Stratford", "Milford", "West Haven", "New Haven", "New Haven-State St"
+  ],
+  "MNR-4": [ // New Canaan Branch
+    "Grand Central", "Stamford", "Glenbrook", "Springdale",
+    "Talmadge Hill", "New Canaan"
+  ],
+  "MNR-5": [ // Danbury Branch
+    "Grand Central", "South Norwalk", "Merritt 7", "Wilton",
+    "Cannondale", "Branchville", "Redding", "Bethel", "Danbury"
+  ],
+  "MNR-6": [ // Waterbury Branch
+    "Grand Central", "Bridgeport", "Derby-Shelton", "Ansonia",
+    "Seymour", "Beacon Falls", "Naugatuck", "Waterbury"
+  ],
   "PATH": [
     "World Trade Center",
     "Exchange Place",
@@ -1051,10 +1162,34 @@ const groups: GroupItem[] = [
     id: "regional",
     lines: [
       { id: "SIR", icon: sirIcon, alt: "SIR", size: "29px", isRegional: true },
-      { id: "LIRR", icon: lirrIcon, alt: "LIRR", size: "26px", isRegional: true },
-      { id: "MetroNorth", icon: metroNorthIcon, alt: "Metro-North", size: "26px", isRegional: true },
       { id: "PATH", icon: pathIcon, alt: "PATH", size: "28px", isRegional: true },
       { id: "NJT", icon: njTransitIcon, alt: "NJ Transit", size: "22px", isRegional: true },
+    ]
+  },
+  {
+    id: "lirr",
+    lines: [
+      { id: "LIRR-1", icon: lirrIcon, alt: "Babylon", size: "26px", isRegional: true, branchName: "Babylon" },
+      { id: "LIRR-2", icon: lirrIcon, alt: "Hempstead", size: "26px", isRegional: true, branchName: "Hempstead" },
+      { id: "LIRR-3", icon: lirrIcon, alt: "Oyster Bay", size: "26px", isRegional: true, branchName: "Oyster Bay" },
+      { id: "LIRR-4", icon: lirrIcon, alt: "Ronkonkoma", size: "26px", isRegional: true, branchName: "Ronkonkoma" },
+      { id: "LIRR-5", icon: lirrIcon, alt: "Montauk", size: "26px", isRegional: true, branchName: "Montauk" },
+      { id: "LIRR-6", icon: lirrIcon, alt: "Long Beach", size: "26px", isRegional: true, branchName: "Long Beach" },
+      { id: "LIRR-7", icon: lirrIcon, alt: "Far Rockaway", size: "26px", isRegional: true, branchName: "Far Rockaway" },
+      { id: "LIRR-8", icon: lirrIcon, alt: "West Hempstead", size: "26px", isRegional: true, branchName: "W Hempstead" },
+      { id: "LIRR-9", icon: lirrIcon, alt: "Port Washington", size: "26px", isRegional: true, branchName: "Port Wash" },
+      { id: "LIRR-10", icon: lirrIcon, alt: "Port Jefferson", size: "26px", isRegional: true, branchName: "Port Jeff" },
+    ]
+  },
+  {
+    id: "mnr",
+    lines: [
+      { id: "MNR-1", icon: metroNorthIcon, alt: "Hudson", size: "26px", isRegional: true, branchName: "Hudson" },
+      { id: "MNR-2", icon: metroNorthIcon, alt: "Harlem", size: "26px", isRegional: true, branchName: "Harlem" },
+      { id: "MNR-3", icon: metroNorthIcon, alt: "New Haven", size: "26px", isRegional: true, branchName: "New Haven" },
+      { id: "MNR-4", icon: metroNorthIcon, alt: "New Canaan", size: "26px", isRegional: true, branchName: "New Canaan" },
+      { id: "MNR-5", icon: metroNorthIcon, alt: "Danbury", size: "26px", isRegional: true, branchName: "Danbury" },
+      { id: "MNR-6", icon: metroNorthIcon, alt: "Waterbury", size: "26px", isRegional: true, branchName: "Waterbury" },
     ]
   },
 ];
@@ -1196,7 +1331,7 @@ export default function Settings() {
 
   const renderMainView = () => (
     <div className="flex flex-col gap-[8px]">
-      {[0, 1, 2, 3, 4].map((row) => (
+      {[0, 1, 2, 3, 4, 5].map((row) => (
         <div key={row} className="flex gap-[10px]">
           {row === 0 ? (
             <div 
@@ -1249,6 +1384,16 @@ export default function Settings() {
               <img src={trainJIcon} alt="J train" className="w-[38px] h-[38px]" />
               <img src={trainZIcon} alt="Z train" className="w-[38px] h-[38px]" />
             </div>
+          ) : row === 5 ? (
+            <div 
+              className="rounded-[6px] flex items-center justify-center gap-[12px] cursor-pointer hover:opacity-80 transition-opacity" 
+              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+              onClick={() => handleGroupClick("lirr")}
+              data-testid="card-settings-10"
+            >
+              <img src={lirrIcon} alt="LIRR" className="h-[20px] object-contain" />
+              <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', fontWeight: 600, color: '#FFFFFF' }}>LIRR</span>
+            </div>
           ) : null}
           {row === 0 ? (
             <div 
@@ -1295,18 +1440,24 @@ export default function Settings() {
             </div>
           ) : row === 4 ? (
             <div 
-              className="rounded-[6px] flex items-center justify-center gap-[30px] cursor-pointer hover:opacity-80 transition-opacity" 
+              className="rounded-[6px] flex items-center justify-center gap-[20px] cursor-pointer hover:opacity-80 transition-opacity" 
               style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
               onClick={() => handleGroupClick("regional")}
               data-testid="card-settings-9"
             >
-              <img src={sirIcon} alt="SIR" className="w-[29px] h-[29px]" />
-              <div className="flex flex-col items-center gap-1">
-                <img src={lirrIcon} alt="LIRR" className="h-[15.4px] object-contain" style={{ transform: 'translateX(-3px)' }} />
-                <img src={metroNorthIcon} alt="Metro-North" className="h-[15.4px] object-contain" />
-              </div>
+              <img src={sirIcon} alt="SIR" className="h-[24px] object-contain" />
               <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
               <img src={njTransitIcon} alt="NJ Transit" className="h-[14px] object-contain" />
+            </div>
+          ) : row === 5 ? (
+            <div 
+              className="rounded-[6px] flex items-center justify-center gap-[12px] cursor-pointer hover:opacity-80 transition-opacity" 
+              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+              onClick={() => handleGroupClick("mnr")}
+              data-testid="card-settings-11"
+            >
+              <img src={metroNorthIcon} alt="Metro-North" className="h-[18px] object-contain" />
+              <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', fontWeight: 600, color: '#FFFFFF' }}>Metro-North</span>
             </div>
           ) : null}
         </div>
@@ -1337,6 +1488,19 @@ export default function Settings() {
                 className={line.isRegional ? "object-contain" : "w-[38px] h-[38px]"}
                 style={line.isRegional ? { height: line.size } : undefined}
               />
+              {line.branchName && (
+                <span 
+                  style={{ 
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    color: '#FFFFFF',
+                    marginLeft: '12px'
+                  }}
+                >
+                  {line.branchName}
+                </span>
+              )}
             </div>
           ))}
         </div>

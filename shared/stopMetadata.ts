@@ -16,6 +16,9 @@ export const feedUrls: Record<string, string> = {
   "L": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l",
   "NQRW": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
   "1234567": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
+  // Commuter Rail feeds
+  "LIRR": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/lirr%2Fgtfs-lirr",
+  "MNR": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/mnr%2Fgtfs-mnr",
 };
 
 // Map lines to their feed groups
@@ -42,6 +45,24 @@ export const lineToFeedGroup: Record<string, string> = {
   "5": "1234567",
   "6": "1234567",
   "7": "1234567",
+  // LIRR Branches (route_id from GTFS)
+  "LIRR-1": "LIRR",  // Babylon Branch
+  "LIRR-2": "LIRR",  // Hempstead Branch
+  "LIRR-3": "LIRR",  // Oyster Bay Branch
+  "LIRR-4": "LIRR",  // Ronkonkoma Branch
+  "LIRR-5": "LIRR",  // Montauk Branch
+  "LIRR-6": "LIRR",  // Long Beach Branch
+  "LIRR-7": "LIRR",  // Far Rockaway Branch
+  "LIRR-8": "LIRR",  // West Hempstead Branch
+  "LIRR-9": "LIRR",  // Port Washington Branch
+  "LIRR-10": "LIRR", // Port Jefferson Branch
+  // Metro-North Lines (route_id from GTFS)
+  "MNR-1": "MNR",    // Hudson Line
+  "MNR-2": "MNR",    // Harlem Line
+  "MNR-3": "MNR",    // New Haven Line
+  "MNR-4": "MNR",    // New Canaan Branch
+  "MNR-5": "MNR",    // Danbury Branch
+  "MNR-6": "MNR",    // Waterbury Branch
 };
 
 // Color groups for same-color line merging
@@ -55,6 +76,21 @@ export const colorGroups: Record<string, string[]> = {
   "#A7A9AC": ["L"],                      // Gray
   "#6CBE45": ["G"],                      // Light Green
   "#996633": ["J", "Z"],                 // Brown
+  // LIRR Branches - each is its own group (no merging)
+  "#00985F-LIRR": ["LIRR-1"],           // Babylon (green)
+  "#CE8E00-LIRR": ["LIRR-2"],           // Hempstead (orange)
+  "#00AF3F-LIRR": ["LIRR-3"],           // Oyster Bay (green)
+  "#A626AA-LIRR": ["LIRR-4"],           // Ronkonkoma (purple)
+  "#00B2A9-LIRR": ["LIRR-5"],           // Montauk (teal)
+  "#FF6319-LIRR": ["LIRR-6"],           // Long Beach (orange)
+  "#6E3219-LIRR": ["LIRR-7"],           // Far Rockaway (brown)
+  "#00A1DE-LIRR": ["LIRR-8"],           // West Hempstead (blue)
+  "#C60C30-LIRR": ["LIRR-9"],           // Port Washington (red)
+  "#006EC7-LIRR": ["LIRR-10"],          // Port Jefferson (blue)
+  // Metro-North Lines - each is its own group (no merging)
+  "#009B3A-MNR": ["MNR-1"],             // Hudson (green)
+  "#0039A6-MNR": ["MNR-2"],             // Harlem (blue)
+  "#EE0034-MNR": ["MNR-3", "MNR-4", "MNR-5", "MNR-6"], // New Haven family (red)
 };
 
 // Reverse mapping: line to color
@@ -68,6 +104,24 @@ export const lineToColor: Record<string, string> = {
   "L": "#A7A9AC",
   "G": "#6CBE45",
   "J": "#996633", "Z": "#996633",
+  // LIRR Branches
+  "LIRR-1": "#00985F-LIRR",   // Babylon
+  "LIRR-2": "#CE8E00-LIRR",   // Hempstead
+  "LIRR-3": "#00AF3F-LIRR",   // Oyster Bay
+  "LIRR-4": "#A626AA-LIRR",   // Ronkonkoma
+  "LIRR-5": "#00B2A9-LIRR",   // Montauk
+  "LIRR-6": "#FF6319-LIRR",   // Long Beach
+  "LIRR-7": "#6E3219-LIRR",   // Far Rockaway
+  "LIRR-8": "#00A1DE-LIRR",   // West Hempstead
+  "LIRR-9": "#C60C30-LIRR",   // Port Washington
+  "LIRR-10": "#006EC7-LIRR",  // Port Jefferson
+  // Metro-North Lines
+  "MNR-1": "#009B3A-MNR",     // Hudson
+  "MNR-2": "#0039A6-MNR",     // Harlem
+  "MNR-3": "#EE0034-MNR",     // New Haven
+  "MNR-4": "#EE0034-MNR",     // New Canaan
+  "MNR-5": "#EE0034-MNR",     // Danbury
+  "MNR-6": "#EE0034-MNR",     // Waterbury
 };
 
 // Get all lines that share the same color as a given line
@@ -683,3 +737,299 @@ stopIdMap["F"] = {
 stopIdMap["M"] = { ...stopIdMap["F"] };
 // Z shares all stops with J
 stopIdMap["Z"] = { ...stopIdMap["J"] };
+
+// LIRR Stations - using GTFS stop_id values
+// Note: LIRR doesn't use N/S suffixes - stop IDs are used directly
+stopIdMap["LIRR-1"] = { // Babylon Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "Mineola": "132",
+  "Babylon": "10",
+  "Bay Shore": "12",
+  "Islip": "100",
+  "Lindenhurst": "117",
+  "Copiague": "38",
+  "Amityville": "8",
+  "Massapequa": "136",
+  "Massapequa Park": "135",
+  "Seaford": "175",
+  "Wantagh": "195",
+  "Bellmore": "16",
+  "Merrick": "134",
+  "Freeport": "64",
+  "Baldwin": "9",
+  "Rockville Centre": "167",
+  "Lynbrook": "125",
+  "St Albans": "179",
+  "Valley Stream": "191",
+};
+stopIdMap["LIRR-2"] = { // Hempstead Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "Hempstead": "84",
+  "Garden City": "68",
+  "Country Life Press": "37",
+  "Nassau Boulevard": "149",
+  "Stewart Manor": "181",
+  "Floral Park": "63",
+  "Queens Village": "165",
+  "Hollis": "89",
+};
+stopIdMap["LIRR-3"] = { // Oyster Bay Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "Oyster Bay": "154",
+  "Locust Valley": "123",
+  "Glen Cove": "67",
+  "Glen Head": "71",
+  "Sea Cliff": "173",
+  "Glen Street": "76",
+  "Greenvale": "77",
+  "Roslyn": "168",
+  "Albertson": "1",
+  "East Williston": "52",
+  "Mineola": "132",
+};
+stopIdMap["LIRR-4"] = { // Ronkonkoma Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "Ronkonkoma": "166",
+  "Central Islip": "28",
+  "Brentwood": "20",
+  "Deer Park": "44",
+  "Wyandanch": "201",
+  "Pinelawn": "161",
+  "Farmingdale": "59",
+  "Bethpage": "17",
+  "Hicksville": "92",
+  "Westbury": "196",
+  "Carle Place": "39",
+  "Mineola": "132",
+  "New Hyde Park": "152",
+  "Floral Park": "63",
+  "Woodside": "200",
+  "Forest Hills": "55",
+  "Kew Gardens": "107",
+};
+stopIdMap["LIRR-5"] = { // Montauk Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "Montauk": "141",
+  "Amagansett": "4",
+  "East Hampton": "48",
+  "Bridgehampton": "13",
+  "Southampton": "176",
+  "Hampton Bays": "83",
+  "Westhampton": "197",
+  "Speonk": "177",
+  "Bellport": "15",
+  "Patchogue": "160",
+  "Sayville": "171",
+  "Oakdale": "157",
+  "Great River": "74",
+  "Islip": "100",
+  "Bay Shore": "12",
+  "Babylon": "10",
+};
+stopIdMap["LIRR-6"] = { // Long Beach Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "Long Beach": "113",
+  "Island Park": "99",
+  "Oceanside": "155",
+  "East Rockaway": "51",
+  "Centre Avenue": "27",
+  "Lynbrook": "125",
+  "Valley Stream": "191",
+};
+stopIdMap["LIRR-7"] = { // Far Rockaway Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "Far Rockaway": "65",
+  "Inwood": "101",
+  "Lawrence": "114",
+  "Cedarhurst": "25",
+  "Woodmere": "199",
+  "Hewlett": "94",
+  "Gibson": "66",
+  "Valley Stream": "191",
+  "Locust Manor": "119",
+  "St Albans": "179",
+};
+stopIdMap["LIRR-8"] = { // West Hempstead Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "West Hempstead": "194",
+  "Hempstead Gardens": "85",
+  "Lakeview": "124",
+  "Malverne": "142",
+  "Westwood": "198",
+  "Valley Stream": "191",
+  "St Albans": "179",
+};
+stopIdMap["LIRR-9"] = { // Port Washington Branch
+  "Penn Station": "8",
+  "Port Washington": "163",
+  "Plandome": "162",
+  "Manhasset": "131",
+  "Great Neck": "72",
+  "Little Neck": "120",
+  "Douglaston": "42",
+  "Bayside": "11",
+  "Auburndale": "7",
+  "Broadway": "11",
+  "Murray Hill": "130",
+  "Flushing Main Street": "56",
+  "Woodside": "200",
+};
+stopIdMap["LIRR-10"] = { // Port Jefferson Branch
+  "Penn Station": "8",
+  "Jamaica": "102",
+  "Port Jefferson": "164",
+  "Stony Brook": "14",
+  "St James": "178",
+  "Smithtown": "174",
+  "Kings Park": "111",
+  "Northport": "153",
+  "Greenlawn": "78",
+  "Huntington": "91",
+  "Cold Spring Harbor": "40",
+  "Syosset": "185",
+  "Hicksville": "92",
+  "Mineola": "132",
+};
+
+// Metro-North Stations - using GTFS stop_id values
+stopIdMap["MNR-1"] = { // Hudson Line
+  "Grand Central": "1",
+  "Harlem-125 St": "4",
+  "Yankees-E 153 St": "622",
+  "Morris Heights": "9",
+  "University Heights": "10",
+  "Marble Hill": "11",
+  "Spuyten Duyvil": "14",
+  "Riverdale": "16",
+  "Ludlow": "17",
+  "Yonkers": "18",
+  "Glenwood": "19",
+  "Greystone": "20",
+  "Hastings-on-Hudson": "22",
+  "Dobbs Ferry": "23",
+  "Ardsley-on-Hudson": "24",
+  "Irvington": "25",
+  "Tarrytown": "27",
+  "Philipse Manor": "29",
+  "Scarborough": "30",
+  "Ossining": "31",
+  "Croton-Harmon": "33",
+  "Cortlandt": "37",
+  "Peekskill": "39",
+  "Manitou": "40",
+  "Garrison": "42",
+  "Cold Spring": "43",
+  "Breakneck Ridge": "44",
+  "Beacon": "46",
+  "New Hamburg": "49",
+  "Poughkeepsie": "51",
+};
+stopIdMap["MNR-2"] = { // Harlem Line
+  "Grand Central": "1",
+  "Harlem-125 St": "4",
+  "Melrose": "54",
+  "Tremont": "55",
+  "Fordham": "56",
+  "Botanical Garden": "57",
+  "Williams Bridge": "58",
+  "Woodlawn": "59",
+  "Wakefield": "61",
+  "Mt Vernon West": "62",
+  "Fleetwood": "64",
+  "Bronxville": "65",
+  "Tuckahoe": "66",
+  "Crestwood": "68",
+  "Scarsdale": "71",
+  "Hartsdale": "73",
+  "White Plains": "75",
+  "North White Plains": "77",
+  "Valhalla": "78",
+  "Mt Pleasant": "80",
+  "Hawthorne": "81",
+  "Pleasantville": "82",
+  "Chappaqua": "85",
+  "Mt Kisco": "86",
+  "Bedford Hills": "88",
+  "Katonah": "89",
+  "Goldens Bridge": "90",
+  "Purdy's": "91",
+  "Croton Falls": "93",
+  "Brewster": "94",
+  "Southeast": "96",
+  "Patterson": "98",
+  "Pawling": "100",
+  "Appalachian Trail": "101",
+  "Dover Plains": "103",
+  "Wassaic": "104",
+};
+stopIdMap["MNR-3"] = { // New Haven Line
+  "Grand Central": "1",
+  "Harlem-125 St": "4",
+  "Fordham": "56",
+  "Mount Vernon East": "105",
+  "Pelham": "106",
+  "New Rochelle": "108",
+  "Larchmont": "110",
+  "Mamaroneck": "111",
+  "Harrison": "112",
+  "Rye": "114",
+  "Port Chester": "115",
+  "Greenwich": "116",
+  "Cos Cob": "118",
+  "Riverside": "120",
+  "Old Greenwich": "121",
+  "Stamford": "124",
+  "Noroton Heights": "127",
+  "Darien": "128",
+  "Rowayton": "129",
+  "South Norwalk": "131",
+  "East Norwalk": "133",
+  "Westport": "134",
+  "Green's Farms": "136",
+  "Southport": "137",
+  "Fairfield": "138",
+  "Fairfield-Black Rock": "188",
+  "Bridgeport": "140",
+  "Stratford": "143",
+  "Milford": "145",
+  "West Haven": "190",
+  "New Haven": "149",
+  "New Haven-State St": "151",
+};
+stopIdMap["MNR-4"] = { // New Canaan Branch
+  "Grand Central": "1",
+  "Stamford": "124",
+  "Glenbrook": "153",
+  "Springdale": "154",
+  "Talmadge Hill": "155",
+  "New Canaan": "157",
+};
+stopIdMap["MNR-5"] = { // Danbury Branch
+  "Grand Central": "1",
+  "South Norwalk": "131",
+  "Merritt 7": "158",
+  "Wilton": "160",
+  "Cannondale": "161",
+  "Branchville": "162",
+  "Redding": "163",
+  "Bethel": "164",
+  "Danbury": "165",
+};
+stopIdMap["MNR-6"] = { // Waterbury Branch
+  "Grand Central": "1",
+  "Bridgeport": "140",
+  "Derby-Shelton": "167",
+  "Ansonia": "168",
+  "Seymour": "169",
+  "Beacon Falls": "170",
+  "Naugatuck": "171",
+  "Waterbury": "172",
+};

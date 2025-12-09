@@ -97,6 +97,20 @@ Preferred communication style: Simple, everyday language.
   - Zero-minute arrivals: Trains arriving now (0 minutes) display "1 Min" instead of "0 Min"
   - Automatic 30-second refresh interval on frontend
   - Uses `gtfs-realtime-bindings` package to decode Protocol Buffer data
+- **LIRR Real-time Feed**: Live LIRR train arrivals
+  - Feed URL: `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/lirr%2Fgtfs-lirr`
+  - No API key required
+  - 10 branches supported: Babylon, Hempstead, Oyster Bay, Ronkonkoma, Montauk, Long Beach, Far Rockaway, West Hempstead, Port Washington, Port Jefferson
+  - Each branch is treated separately (no merging between branches)
+  - Stop IDs are numeric (no N/S suffix like subway)
+  - Branch IDs mapped: LIRR-1 through LIRR-10
+- **Metro-North Real-time Feed**: Live Metro-North train arrivals
+  - Feed URL: `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/mnr%2Fgtfs-mnr`
+  - No API key required
+  - 6 lines supported: Hudson, Harlem, New Haven, New Canaan, Danbury, Waterbury
+  - Each line treated separately (no merging between lines)
+  - Stop IDs are numeric (no N/S suffix like subway)
+  - Line IDs mapped: MNR-1 through MNR-6
 - All external APIs accessed server-side via `/api` endpoints
 
 ### Key Architectural Decisions
