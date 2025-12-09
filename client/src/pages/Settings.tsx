@@ -1572,7 +1572,7 @@ export default function Settings() {
                 className={line.isRegional ? "object-contain" : "w-[38px] h-[38px]"}
                 style={line.isRegional ? { height: line.size } : undefined}
               />
-              {line.branchName && (
+              {line.branchName && currentGroup.id !== "regional" && (
                 <span 
                   style={{ 
                     fontFamily: 'Helvetica, Arial, sans-serif',
