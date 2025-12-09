@@ -1448,14 +1448,16 @@ export default function Settings() {
             </div>
           ) : row === 4 ? (
             <div 
-              className="rounded-[6px] flex items-center justify-center gap-[12px] cursor-pointer hover:opacity-80 transition-opacity" 
+              className="rounded-[6px] flex items-center justify-center gap-[16px] cursor-pointer hover:opacity-80 transition-opacity" 
               style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
               onClick={() => handleGroupClick("regional")}
               data-testid="card-settings-9"
             >
-              <img src={lirrIcon} alt="LIRR" className="h-[18px] object-contain" />
-              <img src={metroNorthIcon} alt="Metro-North" className="h-[18px] object-contain" />
               <img src={sirIcon} alt="SIR" className="h-[24px] object-contain" />
+              <div className="flex flex-col items-center justify-center gap-[2px]">
+                <img src={lirrIcon} alt="LIRR" className="h-[14px] object-contain" />
+                <img src={metroNorthIcon} alt="Metro-North" className="h-[14px] object-contain" />
+              </div>
               <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
               <img src={njTransitIcon} alt="NJ Transit" className="h-[14px] object-contain" />
             </div>
