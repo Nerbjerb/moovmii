@@ -1622,7 +1622,7 @@ export default function Settings() {
                 display: none;
               }
             `}</style>
-            <div className="flex flex-col py-4" style={{ overflow: 'visible', marginTop: (selectedLine === 'LIRR-6' || selectedLine === 'LIRR-8') ? '30px' : '0' }}>
+            <div className="flex flex-col py-4" style={{ overflow: 'visible', marginTop: (selectedLine === 'LIRR-6' || selectedLine === 'LIRR-8') ? '30px' : (selectedLine === 'MNR-4' || selectedLine === 'MNR-5' || selectedLine === 'MNR-6') ? '40px' : '0' }}>
               {stops.map((stop, index) => (
                 <div 
                   key={index}
