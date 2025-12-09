@@ -1656,7 +1656,7 @@ export default function Settings() {
                           >
                             {(() => {
                               const displayDir = selectedLine?.startsWith('LIRR') 
-                                ? (selection.direction === 'Uptown' ? 'East' : 'West')
+                                ? (selection.direction === 'Uptown' ? 'Inbound' : 'Outbound')
                                 : selection.direction;
                               return selection.isRow1 
                                 ? `Row 1 - ${displayDir}` 
@@ -1746,7 +1746,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('LIRR') ? 'East' : 'Uptown'}
+                                  {selectedLine?.startsWith('LIRR') ? 'Inbound' : 'Uptown'}
                                 </span>
                               </div>
                               <div 
@@ -1766,7 +1766,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('LIRR') ? 'West' : 'Downtown'}
+                                  {selectedLine?.startsWith('LIRR') ? 'Outbound' : 'Downtown'}
                                 </span>
                               </div>
                             </>
@@ -1786,7 +1786,7 @@ export default function Settings() {
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px', color: '#000000' }}
                                 >
                                   {selectedLine?.startsWith('LIRR') 
-                                    ? (selectedDirection === 'Uptown' ? 'East' : 'West')
+                                    ? (selectedDirection === 'Uptown' ? 'Inbound' : 'Outbound')
                                     : selectedDirection}
                                 </span>
                               </div>
