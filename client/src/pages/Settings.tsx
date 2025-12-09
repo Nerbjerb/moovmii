@@ -72,6 +72,52 @@ const lineColors: Record<string, string> = {
   "NJT": "#0039A6",
 };
 
+// Color groups for universal favorite selection across same-color lines
+const colorGroups: Record<string, string[]> = {
+  "#EE352E": ["1", "2", "3"],           // Red
+  "#00933C": ["4", "5", "6"],           // Green
+  "#B933AD": ["7"],                      // Purple
+  "#0039A6": ["A", "C", "E"],           // Blue (subway only, not regional)
+  "#FF6319": ["B", "D", "F", "M"],      // Orange
+  "#FCCC0A": ["N", "Q", "R", "W"],      // Yellow
+  "#A7A9AC": ["L"],                      // Gray
+  "#6CBE45": ["G"],                      // Light Green
+  "#996633": ["J", "Z"],                 // Brown
+};
+
+// Helper function to get all lines that share the same color as a given line
+const getSameColorLines = (lineId: string): string[] => {
+  const color = lineColors[lineId];
+  if (!color) return [lineId];
+  return colorGroups[color] || [lineId];
+};
+
+// Helper function to check if a stop is selected on any same-color line
+const isStopSelectedOnSameColorLine = (
+  stop: string, 
+  currentLine: string, 
+  row1Station: { stop: string; direction: 'Uptown' | 'Downtown' } | null,
+  row2Station: { stop: string; direction: 'Uptown' | 'Downtown' } | null
+): { isRow1: boolean; isRow2: boolean; direction?: 'Uptown' | 'Downtown' } => {
+  const sameColorLines = getSameColorLines(currentLine);
+  
+  // Check if this stop exists on any same-color line
+  for (const line of sameColorLines) {
+    const lineStopsList = lineStops[line] || [];
+    if (lineStopsList.includes(stop)) {
+      // This stop exists on a same-color line, check if it's selected
+      if (row1Station?.stop === stop) {
+        return { isRow1: true, isRow2: false, direction: row1Station.direction };
+      }
+      if (row2Station?.stop === stop) {
+        return { isRow1: false, isRow2: true, direction: row2Station.direction };
+      }
+    }
+  }
+  
+  return { isRow1: false, isRow2: false };
+};
+
 const lineStops: Record<string, string[]> = {
   "1": [
     "Van Cortlandt Park-242 St",
@@ -1287,28 +1333,34 @@ export default function Settings() {
                     className="flex items-center justify-end"
                     style={{ width: '140px', height: '14px', marginRight: '8px' }}
                   >
-                    {(row1Station?.stop === stop || row2Station?.stop === stop) && (
-                      <span
-                        style={{ 
-                          marginTop: '-6px',
-                          fontFamily: 'Helvetica, Arial, sans-serif',
-                          fontSize: '14px',
-                          lineHeight: '26px',
-                          color: '#000000',
-                          backgroundColor: '#FFFFFF',
-                          padding: '0 12px 0 8px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          height: '26px',
-                          whiteSpace: 'nowrap',
-                          clipPath: 'polygon(0 3px, 3px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 3px 100%, 0 calc(100% - 3px))'
-                        }}
-                      >
-                        {row1Station?.stop === stop 
-                          ? `Row 1 - ${row1Station.direction}` 
-                          : `Row 2 - ${row2Station?.direction}`}
-                      </span>
-                    )}
+                    {(() => {
+                      const selection = selectedLine ? isStopSelectedOnSameColorLine(stop, selectedLine, row1Station, row2Station) : { isRow1: false, isRow2: false };
+                      if (selection.isRow1 || selection.isRow2) {
+                        return (
+                          <span
+                            style={{ 
+                              marginTop: '-6px',
+                              fontFamily: 'Helvetica, Arial, sans-serif',
+                              fontSize: '14px',
+                              lineHeight: '26px',
+                              color: '#000000',
+                              backgroundColor: '#FFFFFF',
+                              padding: '0 12px 0 8px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              height: '26px',
+                              whiteSpace: 'nowrap',
+                              clipPath: 'polygon(0 3px, 3px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 3px 100%, 0 calc(100% - 3px))'
+                            }}
+                          >
+                            {selection.isRow1 
+                              ? `Row 1 - ${selection.direction}` 
+                              : `Row 2 - ${selection.direction}`}
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                   {/* Circle and line column */}
                   <div className="flex flex-col items-center mr-3">
