@@ -86,32 +86,49 @@ const colorGroups: Record<string, string[]> = {
 };
 
 // Helper function to get all lines that share the same color as a given line
+// Only applies to subway lines - regional services are isolated
 const getSameColorLines = (lineId: string): string[] => {
+  // Regional services don't participate in cross-line propagation
+  const regionalLines = ["SIR", "LIRR", "MetroNorth", "PATH", "NJT"];
+  if (regionalLines.includes(lineId)) {
+    return [lineId];
+  }
+  
   const color = lineColors[lineId];
   if (!color) return [lineId];
-  return colorGroups[color] || [lineId];
+  
+  const group = colorGroups[color];
+  // Only return the group if this line is actually in it (prevents edge cases)
+  if (group && group.includes(lineId)) {
+    return group;
+  }
+  return [lineId];
 };
 
 // Helper function to check if a stop is selected on any same-color line
 const isStopSelectedOnSameColorLine = (
   stop: string, 
   currentLine: string, 
-  row1Station: { stop: string; direction: 'Uptown' | 'Downtown' } | null,
-  row2Station: { stop: string; direction: 'Uptown' | 'Downtown' } | null
+  row1Station: { stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null,
+  row2Station: { stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null
 ): { isRow1: boolean; isRow2: boolean; direction?: 'Uptown' | 'Downtown' } => {
   const sameColorLines = getSameColorLines(currentLine);
   
-  // Check if this stop exists on any same-color line
-  for (const line of sameColorLines) {
-    const lineStopsList = lineStops[line] || [];
-    if (lineStopsList.includes(stop)) {
-      // This stop exists on a same-color line, check if it's selected
-      if (row1Station?.stop === stop) {
-        return { isRow1: true, isRow2: false, direction: row1Station.direction };
-      }
-      if (row2Station?.stop === stop) {
-        return { isRow1: false, isRow2: true, direction: row2Station.direction };
-      }
+  // Check row1Station: if the selected line is in the same color group and the stop matches
+  if (row1Station && row1Station.stop === stop) {
+    const row1SameColorLines = getSameColorLines(row1Station.line);
+    // Check if the row1Station's line is in the same color group as the current line
+    if (sameColorLines.some(line => row1SameColorLines.includes(line))) {
+      return { isRow1: true, isRow2: false, direction: row1Station.direction };
+    }
+  }
+  
+  // Check row2Station: if the selected line is in the same color group and the stop matches
+  if (row2Station && row2Station.stop === stop) {
+    const row2SameColorLines = getSameColorLines(row2Station.line);
+    // Check if the row2Station's line is in the same color group as the current line
+    if (sameColorLines.some(line => row2SameColorLines.includes(line))) {
+      return { isRow1: false, isRow2: true, direction: row2Station.direction };
     }
   }
   
@@ -1043,8 +1060,8 @@ export default function Settings() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
-  const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown' } | null>(null);
-  const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown' } | null>(null);
+  const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
+  const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'Uptown' | 'Downtown' | null>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
@@ -1492,8 +1509,8 @@ export default function Settings() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   console.log(`Selected as Row 1 ${selectedDirection}:`, selectedStop);
-                                  if (selectedStop && selectedDirection) {
-                                    setRow1Station({ stop: selectedStop, direction: selectedDirection });
+                                  if (selectedStop && selectedDirection && selectedLine) {
+                                    setRow1Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
                                   }
                                   setSelectedStop(null);
                                   setSelectedDirection(null);
@@ -1517,8 +1534,8 @@ export default function Settings() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   console.log(`Selected as Row 2 ${selectedDirection}:`, selectedStop);
-                                  if (selectedStop && selectedDirection) {
-                                    setRow2Station({ stop: selectedStop, direction: selectedDirection });
+                                  if (selectedStop && selectedDirection && selectedLine) {
+                                    setRow2Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
                                   }
                                   setSelectedStop(null);
                                   setSelectedDirection(null);
