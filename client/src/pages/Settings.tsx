@@ -1375,7 +1375,10 @@ export default function Settings() {
             className="overflow-y-auto h-full"
             style={{ 
               scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-y',
+              overscrollBehavior: 'contain'
             }}
             onScroll={checkScrollPosition}
             data-testid="stops-container"
