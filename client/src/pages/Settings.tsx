@@ -1495,19 +1495,12 @@ export default function Settings() {
                   onClick={() => handleLineSelect(line.id)}
                   data-testid={`card-line-${line.id}`}
                 >
-                  <img 
-                    src={line.icon} 
-                    alt={line.alt} 
-                    className="object-contain"
-                    style={{ height: line.size }}
-                  />
                   <span 
                     style={{ 
                       fontFamily: 'Helvetica, Arial, sans-serif',
-                      fontSize: '16px',
+                      fontSize: '18px',
                       fontWeight: 600,
-                      color: '#FFFFFF',
-                      marginLeft: '12px'
+                      color: '#FFFFFF'
                     }}
                   >
                     {line.branchName}
@@ -1525,19 +1518,12 @@ export default function Settings() {
                   onClick={() => handleLineSelect(line.id)}
                   data-testid={`card-line-${line.id}`}
                 >
-                  <img 
-                    src={line.icon} 
-                    alt={line.alt} 
-                    className="object-contain"
-                    style={{ height: line.size }}
-                  />
                   <span 
                     style={{ 
                       fontFamily: 'Helvetica, Arial, sans-serif',
-                      fontSize: '16px',
+                      fontSize: '18px',
                       fontWeight: 600,
-                      color: '#FFFFFF',
-                      marginLeft: '12px'
+                      color: '#FFFFFF'
                     }}
                   >
                     {line.branchName}
