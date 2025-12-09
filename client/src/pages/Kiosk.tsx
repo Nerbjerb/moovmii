@@ -6,8 +6,9 @@ import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
 import GridOverlay from "@/components/GridOverlay";
-import type { SubwayArrival, WeatherData } from "@shared/schema";
+import type { SubwayArrival, WeatherData, KioskPreference } from "@shared/schema";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
+import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 
 export default function Kiosk() {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -96,6 +97,38 @@ export default function Kiosk() {
     toggleFullscreen();
   }, [toggleFullscreen]);
 
+  // Fetch preferences
+  const { data: preferences } = useQuery<KioskPreference[]>({
+    queryKey: ['/api/preferences'],
+  });
+
+  // Get preferences for each row
+  const row1Pref = preferences?.find(p => p.row === 1);
+  const row2Pref = preferences?.find(p => p.row === 2);
+
+  // Build query parameters for dynamic subway arrivals
+  const getArrivalsQueryKey = (pref: KioskPreference | undefined, rowNum: number) => {
+    // Default fallback to Broadway-Astoria N/W
+    const defaultStopId = "R05";
+    const defaultDirection = rowNum === 1 ? "Uptown" : "Downtown";
+    const defaultLines = "N,W";
+    
+    if (!pref) {
+      return ['/api/subway/arrivals', { stopId: defaultStopId, direction: defaultDirection, lines: defaultLines }];
+    }
+    
+    const stopId = getStopId(pref.stop, pref.line);
+    const sameColorLines = getSameColorLines(pref.line);
+    
+    // If stop ID not found in metadata, fall back to defaults
+    if (!stopId) {
+      console.warn(`Stop ID not found for ${pref.stop} on ${pref.line}, using default`);
+      return ['/api/subway/arrivals', { stopId: defaultStopId, direction: defaultDirection, lines: defaultLines }];
+    }
+    
+    return ['/api/subway/arrivals', { stopId, direction: pref.direction, lines: sameColorLines.join(',') }];
+  };
+
   // Fetch real weather data from OpenWeatherMap
   const { data: weatherData, isLoading: isWeatherLoading } = useQuery<Array<{
     icon: WeatherIconName;
@@ -107,11 +140,55 @@ export default function Kiosk() {
     refetchInterval: 10 * 60 * 1000, // Refresh every 10 minutes
   });
 
-  // Fetch real-time subway data from MTA
-  const { data: subwayData, isLoading: isSubwayLoading } = useQuery<SubwayArrival[]>({
-    queryKey: ['/api/subway'],
-    refetchInterval: 30 * 1000, // Refresh every 30 seconds for real-time updates
+  // Fetch real-time subway data for row 1
+  const row1QueryKey = getArrivalsQueryKey(row1Pref, 1);
+  const { data: row1Arrivals, isLoading: isRow1Loading } = useQuery<SubwayArrival>({
+    queryKey: row1QueryKey,
+    queryFn: async () => {
+      const params = row1QueryKey[1] as { stopId: string; direction: string; lines: string };
+      const url = `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch arrivals');
+      return res.json();
+    },
+    refetchInterval: 30 * 1000, // Refresh every 30 seconds
+    enabled: true,
   });
+
+  // Fetch real-time subway data for row 2
+  const row2QueryKey = getArrivalsQueryKey(row2Pref, 2);
+  const { data: row2Arrivals, isLoading: isRow2Loading } = useQuery<SubwayArrival>({
+    queryKey: row2QueryKey,
+    queryFn: async () => {
+      const params = row2QueryKey[1] as { stopId: string; direction: string; lines: string };
+      const url = `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch arrivals');
+      return res.json();
+    },
+    refetchInterval: 30 * 1000, // Refresh every 30 seconds
+    enabled: true,
+  });
+
+  // Combine arrivals for display
+  const subwayData: SubwayArrival[] = [
+    row1Arrivals || {
+      direction: "Uptown",
+      line: "N",
+      destination: "Loading...",
+      subtitle: "",
+      arrivalMinutes: [],
+      arrivalLines: [],
+    },
+    row2Arrivals || {
+      direction: "Downtown",
+      line: "W",
+      destination: "Loading...",
+      subtitle: "",
+      arrivalMinutes: [],
+      arrivalLines: [],
+    },
+  ];
 
   // Fallback weather data while loading
   const defaultWeather: Array<{
@@ -124,28 +201,7 @@ export default function Kiosk() {
     { icon: "day-cloudy", temperature: "--°", description: "Loading", time: "..." },
   ];
 
-  // Fallback subway data while loading
-  const defaultSubway: SubwayArrival[] = [
-    {
-      direction: "Uptown",
-      line: "N",
-      destination: "Queens",
-      subtitle: "Astoria-Ditmars Blvd",
-      arrivalMinutes: [],
-      arrivalLines: [],
-    },
-    {
-      direction: "Downtown",
-      line: "W",
-      destination: "Manhattan",
-      subtitle: "Coney Island-Stillwell Ave",
-      arrivalMinutes: [],
-      arrivalLines: [],
-    },
-  ];
-
   const displayWeather = weatherData || defaultWeather;
-  const displaySubway = subwayData || defaultSubway;
 
   useEffect(() => {
     // Update current time every minute
@@ -184,7 +240,7 @@ export default function Kiosk() {
         </div>
 
         <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
-          {displaySubway.map((track, idx) => (
+          {subwayData.map((track, idx) => (
             <TrackCard
               key={idx}
               direction={track.direction}

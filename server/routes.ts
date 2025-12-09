@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { mapOWMCodeToIcon } from "@shared/weatherIconMapper";
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
+import { feedUrls, lineToFeedGroup, getSameColorLines, getStopId, getFeedUrlsForLines } from "@shared/stopMetadata";
+import { insertKioskPreferenceSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Weather API route - fetches current and 3-hour forecast for NYC
@@ -251,6 +253,230 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(subwayData);
     } catch (error) {
       console.error("Error fetching subway data:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({ 
+        error: "Failed to fetch subway data",
+        details: errorMessage
+      });
+    }
+  });
+
+  // Preferences API - Get all preferences for a kiosk
+  app.get("/api/preferences", async (req, res) => {
+    try {
+      const kioskId = (req.query.kioskId as string) || "default";
+      const preferences = await storage.getKioskPreferences(kioskId);
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching preferences:", error);
+      res.status(500).json({ error: "Failed to fetch preferences" });
+    }
+  });
+
+  // Preferences API - Set a row preference
+  app.post("/api/preferences", async (req, res) => {
+    try {
+      const parsed = insertKioskPreferenceSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid preference data", details: parsed.error });
+      }
+      const preference = await storage.setKioskPreference(parsed.data);
+      res.json(preference);
+    } catch (error) {
+      console.error("Error saving preference:", error);
+      res.status(500).json({ error: "Failed to save preference" });
+    }
+  });
+
+  // Preferences API - Delete a row preference
+  app.delete("/api/preferences/:row", async (req, res) => {
+    try {
+      const kioskId = (req.query.kioskId as string) || "default";
+      const row = parseInt(req.params.row, 10);
+      await storage.deleteKioskPreference(kioskId, row);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting preference:", error);
+      res.status(500).json({ error: "Failed to delete preference" });
+    }
+  });
+
+  // Dynamic subway arrivals API - fetches arrivals for any station
+  app.get("/api/subway/arrivals", async (req, res) => {
+    try {
+      const { stopId, direction, lines } = req.query;
+      
+      if (!stopId || !direction || !lines) {
+        return res.status(400).json({ 
+          error: "Missing required parameters: stopId, direction, lines" 
+        });
+      }
+
+      const lineList = (lines as string).split(",");
+      const directionSuffix = direction === "Uptown" ? "N" : "S";
+      const fullStopId = `${stopId}${directionSuffix}`;
+
+      // Get all same-color lines for merging
+      const allLines = new Set<string>();
+      for (const line of lineList) {
+        const sameColorLines = getSameColorLines(line);
+        sameColorLines.forEach(l => allLines.add(l));
+      }
+      const linesToFetch = Array.from(allLines);
+
+      // Determine which feeds to fetch
+      const feedUrlsToFetch = getFeedUrlsForLines(linesToFetch);
+      
+      if (feedUrlsToFetch.length === 0) {
+        return res.status(400).json({ error: "No feeds available for the specified lines" });
+      }
+
+      // Fetch all feeds in parallel
+      const feedPromises = feedUrlsToFetch.map(async (url) => {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            console.warn(`Failed to fetch feed ${url}: ${response.status}`);
+            return null;
+          }
+          const buffer = await response.arrayBuffer();
+          return GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+            new Uint8Array(buffer)
+          );
+        } catch (err) {
+          console.warn(`Error fetching feed ${url}:`, err);
+          return null;
+        }
+      });
+
+      const feeds = (await Promise.all(feedPromises)).filter(Boolean);
+
+      if (feeds.length === 0) {
+        return res.status(502).json({ error: "Failed to fetch any MTA feeds" });
+      }
+
+      // Collect arrivals from all feeds
+      const arrivals: { 
+        line: string; 
+        minutes: number; 
+        headsign: string;
+      }[] = [];
+
+      const now = Math.floor(Date.now() / 1000);
+
+      for (const feed of feeds) {
+        if (!feed) continue;
+        
+        for (const entity of feed.entity) {
+          if (!entity.tripUpdate) continue;
+
+          const trip = entity.tripUpdate.trip;
+          const routeId = trip?.routeId;
+
+          // Only include lines from our color group
+          if (!routeId || !linesToFetch.includes(routeId)) continue;
+
+          const tripHeadsign = (trip as any)?.tripHeadsign || '';
+
+          for (const stopTimeUpdate of entity.tripUpdate.stopTimeUpdate || []) {
+            const stopIdFromFeed = stopTimeUpdate.stopId;
+            const arrival = stopTimeUpdate.arrival;
+
+            if (!arrival?.time) continue;
+
+            // Check if this stop matches our target
+            if (stopIdFromFeed !== fullStopId) continue;
+
+            const arrivalTime = typeof arrival.time === 'number' 
+              ? arrival.time 
+              : Number(arrival.time);
+            const minutesUntil = Math.floor((arrivalTime - now) / 60);
+
+            if (minutesUntil < 0) continue;
+
+            arrivals.push({ 
+              line: routeId, 
+              minutes: minutesUntil,
+              headsign: tripHeadsign,
+            });
+          }
+        }
+      }
+
+      // Sort by arrival time and take first 3
+      arrivals.sort((a, b) => a.minutes - b.minutes);
+      const topArrivals = arrivals.slice(0, 3);
+
+      // Get destination from first arrival's headsign
+      const getDefaultDestination = (dir: string, line: string): string => {
+        const destinations: Record<string, Record<string, string>> = {
+          "Uptown": {
+            "A": "Inwood-207 St",
+            "C": "168 St",
+            "E": "Jamaica Center",
+            "1": "Van Cortlandt Park-242 St",
+            "2": "Wakefield-241 St",
+            "3": "Harlem-148 St",
+            "4": "Woodlawn",
+            "5": "Eastchester-Dyre Av",
+            "6": "Pelham Bay Park",
+            "7": "Flushing-Main St",
+            "N": "Astoria-Ditmars Blvd",
+            "Q": "96 St",
+            "R": "Forest Hills-71 Av",
+            "W": "Astoria-Ditmars Blvd",
+            "B": "145 St",
+            "D": "Norwood-205 St",
+            "F": "Jamaica-179 St",
+            "M": "Forest Hills-71 Av",
+            "G": "Court Sq",
+            "J": "Jamaica Center",
+            "Z": "Jamaica Center",
+            "L": "8 Av",
+          },
+          "Downtown": {
+            "A": "Far Rockaway / Ozone Park-Lefferts Blvd",
+            "C": "Euclid Av",
+            "E": "World Trade Center",
+            "1": "South Ferry",
+            "2": "Flatbush Av-Brooklyn College",
+            "3": "New Lots Av",
+            "4": "Crown Hts-Utica Av",
+            "5": "Flatbush Av-Brooklyn College",
+            "6": "Brooklyn Bridge-City Hall",
+            "7": "34 St-Hudson Yards",
+            "N": "Coney Island-Stillwell Av",
+            "Q": "Coney Island-Stillwell Av",
+            "R": "Bay Ridge-95 St",
+            "W": "Whitehall St-South Ferry",
+            "B": "Brighton Beach",
+            "D": "Coney Island-Stillwell Av",
+            "F": "Coney Island-Stillwell Av",
+            "M": "Middle Village-Metropolitan Av",
+            "G": "Church Av",
+            "J": "Broad St",
+            "Z": "Broad St",
+            "L": "Canarsie-Rockaway Pkwy",
+          },
+        };
+        return destinations[dir]?.[line] || "Unknown";
+      };
+
+      const destination = topArrivals[0]?.headsign || 
+        getDefaultDestination(direction as string, topArrivals[0]?.line || lineList[0]);
+
+      const subwayData = {
+        direction: direction as string,
+        line: topArrivals[0]?.line || lineList[0],
+        destination,
+        subtitle: "", // Can be customized based on service type
+        arrivalMinutes: topArrivals.map(a => a.minutes),
+        arrivalLines: topArrivals.map(a => a.line),
+      };
+
+      res.json(subwayData);
+    } catch (error) {
+      console.error("Error fetching dynamic subway data:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       res.status(500).json({ 
         error: "Failed to fetch subway data",

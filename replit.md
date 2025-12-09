@@ -161,3 +161,13 @@ Preferred communication style: Simple, everyday language.
   - Example: Selecting Broadway on N train shows flag when viewing W train (both yellow)
 - MTA-style flag indicators with CSS clip-path polygon shapes
 - Station list includes all NYC subway lines with scrollable interface
+
+**Dynamic Arrivals Integration**
+- Settings selections are saved to database via `/api/preferences` endpoint
+- Kiosk loads preferences on mount and fetches arrivals for each row dynamically
+- Same-color line merging: Selecting a station shows arrivals from ALL same-color lines chronologically
+  - Example: 59 St-Columbus Circle Downtown on A train shows both A and C train arrivals merged
+  - Arrivals sorted by time, so 2nd and 3rd cards may show different lines (A, C, A)
+- Fallback: If no preferences set, defaults to Broadway-Astoria N/W trains
+- Stop metadata in `shared/stopMetadata.ts` maps station names to GTFS stop IDs
+- Feed URL mapping fetches correct MTA GTFS feeds for each line group

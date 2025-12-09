@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Home, Square, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getStopId } from "@shared/stopMetadata";
+import type { KioskPreference } from "@shared/schema";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
@@ -1067,6 +1071,49 @@ export default function Settings() {
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
 
+  // Load preferences from API
+  const { data: preferences } = useQuery<KioskPreference[]>({
+    queryKey: ['/api/preferences'],
+  });
+
+  // Initialize local state from loaded preferences
+  useEffect(() => {
+    if (preferences) {
+      const row1Pref = preferences.find(p => p.row === 1);
+      const row2Pref = preferences.find(p => p.row === 2);
+      if (row1Pref) {
+        setRow1Station({ 
+          stop: row1Pref.stop, 
+          direction: row1Pref.direction as 'Uptown' | 'Downtown', 
+          line: row1Pref.line 
+        });
+      }
+      if (row2Pref) {
+        setRow2Station({ 
+          stop: row2Pref.stop, 
+          direction: row2Pref.direction as 'Uptown' | 'Downtown', 
+          line: row2Pref.line 
+        });
+      }
+    }
+  }, [preferences]);
+
+  // Mutation to save preferences
+  const savePreferenceMutation = useMutation({
+    mutationFn: async (data: { row: number; stop: string; direction: string; line: string }) => {
+      return apiRequest('POST', '/api/preferences', {
+        kioskId: 'default',
+        row: data.row,
+        stop: data.stop,
+        direction: data.direction,
+        line: data.line,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/preferences'] });
+    },
+  });
+
   const checkScrollPosition = useCallback(() => {
     const container = stopsContainerRef.current;
     if (container) {
@@ -1511,6 +1558,12 @@ export default function Settings() {
                                   console.log(`Selected as Row 1 ${selectedDirection}:`, selectedStop);
                                   if (selectedStop && selectedDirection && selectedLine) {
                                     setRow1Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
+                                    savePreferenceMutation.mutate({
+                                      row: 1,
+                                      stop: selectedStop,
+                                      direction: selectedDirection,
+                                      line: selectedLine,
+                                    });
                                   }
                                   setSelectedStop(null);
                                   setSelectedDirection(null);
@@ -1536,6 +1589,12 @@ export default function Settings() {
                                   console.log(`Selected as Row 2 ${selectedDirection}:`, selectedStop);
                                   if (selectedStop && selectedDirection && selectedLine) {
                                     setRow2Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
+                                    savePreferenceMutation.mutate({
+                                      row: 2,
+                                      stop: selectedStop,
+                                      direction: selectedDirection,
+                                      line: selectedLine,
+                                    });
                                   }
                                   setSelectedStop(null);
                                   setSelectedDirection(null);
