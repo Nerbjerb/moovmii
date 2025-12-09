@@ -999,7 +999,7 @@ export default function Settings() {
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
   const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown' } | null>(null);
   const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown' } | null>(null);
-  const [selectedRow, setSelectedRow] = useState<1 | 2 | null>(null);
+  const [selectedDirection, setSelectedDirection] = useState<'Uptown' | 'Downtown' | null>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
@@ -1055,7 +1055,7 @@ export default function Settings() {
       // Check if this is a single-line group - if so, go back to main menu
       const group = groups.find(g => g.id === selectedGroup);
       setSelectedStop(null);
-      setSelectedRow(null);
+      setSelectedDirection(null);
       if (group && group.lines.length === 1) {
         setSelectedLine(null);
         setSelectedGroup(null);
@@ -1075,10 +1075,10 @@ export default function Settings() {
     // Toggle selection - if same stop clicked, deselect; otherwise select
     if (selectedStop === stopName) {
       setSelectedStop(null);
-      setSelectedRow(null);
+      setSelectedDirection(null);
     } else {
       setSelectedStop(stopName);
-      setSelectedRow(null);
+      setSelectedDirection(null);
     }
   };
 
@@ -1364,12 +1364,12 @@ export default function Settings() {
                         >
                           {stop}
                         </span>
-                        {/* Row selection buttons inline with selected station */}
+                        {/* Direction and row selection buttons inline with selected station */}
                         <div 
                           className="flex flex-row gap-2 ml-4"
                           data-testid="row-selection-popup"
                         >
-                          {selectedRow === null ? (
+                          {selectedDirection === null ? (
                             <>
                               <div 
                                 className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
@@ -1380,75 +1380,7 @@ export default function Settings() {
                                 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedRow(1);
-                                }}
-                                data-testid="button-select-row-1"
-                              >
-                                <span 
-                                  className="text-white font-medium"
-                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
-                                >
-                                  Row 1
-                                </span>
-                              </div>
-                              <div 
-                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                                style={{ 
-                                  width: '70px', 
-                                  height: '26px', 
-                                  backgroundColor: '#2D2C31'
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedRow(2);
-                                }}
-                                data-testid="button-select-row-2"
-                              >
-                                <span 
-                                  className="text-white font-medium"
-                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
-                                >
-                                  Row 2
-                                </span>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div 
-                                className="rounded-[6px] flex items-center justify-center"
-                                style={{ 
-                                  width: '70px', 
-                                  height: '26px', 
-                                  backgroundColor: '#FFFFFF'
-                                }}
-                                data-testid={`button-row-${selectedRow}-selected`}
-                              >
-                                <span 
-                                  className="font-medium"
-                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px', color: '#000000' }}
-                                >
-                                  Row {selectedRow}
-                                </span>
-                              </div>
-                              <div 
-                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                                style={{ 
-                                  width: '70px', 
-                                  height: '26px', 
-                                  backgroundColor: '#2D2C31'
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  console.log(`Selected as Row ${selectedRow} Uptown:`, selectedStop);
-                                  if (selectedStop) {
-                                    if (selectedRow === 1) {
-                                      setRow1Station({ stop: selectedStop, direction: 'Uptown' });
-                                    } else {
-                                      setRow2Station({ stop: selectedStop, direction: 'Uptown' });
-                                    }
-                                  }
-                                  setSelectedStop(null);
-                                  setSelectedRow(null);
+                                  setSelectedDirection('Uptown');
                                 }}
                                 data-testid="button-select-uptown"
                               >
@@ -1468,16 +1400,7 @@ export default function Settings() {
                                 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  console.log(`Selected as Row ${selectedRow} Downtown:`, selectedStop);
-                                  if (selectedStop) {
-                                    if (selectedRow === 1) {
-                                      setRow1Station({ stop: selectedStop, direction: 'Downtown' });
-                                    } else {
-                                      setRow2Station({ stop: selectedStop, direction: 'Downtown' });
-                                    }
-                                  }
-                                  setSelectedStop(null);
-                                  setSelectedRow(null);
+                                  setSelectedDirection('Downtown');
                                 }}
                                 data-testid="button-select-downtown"
                               >
@@ -1486,6 +1409,75 @@ export default function Settings() {
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
                                   Downtown
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div 
+                                className="rounded-[6px] flex items-center justify-center"
+                                style={{ 
+                                  width: '70px', 
+                                  height: '26px', 
+                                  backgroundColor: '#FFFFFF'
+                                }}
+                                data-testid={`button-direction-${selectedDirection}-selected`}
+                              >
+                                <span 
+                                  className="font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px', color: '#000000' }}
+                                >
+                                  {selectedDirection}
+                                </span>
+                              </div>
+                              <div 
+                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                                style={{ 
+                                  width: '70px', 
+                                  height: '26px', 
+                                  backgroundColor: '#2D2C31'
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log(`Selected as Row 1 ${selectedDirection}:`, selectedStop);
+                                  if (selectedStop && selectedDirection) {
+                                    setRow1Station({ stop: selectedStop, direction: selectedDirection });
+                                  }
+                                  setSelectedStop(null);
+                                  setSelectedDirection(null);
+                                }}
+                                data-testid="button-select-row-1"
+                              >
+                                <span 
+                                  className="text-white font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                >
+                                  Row 1
+                                </span>
+                              </div>
+                              <div 
+                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                                style={{ 
+                                  width: '70px', 
+                                  height: '26px', 
+                                  backgroundColor: '#2D2C31'
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log(`Selected as Row 2 ${selectedDirection}:`, selectedStop);
+                                  if (selectedStop && selectedDirection) {
+                                    setRow2Station({ stop: selectedStop, direction: selectedDirection });
+                                  }
+                                  setSelectedStop(null);
+                                  setSelectedDirection(null);
+                                }}
+                                data-testid="button-select-row-2"
+                              >
+                                <span 
+                                  className="text-white font-medium"
+                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                >
+                                  Row 2
                                 </span>
                               </div>
                             </>
