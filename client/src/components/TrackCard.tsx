@@ -1,6 +1,37 @@
 import { Card } from "@/components/ui/card";
-import nTrainIcon from "@assets/moovmii/MTA Icons/src/svg/n.svg";
-import wTrainIcon from "@assets/moovmii/MTA Icons/src/svg/w.svg";
+
+// Import all subway line icons
+import icon1 from "@assets/moovmii/MTA Icons/src/svg/1.svg";
+import icon2 from "@assets/moovmii/MTA Icons/src/svg/2.svg";
+import icon3 from "@assets/moovmii/MTA Icons/src/svg/3.svg";
+import icon4 from "@assets/moovmii/MTA Icons/src/svg/4.svg";
+import icon5 from "@assets/moovmii/MTA Icons/src/svg/5.svg";
+import icon6 from "@assets/moovmii/MTA Icons/src/svg/6.svg";
+import icon6d from "@assets/moovmii/MTA Icons/src/svg/6d.svg";
+import icon7 from "@assets/moovmii/MTA Icons/src/svg/7.svg";
+import icon7d from "@assets/moovmii/MTA Icons/src/svg/7d.svg";
+import iconA from "@assets/moovmii/MTA Icons/src/svg/a.svg";
+import iconB from "@assets/moovmii/MTA Icons/src/svg/b.svg";
+import iconC from "@assets/moovmii/MTA Icons/src/svg/c.svg";
+import iconD from "@assets/moovmii/MTA Icons/src/svg/d.svg";
+import iconE from "@assets/moovmii/MTA Icons/src/svg/e.svg";
+import iconF from "@assets/moovmii/MTA Icons/src/svg/f.svg";
+import iconFd from "@assets/moovmii/MTA Icons/src/svg/fd.svg";
+import iconG from "@assets/moovmii/MTA Icons/src/svg/g.svg";
+import iconH from "@assets/moovmii/MTA Icons/src/svg/h.svg";
+import iconJ from "@assets/moovmii/MTA Icons/src/svg/j.svg";
+import iconL from "@assets/moovmii/MTA Icons/src/svg/l.svg";
+import iconM from "@assets/moovmii/MTA Icons/src/svg/m.svg";
+import iconN from "@assets/moovmii/MTA Icons/src/svg/n.svg";
+import iconQ from "@assets/moovmii/MTA Icons/src/svg/q.svg";
+import iconR from "@assets/moovmii/MTA Icons/src/svg/r.svg";
+import iconS from "@assets/moovmii/MTA Icons/src/svg/s.svg";
+import iconSf from "@assets/moovmii/MTA Icons/src/svg/sf.svg";
+import iconSir from "@assets/moovmii/MTA Icons/src/svg/sir.svg";
+import iconSr from "@assets/moovmii/MTA Icons/src/svg/sr.svg";
+import iconT from "@assets/moovmii/MTA Icons/src/svg/t.svg";
+import iconW from "@assets/moovmii/MTA Icons/src/svg/w.svg";
+import iconZ from "@assets/moovmii/MTA Icons/src/svg/z.svg";
 
 interface TrackCardProps {
   direction: string;
@@ -12,9 +43,44 @@ interface TrackCardProps {
   isDowntown?: boolean;
 }
 
+// Map all subway lines to their icons
 const lineIcons: Record<string, string> = {
-  N: nTrainIcon,
-  W: wTrainIcon,
+  "1": icon1,
+  "2": icon2,
+  "3": icon3,
+  "4": icon4,
+  "5": icon5,
+  "6": icon6,
+  "6d": icon6d,
+  "6X": icon6d,
+  "7": icon7,
+  "7d": icon7d,
+  "7X": icon7d,
+  A: iconA,
+  B: iconB,
+  C: iconC,
+  D: iconD,
+  E: iconE,
+  F: iconF,
+  Fd: iconFd,
+  FX: iconFd,
+  G: iconG,
+  H: iconH,
+  J: iconJ,
+  L: iconL,
+  M: iconM,
+  N: iconN,
+  Q: iconQ,
+  R: iconR,
+  S: iconS,
+  Sf: iconSf,
+  FS: iconSf,
+  SIR: iconSir,
+  Sr: iconSr,
+  GS: iconSr,
+  T: iconT,
+  W: iconW,
+  Z: iconZ,
 };
 
 export default function TrackCard({
