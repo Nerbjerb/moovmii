@@ -221,32 +221,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uptownData = northboundArrivals.slice(0, 3);
       const downtownData = southboundArrivals.slice(0, 3);
 
-      // Helper to get destination from headsign or use default
-      const getDestination = (data: typeof uptownData, defaultDest: string): string => {
-        if (data.length > 0 && data[0].headsign) {
-          return data[0].headsign;
+      // Terminal info for N/W trains at Broadway-Astoria
+      const getTerminalInfo = (data: typeof uptownData, direction: "Uptown" | "Downtown") => {
+        const line = data[0]?.line || "N";
+        if (direction === "Uptown") {
+          return { borough: "Queens", station: "Astoria-Ditmars Blvd" };
+        } else {
+          // Downtown - N goes to Coney Island (Brooklyn), W goes to Whitehall (Manhattan)
+          if (line === "W") {
+            return { borough: "Manhattan", station: "Whitehall St-South Ferry" };
+          }
+          return { borough: "Brooklyn", station: "Coney Island-Stillwell Av" };
         }
-        return defaultDest;
       };
 
       // Format response matching SubwayArrival schema
       // Use the first train's line for the main display
+      const uptownTerminal = getTerminalInfo(uptownData, "Uptown");
+      const downtownTerminal = getTerminalInfo(downtownData, "Downtown");
+      
       const subwayData = [
         {
           direction: "Uptown",
           line: uptownData[0]?.line || "N",
-          destination: getDestination(uptownData, "Astoria - Ditmars Blvd"),
-          subtitle: uptownData[0]?.line === 'N' ? "via Broadway" : "via Broadway (weekdays)",
+          destination: uptownTerminal.borough,
+          subtitle: uptownTerminal.station,
           arrivalMinutes: uptownData.map(a => a.minutes),
-          arrivalLines: uptownData.map(a => a.line), // Include line info for each arrival
+          arrivalLines: uptownData.map(a => a.line),
         },
         {
           direction: "Downtown",
           line: downtownData[0]?.line || "N",
-          destination: getDestination(downtownData, "Coney Island - Stillwell Av"),
-          subtitle: downtownData[0]?.line === 'N' ? "via Broadway" : "via Broadway (weekdays)",
+          destination: downtownTerminal.borough,
+          subtitle: downtownTerminal.station,
           arrivalMinutes: downtownData.map(a => a.minutes),
-          arrivalLines: downtownData.map(a => a.line), // Include line info for each arrival
+          arrivalLines: downtownData.map(a => a.line),
         },
       ];
 
@@ -407,69 +416,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
       arrivals.sort((a, b) => a.minutes - b.minutes);
       const topArrivals = arrivals.slice(0, 3);
 
-      // Get destination from first arrival's headsign
-      const getDefaultDestination = (dir: string, line: string): string => {
-        const destinations: Record<string, Record<string, string>> = {
-          "Uptown": {
-            "A": "Inwood-207 St",
-            "C": "168 St",
-            "E": "Jamaica Center",
-            "1": "Van Cortlandt Park-242 St",
-            "2": "Wakefield-241 St",
-            "3": "Harlem-148 St",
-            "4": "Woodlawn",
-            "5": "Eastchester-Dyre Av",
-            "6": "Pelham Bay Park",
-            "7": "Flushing-Main St",
-            "N": "Astoria-Ditmars Blvd",
-            "Q": "96 St",
-            "R": "Forest Hills-71 Av",
-            "W": "Astoria-Ditmars Blvd",
-            "B": "145 St",
-            "D": "Norwood-205 St",
-            "F": "Jamaica-179 St",
-            "M": "Forest Hills-71 Av",
-            "G": "Court Sq",
-            "J": "Jamaica Center",
-            "Z": "Jamaica Center",
-            "L": "8 Av",
-          },
-          "Downtown": {
-            "A": "Far Rockaway / Ozone Park-Lefferts Blvd",
-            "C": "Euclid Av",
-            "E": "World Trade Center",
-            "1": "South Ferry",
-            "2": "Flatbush Av-Brooklyn College",
-            "3": "New Lots Av",
-            "4": "Crown Hts-Utica Av",
-            "5": "Flatbush Av-Brooklyn College",
-            "6": "Brooklyn Bridge-City Hall",
-            "7": "34 St-Hudson Yards",
-            "N": "Coney Island-Stillwell Av",
-            "Q": "Coney Island-Stillwell Av",
-            "R": "Bay Ridge-95 St",
-            "W": "Whitehall St-South Ferry",
-            "B": "Brighton Beach",
-            "D": "Coney Island-Stillwell Av",
-            "F": "Coney Island-Stillwell Av",
-            "M": "Middle Village-Metropolitan Av",
-            "G": "Church Av",
-            "J": "Broad St",
-            "Z": "Broad St",
-            "L": "Canarsie-Rockaway Pkwy",
-          },
-        };
-        return destinations[dir]?.[line] || "Unknown";
+      // Terminal station names with their boroughs
+      const terminalStations: Record<string, Record<string, { station: string; borough: string }>> = {
+        "Uptown": {
+          "A": { station: "Inwood-207 St", borough: "Manhattan" },
+          "C": { station: "168 St", borough: "Manhattan" },
+          "E": { station: "Jamaica Center", borough: "Queens" },
+          "1": { station: "Van Cortlandt Park-242 St", borough: "Bronx" },
+          "2": { station: "Wakefield-241 St", borough: "Bronx" },
+          "3": { station: "Harlem-148 St", borough: "Manhattan" },
+          "4": { station: "Woodlawn", borough: "Bronx" },
+          "5": { station: "Eastchester-Dyre Av", borough: "Bronx" },
+          "6": { station: "Pelham Bay Park", borough: "Bronx" },
+          "7": { station: "Flushing-Main St", borough: "Queens" },
+          "N": { station: "Astoria-Ditmars Blvd", borough: "Queens" },
+          "Q": { station: "96 St", borough: "Manhattan" },
+          "R": { station: "Forest Hills-71 Av", borough: "Queens" },
+          "W": { station: "Astoria-Ditmars Blvd", borough: "Queens" },
+          "B": { station: "145 St", borough: "Manhattan" },
+          "D": { station: "Norwood-205 St", borough: "Bronx" },
+          "F": { station: "Jamaica-179 St", borough: "Queens" },
+          "M": { station: "Forest Hills-71 Av", borough: "Queens" },
+          "G": { station: "Court Sq", borough: "Queens" },
+          "J": { station: "Jamaica Center", borough: "Queens" },
+          "Z": { station: "Jamaica Center", borough: "Queens" },
+          "L": { station: "8 Av", borough: "Manhattan" },
+        },
+        "Downtown": {
+          "A": { station: "Far Rockaway", borough: "Queens" },
+          "C": { station: "Euclid Av", borough: "Brooklyn" },
+          "E": { station: "World Trade Center", borough: "Manhattan" },
+          "1": { station: "South Ferry", borough: "Manhattan" },
+          "2": { station: "Flatbush Av-Brooklyn College", borough: "Brooklyn" },
+          "3": { station: "New Lots Av", borough: "Brooklyn" },
+          "4": { station: "Crown Hts-Utica Av", borough: "Brooklyn" },
+          "5": { station: "Flatbush Av-Brooklyn College", borough: "Brooklyn" },
+          "6": { station: "Brooklyn Bridge-City Hall", borough: "Manhattan" },
+          "7": { station: "34 St-Hudson Yards", borough: "Manhattan" },
+          "N": { station: "Coney Island-Stillwell Av", borough: "Brooklyn" },
+          "Q": { station: "Coney Island-Stillwell Av", borough: "Brooklyn" },
+          "R": { station: "Bay Ridge-95 St", borough: "Brooklyn" },
+          "W": { station: "Whitehall St-South Ferry", borough: "Manhattan" },
+          "B": { station: "Brighton Beach", borough: "Brooklyn" },
+          "D": { station: "Coney Island-Stillwell Av", borough: "Brooklyn" },
+          "F": { station: "Coney Island-Stillwell Av", borough: "Brooklyn" },
+          "M": { station: "Middle Village-Metropolitan Av", borough: "Queens" },
+          "G": { station: "Church Av", borough: "Brooklyn" },
+          "J": { station: "Broad St", borough: "Manhattan" },
+          "Z": { station: "Broad St", borough: "Manhattan" },
+          "L": { station: "Canarsie-Rockaway Pkwy", borough: "Brooklyn" },
+        },
       };
 
-      const destination = topArrivals[0]?.headsign || 
-        getDefaultDestination(direction as string, topArrivals[0]?.line || lineList[0]);
+      // Helper to parse headsign into station and borough
+      const parseHeadsign = (headsign: string, dir: string, line: string): { station: string; borough: string } => {
+        // Borough mapping for common terminal keywords
+        const boroughKeywords: Record<string, string> = {
+          "Inwood": "Manhattan",
+          "207 St": "Manhattan",
+          "168 St": "Manhattan",
+          "Jamaica": "Queens",
+          "Van Cortlandt": "Bronx",
+          "242 St": "Bronx",
+          "Wakefield": "Bronx",
+          "241 St": "Bronx",
+          "Harlem": "Manhattan",
+          "148 St": "Manhattan",
+          "Woodlawn": "Bronx",
+          "Eastchester": "Bronx",
+          "Dyre": "Bronx",
+          "Pelham Bay": "Bronx",
+          "Flushing": "Queens",
+          "Main St": "Queens",
+          "Astoria": "Queens",
+          "Ditmars": "Queens",
+          "96 St": "Manhattan",
+          "Forest Hills": "Queens",
+          "71 Av": "Queens",
+          "145 St": "Manhattan",
+          "Norwood": "Bronx",
+          "205 St": "Bronx",
+          "179 St": "Queens",
+          "Court Sq": "Queens",
+          "8 Av": "Manhattan",
+          "Far Rockaway": "Queens",
+          "Rockaway": "Queens",
+          "Ozone Park": "Queens",
+          "Lefferts": "Queens",
+          "Euclid": "Brooklyn",
+          "World Trade": "Manhattan",
+          "WTC": "Manhattan",
+          "South Ferry": "Manhattan",
+          "Flatbush": "Brooklyn",
+          "Brooklyn College": "Brooklyn",
+          "New Lots": "Brooklyn",
+          "Crown Hts": "Brooklyn",
+          "Utica": "Brooklyn",
+          "Brooklyn Bridge": "Manhattan",
+          "City Hall": "Manhattan",
+          "Hudson Yards": "Manhattan",
+          "34 St": "Manhattan",
+          "Coney Island": "Brooklyn",
+          "Stillwell": "Brooklyn",
+          "Bay Ridge": "Brooklyn",
+          "95 St": "Brooklyn",
+          "Whitehall": "Manhattan",
+          "Brighton Beach": "Brooklyn",
+          "Middle Village": "Queens",
+          "Metropolitan": "Queens",
+          "Church Av": "Brooklyn",
+          "Broad St": "Manhattan",
+          "Canarsie": "Brooklyn",
+        };
+
+        // Try to find borough from headsign
+        let borough = "";
+        for (const [keyword, boro] of Object.entries(boroughKeywords)) {
+          if (headsign.includes(keyword)) {
+            borough = boro;
+            break;
+          }
+        }
+
+        // Extract station name (take first part before dash if present, or whole headsign)
+        let station = headsign;
+        
+        // If we found a borough, use the headsign as station
+        if (borough) {
+          return { station, borough };
+        }
+
+        // Fall back to defaults
+        const defaultInfo = terminalStations[dir]?.[line];
+        if (defaultInfo) {
+          return defaultInfo;
+        }
+
+        return { station: headsign || "Unknown", borough: "New York" };
+      };
+
+      // Get terminal info for the first arriving train
+      const firstLine = topArrivals[0]?.line || lineList[0];
+      const firstHeadsign = topArrivals[0]?.headsign || "";
+      
+      const terminalInfo = firstHeadsign 
+        ? parseHeadsign(firstHeadsign, direction as string, firstLine)
+        : terminalStations[direction as string]?.[firstLine] || { station: "Unknown", borough: "New York" };
 
       const subwayData = {
         direction: direction as string,
-        line: topArrivals[0]?.line || lineList[0],
-        destination,
-        subtitle: "", // Can be customized based on service type
+        line: firstLine,
+        destination: terminalInfo.borough,
+        subtitle: terminalInfo.station,
         arrivalMinutes: topArrivals.map(a => a.minutes),
         arrivalLines: topArrivals.map(a => a.line),
       };
