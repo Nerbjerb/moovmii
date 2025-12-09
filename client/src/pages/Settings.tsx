@@ -1161,9 +1161,11 @@ const groups: GroupItem[] = [
   {
     id: "regional",
     lines: [
-      { id: "SIR", icon: sirIcon, alt: "SIR", size: "29px", isRegional: true },
-      { id: "PATH", icon: pathIcon, alt: "PATH", size: "28px", isRegional: true },
-      { id: "NJT", icon: njTransitIcon, alt: "NJ Transit", size: "22px", isRegional: true },
+      { id: "SIR", icon: sirIcon, alt: "SIR", size: "29px", isRegional: true, branchName: "Staten Island Rwy" },
+      { id: "LIRR", icon: lirrIcon, alt: "LIRR", size: "26px", isRegional: true, branchName: "Long Island Rail Road", isParent: true },
+      { id: "MetroNorth", icon: metroNorthIcon, alt: "Metro-North", size: "26px", isRegional: true, branchName: "Metro-North Railroad", isParent: true },
+      { id: "PATH", icon: pathIcon, alt: "PATH", size: "28px", isRegional: true, branchName: "PATH Train" },
+      { id: "NJT", icon: njTransitIcon, alt: "NJ Transit", size: "22px", isRegional: true, branchName: "NJ Transit Rail" },
     ]
   },
   {
@@ -1197,6 +1199,7 @@ const groups: GroupItem[] = [
 export default function Settings() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [selectedRegionalService, setSelectedRegionalService] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
   const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
@@ -1304,15 +1307,30 @@ export default function Settings() {
       if (group && group.lines.length === 1) {
         setSelectedLine(null);
         setSelectedGroup(null);
+      } else if (selectedRegionalService) {
+        // Go back from line selection to regional service selection
+        setSelectedLine(null);
       } else {
         setSelectedLine(null);
       }
+    } else if (selectedRegionalService) {
+      // Go back from regional service (LIRR/MNR branches) to regional menu
+      setSelectedRegionalService(null);
     } else {
       setSelectedGroup(null);
     }
   };
 
   const handleLineSelect = (lineId: string) => {
+    // Handle parent regional services that need drill-down
+    if (lineId === "LIRR") {
+      setSelectedRegionalService("lirr");
+      return;
+    }
+    if (lineId === "MetroNorth") {
+      setSelectedRegionalService("mnr");
+      return;
+    }
     setSelectedLine(lineId);
   };
 
@@ -1331,7 +1349,7 @@ export default function Settings() {
 
   const renderMainView = () => (
     <div className="flex flex-col gap-[8px]">
-      {[0, 1, 2, 3, 4, 5].map((row) => (
+      {[0, 1, 2, 3, 4].map((row) => (
         <div key={row} className="flex gap-[10px]">
           {row === 0 ? (
             <div 
@@ -1384,16 +1402,6 @@ export default function Settings() {
               <img src={trainJIcon} alt="J train" className="w-[38px] h-[38px]" />
               <img src={trainZIcon} alt="Z train" className="w-[38px] h-[38px]" />
             </div>
-          ) : row === 5 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-[12px] cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("lirr")}
-              data-testid="card-settings-10"
-            >
-              <img src={lirrIcon} alt="LIRR" className="h-[20px] object-contain" />
-              <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', fontWeight: 600, color: '#FFFFFF' }}>LIRR</span>
-            </div>
           ) : null}
           {row === 0 ? (
             <div 
@@ -1440,24 +1448,16 @@ export default function Settings() {
             </div>
           ) : row === 4 ? (
             <div 
-              className="rounded-[6px] flex items-center justify-center gap-[20px] cursor-pointer hover:opacity-80 transition-opacity" 
+              className="rounded-[6px] flex items-center justify-center gap-[12px] cursor-pointer hover:opacity-80 transition-opacity" 
               style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
               onClick={() => handleGroupClick("regional")}
               data-testid="card-settings-9"
             >
               <img src={sirIcon} alt="SIR" className="h-[24px] object-contain" />
+              <img src={lirrIcon} alt="LIRR" className="h-[18px] object-contain" />
+              <img src={metroNorthIcon} alt="Metro-North" className="h-[18px] object-contain" />
               <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
               <img src={njTransitIcon} alt="NJ Transit" className="h-[14px] object-contain" />
-            </div>
-          ) : row === 5 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-[12px] cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("mnr")}
-              data-testid="card-settings-11"
-            >
-              <img src={metroNorthIcon} alt="Metro-North" className="h-[18px] object-contain" />
-              <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', fontWeight: 600, color: '#FFFFFF' }}>Metro-North</span>
             </div>
           ) : null}
         </div>
@@ -1466,6 +1466,87 @@ export default function Settings() {
   );
 
   const renderSubView = () => {
+    // Handle LIRR/MNR branch selection with two-column layout
+    if (selectedRegionalService) {
+      const serviceGroup = groups.find(g => g.id === selectedRegionalService);
+      if (!serviceGroup) return null;
+      
+      const lines = serviceGroup.lines;
+      const midpoint = Math.ceil(lines.length / 2);
+      const leftColumn = lines.slice(0, midpoint);
+      const rightColumn = lines.slice(midpoint);
+      
+      return (
+        <div 
+          className="flex items-center justify-center"
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
+        >
+          <div className="flex gap-[10px]">
+            {/* Left column */}
+            <div className="flex flex-col gap-[8px]">
+              {leftColumn.map((line) => (
+                <div 
+                  key={line.id}
+                  className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" 
+                  style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                  onClick={() => handleLineSelect(line.id)}
+                  data-testid={`card-line-${line.id}`}
+                >
+                  <img 
+                    src={line.icon} 
+                    alt={line.alt} 
+                    className="object-contain"
+                    style={{ height: line.size }}
+                  />
+                  <span 
+                    style={{ 
+                      fontFamily: 'Helvetica, Arial, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      color: '#FFFFFF',
+                      marginLeft: '12px'
+                    }}
+                  >
+                    {line.branchName}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Right column */}
+            <div className="flex flex-col gap-[8px]">
+              {rightColumn.map((line) => (
+                <div 
+                  key={line.id}
+                  className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" 
+                  style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                  onClick={() => handleLineSelect(line.id)}
+                  data-testid={`card-line-${line.id}`}
+                >
+                  <img 
+                    src={line.icon} 
+                    alt={line.alt} 
+                    className="object-contain"
+                    style={{ height: line.size }}
+                  />
+                  <span 
+                    style={{ 
+                      fontFamily: 'Helvetica, Arial, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      color: '#FFFFFF',
+                      marginLeft: '12px'
+                    }}
+                  >
+                    {line.branchName}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
     if (!currentGroup) return null;
     
     return (
@@ -1814,6 +1895,8 @@ export default function Settings() {
   const renderCurrentView = () => {
     if (selectedLine) {
       return renderStopsView();
+    } else if (selectedRegionalService) {
+      return renderSubView();
     } else if (selectedGroup) {
       return renderSubView();
     } else {
@@ -1829,7 +1912,7 @@ export default function Settings() {
           style={{ width: '800px', height: '480px', padding: '15px 20px' }}
           data-testid="settings-main"
         >
-          {(selectedGroup || selectedLine) && (
+          {(selectedGroup || selectedLine || selectedRegionalService) && (
             <div className="absolute top-[5px] left-[5px] z-30">
               <button 
                 onClick={handleBack}
@@ -1843,7 +1926,7 @@ export default function Settings() {
 
           {renderCurrentView()}
 
-          {!selectedGroup && !selectedLine && (
+          {!selectedGroup && !selectedLine && !selectedRegionalService && (
             <>
               <div 
                 style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a', marginTop: '20px' }}
