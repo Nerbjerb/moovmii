@@ -200,7 +200,7 @@ export default function TrackCard({
             </span>
           ) : isMnrLine(line) ? (
             <div 
-              className="font-bold text-white text-center"
+              className="font-bold text-white text-left"
               style={{ 
                 fontSize: '22px',
                 fontFamily: 'Helvetica, Arial, sans-serif',
@@ -279,7 +279,7 @@ export default function TrackCard({
                 </span>
               ) : secondLine && isMnrLine(secondLine) ? (
                 <div 
-                  className="font-bold text-white text-center"
+                  className="font-bold text-white text-left"
                   style={{ 
                     fontSize: '11px',
                     fontFamily: 'Helvetica, Arial, sans-serif',
@@ -324,7 +324,7 @@ export default function TrackCard({
                 </span>
               ) : thirdLine && isMnrLine(thirdLine) ? (
                 <div 
-                  className="font-bold text-white text-center"
+                  className="font-bold text-white text-left"
                   style={{ 
                     fontSize: '11px',
                     fontFamily: 'Helvetica, Arial, sans-serif',
