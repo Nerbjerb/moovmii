@@ -121,11 +121,21 @@ export default function TrackCard({
   const secondIconSrc = secondLine ? lineIcons[secondLine] : null;
   const thirdIconSrc = thirdLine ? lineIcons[thirdLine] : null;
 
-  // Helper to display arrival time (show "1" for 0 minutes)
-  const formatMinutes = (mins: number | undefined): string | number => {
-    if (mins === undefined) return '';
-    return mins === 0 ? 1 : mins;
+  // Helper to display arrival time (show "1" for 0 minutes, hours for 120+ minutes)
+  const formatArrival = (mins: number | undefined): { value: string | number; unit: string } => {
+    if (mins === undefined) return { value: '', unit: 'Min' };
+    if (mins === 0) return { value: 1, unit: 'Min' };
+    if (mins >= 120) {
+      const hours = Math.floor(mins / 60);
+      return { value: hours, unit: 'Hour' };
+    }
+    return { value: mins, unit: 'Min' };
   };
+  
+  // Get formatted arrival data for each position
+  const firstArrivalData = formatArrival(firstArrival);
+  const secondArrivalData = formatArrival(secondArrival);
+  const thirdArrivalData = formatArrival(thirdArrival);
 
   // Check if a line is LIRR (should show text instead of logo)
   const isLirrLine = (lineName: string) => lineName === 'LIRR' || lineName.startsWith('LIRR-');
@@ -221,9 +231,9 @@ export default function TrackCard({
           style={{ right: '4px', top: '18px', transform: 'translateY(-10px)' }}
         >
           <div className="text-[85px] font-bold leading-[0.8] text-white">
-            {formatMinutes(firstArrival)}
+            {firstArrivalData.value}
           </div>
-          <div className="text-xl mt-1 text-white">Min</div>
+          <div className="text-xl mt-1 text-white">{firstArrivalData.unit}</div>
         </div>
       </Card>
 
@@ -255,9 +265,9 @@ export default function TrackCard({
               )}
             </div>
             <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(23px, -25px)' }}>
-              {formatMinutes(secondArrival)}
+              {secondArrivalData.value}
             </div>
-            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(23px, -25px)' }}>Min</div>
+            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(23px, -25px)' }}>{secondArrivalData.unit}</div>
           </div>
         )}
 
@@ -287,9 +297,9 @@ export default function TrackCard({
               )}
             </div>
             <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(23px, -25px)' }}>
-              {formatMinutes(thirdArrival)}
+              {thirdArrivalData.value}
             </div>
-            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(23px, -25px)' }}>Min</div>
+            <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(23px, -25px)' }}>{thirdArrivalData.unit}</div>
           </div>
         )}
       </div>

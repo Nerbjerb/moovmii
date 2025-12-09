@@ -431,6 +431,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!matchesLine) continue;
 
           const tripHeadsign = (trip as any)?.tripHeadsign || '';
+          
+          // For LIRR/MNR, filter by direction using GTFS direction_id
+          // direction_id: 0 = Outbound (away from Manhattan), 1 = Inbound (to Manhattan)
+          // UI mapping: Uptown = East = Inbound (1), Downtown = West = Outbound (0)
+          if (isCommuterRail) {
+            const tripDirectionId = (trip as any)?.directionId;
+            const requestedDirectionId = direction === "Uptown" ? 1 : 0;
+            if (tripDirectionId !== undefined && tripDirectionId !== requestedDirectionId) {
+              continue;
+            }
+          }
 
           for (const stopTimeUpdate of entity.tripUpdate.stopTimeUpdate || []) {
             const stopIdFromFeed = stopTimeUpdate.stopId;
