@@ -92,14 +92,11 @@ export default function TrackCard({
 
         {/* Subtitle - absolute positioned */}
         <div 
-          className="absolute text-[20px] text-white overflow-hidden" 
+          className="absolute text-[20px] text-white" 
           style={{ 
             left: '160px',
             top: '178px',
-            display: '-webkit-box',
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: 'vertical',
-            lineHeight: '1',
+            lineHeight: '1.3',
             transform: isDowntown ? 'translate(-30px, -105px)' : 'translate(-29px, -105px)'
           }}
         >
