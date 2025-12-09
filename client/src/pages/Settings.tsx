@@ -1454,12 +1454,12 @@ export default function Settings() {
               onClick={() => handleGroupClick("regional")}
               data-testid="card-settings-9"
             >
-              <img src={sirIcon} alt="SIR" className="h-[24px] object-contain" />
+              <img src={sirIcon} alt="SIR" className="h-[30px] object-contain" />
               <div className="flex flex-col items-center justify-center gap-[2px]">
                 <img src={lirrIcon} alt="LIRR" className="h-[21px] object-contain" />
                 <img src={metroNorthIcon} alt="Metro-North" className="h-[21px] object-contain" />
               </div>
-              <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
+              <img src={pathIcon} alt="PATH" className="h-[26px] object-contain" />
               <img src={njTransitIcon} alt="NJ Transit" className="h-[14px] object-contain" />
             </div>
           ) : null}
