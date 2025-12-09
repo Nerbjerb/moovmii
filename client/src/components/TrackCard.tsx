@@ -172,7 +172,7 @@ export default function TrackCard({
             left: '160px',
             top: '98px',
             lineHeight: '1.3',
-            transform: 'translate(-30px, -75px)'
+            transform: 'translate(-30px, -80px)'
           }}
         >
           {displayDestination}
@@ -185,7 +185,7 @@ export default function TrackCard({
             left: '160px',
             top: '178px',
             lineHeight: '1.3',
-            transform: isDowntown ? 'translate(-30px, -105px)' : 'translate(-29px, -105px)'
+            transform: isDowntown ? 'translate(-30px, -110px)' : 'translate(-29px, -110px)'
           }}
         >
           {subtitle}
