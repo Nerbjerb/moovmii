@@ -1654,9 +1654,14 @@ export default function Settings() {
                               clipPath: 'polygon(0 3px, 3px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 3px 100%, 0 calc(100% - 3px))'
                             }}
                           >
-                            {selection.isRow1 
-                              ? `Row 1 - ${selection.direction}` 
-                              : `Row 2 - ${selection.direction}`}
+                            {(() => {
+                              const displayDir = selectedLine?.startsWith('LIRR') 
+                                ? (selection.direction === 'Uptown' ? 'East' : 'West')
+                                : selection.direction;
+                              return selection.isRow1 
+                                ? `Row 1 - ${displayDir}` 
+                                : `Row 2 - ${displayDir}`;
+                            })()}
                           </span>
                         );
                       }
