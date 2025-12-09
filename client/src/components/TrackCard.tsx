@@ -83,7 +83,7 @@ export default function TrackCard({
           style={{ 
             left: '160px',
             top: '98px',
-            lineHeight: '1.1',
+            lineHeight: '1.3',
             transform: 'translate(-30px, -75px)'
           }}
         >
