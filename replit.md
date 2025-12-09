@@ -149,3 +149,15 @@ Preferred communication style: Simple, everyday language.
 - Component examples isolated in `client/src/components/examples/` for development
 - Minimal re-renders through proper React patterns
 - Fixed positioning eliminates dynamic layout recalculations
+
+**Settings Page - Station Selection**
+- Located at `/settings` route
+- Hierarchical navigation: Line groups → Individual lines → Station stops
+- Selection workflow: Click station → Choose direction (Uptown/Downtown) → Assign to Row 1 or Row 2
+- Selection state stores `{stop, direction, line}` for each row assignment
+- Universal favorite selection: Selecting a station on one line automatically shows flag on same-color lines
+  - Color groups: NQRW (yellow), ACE (blue), 123 (red), 456 (green), BDFM (orange), JZ (brown), 7 (purple), L (gray), G (light green)
+  - Regional services (SIR, LIRR, MetroNorth, PATH, NJT) are isolated and don't cross-propagate
+  - Example: Selecting Broadway on N train shows flag when viewing W train (both yellow)
+- MTA-style flag indicators with CSS clip-path polygon shapes
+- Station list includes all NYC subway lines with scrollable interface
