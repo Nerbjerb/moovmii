@@ -106,7 +106,7 @@ export default function Kiosk() {
   const row1Pref = preferences?.find(p => p.row === 1);
   const row2Pref = preferences?.find(p => p.row === 2);
 
-  // Build query parameters for dynamic subway arrivals
+  // Build query parameters for dynamic arrivals (subway or PATH)
   const getArrivalsQueryKey = (pref: KioskPreference | undefined, rowNum: number) => {
     // Default fallback to Broadway-Astoria N/W
     const defaultStopId = "R05";
@@ -114,8 +114,11 @@ export default function Kiosk() {
     const defaultLines = "N,W";
     
     if (!pref) {
-      return ['/api/subway/arrivals', { stopId: defaultStopId, direction: defaultDirection, lines: defaultLines }];
+      return ['/api/subway/arrivals', { stopId: defaultStopId, direction: defaultDirection, lines: defaultLines, isPATH: false }];
     }
+    
+    // Check if this is a PATH line
+    const isPATH = pref.line.startsWith('PATH-');
     
     const stopId = getStopId(pref.stop, pref.line);
     const sameColorLines = getSameColorLines(pref.line);
@@ -123,10 +126,17 @@ export default function Kiosk() {
     // If stop ID not found in metadata, fall back to defaults
     if (!stopId) {
       console.warn(`Stop ID not found for ${pref.stop} on ${pref.line}, using default`);
-      return ['/api/subway/arrivals', { stopId: defaultStopId, direction: defaultDirection, lines: defaultLines }];
+      return ['/api/subway/arrivals', { stopId: defaultStopId, direction: defaultDirection, lines: defaultLines, isPATH: false }];
     }
     
-    return ['/api/subway/arrivals', { stopId, direction: pref.direction, lines: sameColorLines.join(',') }];
+    // For PATH, convert direction: Uptown -> "To NY", Downtown -> "To NJ"
+    const pathDirection = pref.direction === 'Uptown' ? 'To NY' : 'To NJ';
+    
+    if (isPATH) {
+      return ['/api/path/arrivals', { station: stopId, direction: pathDirection, line: pref.line, isPATH: true }];
+    }
+    
+    return ['/api/subway/arrivals', { stopId, direction: pref.direction, lines: sameColorLines.join(','), isPATH: false }];
   };
 
   // Fetch real weather data from OpenWeatherMap
@@ -140,13 +150,18 @@ export default function Kiosk() {
     refetchInterval: 10 * 60 * 1000, // Refresh every 10 minutes
   });
 
-  // Fetch real-time subway data for row 1
+  // Fetch real-time arrivals for row 1 (subway or PATH)
   const row1QueryKey = getArrivalsQueryKey(row1Pref, 1);
   const { data: row1Arrivals, isLoading: isRow1Loading } = useQuery<SubwayArrival>({
     queryKey: row1QueryKey,
     queryFn: async () => {
-      const params = row1QueryKey[1] as { stopId: string; direction: string; lines: string };
-      const url = `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines)}`;
+      const params = row1QueryKey[1] as { stopId?: string; station?: string; direction: string; lines?: string; line?: string; isPATH: boolean };
+      let url: string;
+      if (params.isPATH) {
+        url = `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction)}&line=${params.line}`;
+      } else {
+        url = `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
+      }
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch arrivals');
       return res.json();
@@ -155,13 +170,18 @@ export default function Kiosk() {
     enabled: true,
   });
 
-  // Fetch real-time subway data for row 2
+  // Fetch real-time arrivals for row 2 (subway or PATH)
   const row2QueryKey = getArrivalsQueryKey(row2Pref, 2);
   const { data: row2Arrivals, isLoading: isRow2Loading } = useQuery<SubwayArrival>({
     queryKey: row2QueryKey,
     queryFn: async () => {
-      const params = row2QueryKey[1] as { stopId: string; direction: string; lines: string };
-      const url = `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines)}`;
+      const params = row2QueryKey[1] as { stopId?: string; station?: string; direction: string; lines?: string; line?: string; isPATH: boolean };
+      let url: string;
+      if (params.isPATH) {
+        url = `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction)}&line=${params.line}`;
+      } else {
+        url = `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
+      }
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch arrivals');
       return res.json();

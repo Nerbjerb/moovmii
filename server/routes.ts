@@ -675,6 +675,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PATH arrivals API - fetches real-time arrivals from Matt Razza's API
+  app.get("/api/path/arrivals", async (req, res) => {
+    try {
+      const { station, direction, line } = req.query;
+      
+      if (!station || !direction || !line) {
+        return res.status(400).json({ 
+          error: "Missing required parameters: station, direction, line" 
+        });
+      }
+
+      // Fetch from Matt Razza's PATH API
+      const response = await fetch(
+        `https://path.api.razza.dev/v1/stations/${station}/realtime`
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`PATH API error (${response.status}): ${errorText}`);
+        return res.status(502).json({ 
+          error: "Failed to fetch PATH data", 
+          details: `Upstream returned ${response.status}` 
+        });
+      }
+
+      const data = await response.json();
+
+      // The API returns upcomingTrains array with departures
+      const upcomingTrains = data.upcomingTrains || [];
+      
+      // Filter by direction (TO_NY or TO_NJ)
+      // direction param: "To NY" or "To NJ" -> convert to API format
+      const apiDirection = direction === "To NY" ? "TO_NY" : "TO_NJ";
+      
+      const filteredTrains = upcomingTrains.filter(
+        (train: any) => train.direction === apiDirection
+      );
+
+      // Get the first 3 arrivals
+      const arrivals: { minutes: number; headsign: string; lineColor: string }[] = [];
+      
+      for (const train of filteredTrains.slice(0, 3)) {
+        // Calculate minutes until arrival
+        const projectedArrival = new Date(train.projectedArrival);
+        const now = new Date();
+        const minutesUntil = Math.floor((projectedArrival.getTime() - now.getTime()) / 60000);
+        
+        if (minutesUntil >= 0) {
+          arrivals.push({
+            minutes: minutesUntil,
+            headsign: train.headsign || "",
+            lineColor: train.lineColors?.[0] || "#0078D7",
+          });
+        }
+      }
+
+      // Determine destination based on direction and route
+      const pathRouteInfo: Record<string, Record<string, { station: string; borough: string }>> = {
+        "To NY": {
+          "PATH-NWK": { station: "World Trade Center", borough: "Manhattan" },
+          "PATH-JSQ": { station: "33rd Street", borough: "Manhattan" },
+          "PATH-HOB-WTC": { station: "World Trade Center", borough: "Manhattan" },
+          "PATH-HOB-33": { station: "33rd Street", borough: "Manhattan" },
+        },
+        "To NJ": {
+          "PATH-NWK": { station: "Newark", borough: "New Jersey" },
+          "PATH-JSQ": { station: "Journal Square", borough: "New Jersey" },
+          "PATH-HOB-WTC": { station: "Hoboken", borough: "New Jersey" },
+          "PATH-HOB-33": { station: "Hoboken", borough: "New Jersey" },
+        },
+      };
+
+      const terminalInfo = pathRouteInfo[direction as string]?.[line as string] || 
+        { station: arrivals[0]?.headsign || "Unknown", borough: direction === "To NY" ? "Manhattan" : "New Jersey" };
+
+      const pathData = {
+        direction: direction as string,
+        line: line as string,
+        destination: terminalInfo.borough,
+        subtitle: terminalInfo.station,
+        arrivalMinutes: arrivals.map(a => a.minutes),
+        arrivalLines: arrivals.map(() => line as string), // All same line for PATH
+      };
+
+      res.json(pathData);
+    } catch (error) {
+      console.error("Error fetching PATH data:", error);
+      
+      // Extract params again for fallback (they may be out of scope after error)
+      const fallbackDirection = req.query.direction as string;
+      const fallbackLine = req.query.line as string;
+      
+      // Return fallback data when API is unreachable (DNS issues, network errors, etc.)
+      // This ensures the kiosk continues to display something useful
+      const pathRouteInfo: Record<string, Record<string, { station: string; borough: string }>> = {
+        "To NY": {
+          "PATH-NWK": { station: "World Trade Center", borough: "Manhattan" },
+          "PATH-JSQ": { station: "33rd Street", borough: "Manhattan" },
+          "PATH-HOB-WTC": { station: "World Trade Center", borough: "Manhattan" },
+          "PATH-HOB-33": { station: "33rd Street", borough: "Manhattan" },
+        },
+        "To NJ": {
+          "PATH-NWK": { station: "Newark", borough: "New Jersey" },
+          "PATH-JSQ": { station: "Journal Square", borough: "New Jersey" },
+          "PATH-HOB-WTC": { station: "Hoboken", borough: "New Jersey" },
+          "PATH-HOB-33": { station: "Hoboken", borough: "New Jersey" },
+        },
+      };
+      
+      const terminalInfo = pathRouteInfo[fallbackDirection]?.[fallbackLine] || 
+        { station: "Unknown", borough: fallbackDirection === "To NY" ? "Manhattan" : "New Jersey" };
+      
+      // Return empty arrivals with destination info (shows "No trains" state)
+      const fallbackData = {
+        direction: fallbackDirection,
+        line: fallbackLine,
+        destination: terminalInfo.borough,
+        subtitle: terminalInfo.station,
+        arrivalMinutes: [] as number[],
+        arrivalLines: [] as string[],
+      };
+      
+      res.json(fallbackData);
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

@@ -142,14 +142,22 @@ export default function TrackCard({
   
   // Check if a line is Metro-North (should show text instead of logo)
   const isMnrLine = (lineName: string) => lineName === 'MetroNorth' || lineName.startsWith('MNR-');
+  
+  // Check if a line is PATH (should show text instead of logo)
+  const isPathLine = (lineName: string) => lineName === 'PATH' || lineName.startsWith('PATH-');
 
-  // Get display direction - LIRR, MNR, 7, L, J, Z trains use Inbound/Outbound
+  // Get display direction - LIRR, MNR, 7, L, J, Z trains use Inbound/Outbound; PATH uses To NY/To NJ
   // LIRR: Inbound = towards Manhattan (Uptown), Outbound = away from Manhattan (Downtown)
   // MNR: Inbound = towards Grand Central (Downtown), Outbound = away from Grand Central (Uptown)
   // 7 train: Inbound = towards 34 St-Hudson Yards (Downtown), Outbound = towards Flushing-Main St (Uptown)
   // L train: Inbound = towards 8 Av (Downtown), Outbound = towards Canarsie (Uptown)
   // J/Z trains: Inbound = towards Broad St (Downtown), Outbound = towards Jamaica Center (Uptown)
+  // PATH: To NY (Uptown), To NJ (Downtown)
   const getDisplayDirection = () => {
+    if (isPathLine(line)) {
+      if (direction === 'Uptown' || direction === 'To NY') return 'To NY';
+      if (direction === 'Downtown' || direction === 'To NJ') return 'To NJ';
+    }
     if (isLirrLine(line)) {
       if (direction === 'Uptown') return 'Inbound';
       if (direction === 'Downtown') return 'Outbound';
@@ -187,7 +195,18 @@ export default function TrackCard({
           className="absolute w-24 h-24 rounded-full flex items-center justify-center" 
           style={{ left: '67px', top: '18px' }}
         >
-          {isLirrLine(line) ? (
+          {isPathLine(line) ? (
+            <span 
+              className="font-bold text-white"
+              style={{ 
+                fontSize: '28px',
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                transform: 'translate(-35px, -10px)'
+              }}
+            >
+              PATH
+            </span>
+          ) : isLirrLine(line) ? (
             <span 
               className="font-bold text-white"
               style={{ 
@@ -266,7 +285,18 @@ export default function TrackCard({
         {secondArrival !== undefined && (
           <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              {secondLine && isLirrLine(secondLine) ? (
+              {secondLine && isPathLine(secondLine) ? (
+                <span 
+                  className="font-bold text-white"
+                  style={{ 
+                    fontSize: '14px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    transform: 'translate(-32px, 45px)'
+                  }}
+                >
+                  PATH
+                </span>
+              ) : secondLine && isLirrLine(secondLine) ? (
                 <span 
                   className="font-bold text-white"
                   style={{ 
@@ -311,7 +341,18 @@ export default function TrackCard({
         {thirdArrival !== undefined && (
           <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              {thirdLine && isLirrLine(thirdLine) ? (
+              {thirdLine && isPathLine(thirdLine) ? (
+                <span 
+                  className="font-bold text-white"
+                  style={{ 
+                    fontSize: '14px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    transform: 'translate(-32px, 45px)'
+                  }}
+                >
+                  PATH
+                </span>
+              ) : thirdLine && isLirrLine(thirdLine) ? (
                 <span 
                   className="font-bold text-white"
                   style={{ 

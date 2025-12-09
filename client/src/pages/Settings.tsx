@@ -1087,13 +1087,22 @@ const lineStops: Record<string, string[]> = {
     "Grand Central", "Bridgeport", "Derby-Shelton", "Ansonia",
     "Seymour", "Beacon Falls", "Naugatuck", "Waterbury"
   ],
-  "PATH": [
-    "World Trade Center",
-    "Exchange Place",
-    "Grove Street",
-    "Journal Square",
-    "Harrison",
-    "Newark"
+  // PATH Routes
+  "PATH-NWK": [ // Newark - World Trade Center
+    "Newark", "Harrison", "Journal Square", "Grove Street",
+    "Exchange Place", "World Trade Center"
+  ],
+  "PATH-JSQ": [ // Journal Square - 33 Street
+    "Journal Square", "Grove Street", "Newport", "Hoboken",
+    "Christopher Street", "9th Street", "14th Street",
+    "23rd Street", "33rd Street"
+  ],
+  "PATH-HOB-WTC": [ // Hoboken - World Trade Center
+    "Hoboken", "Newport", "Exchange Place", "World Trade Center"
+  ],
+  "PATH-HOB-33": [ // Hoboken - 33 Street
+    "Hoboken", "Christopher Street", "9th Street", "14th Street",
+    "23rd Street", "33rd Street"
   ],
   "NJT": [
     "Penn Station NY",
@@ -1356,11 +1365,6 @@ export default function Settings() {
     }
     if (lineId === "PATH") {
       setSelectedRegionalService("path");
-      return;
-    }
-    // PATH routes are not yet implemented - stay on sub-menu
-    if (lineId.startsWith("PATH-")) {
-      // TODO: Implement PATH station selection when API integration is ready
       return;
     }
     setSelectedLine(lineId);
@@ -1732,9 +1736,12 @@ export default function Settings() {
                           >
                             {(() => {
                               const isLIRR = selectedLine?.startsWith('LIRR');
+                              const isPATH = selectedLine?.startsWith('PATH-');
                               const is7orLorJZorMNR = selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR');
                               let displayDir: string = selection.direction || '';
-                              if (isLIRR) {
+                              if (isPATH) {
+                                displayDir = selection.direction === 'Uptown' ? 'To NY' : 'To NJ';
+                              } else if (isLIRR) {
                                 displayDir = selection.direction === 'Uptown' ? 'Inbound' : 'Outbound';
                               } else if (is7orLorJZorMNR) {
                                 displayDir = selection.direction === 'Uptown' ? 'Outbound' : 'Inbound';
@@ -1827,7 +1834,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('LIRR') ? 'Inbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Outbound' : 'Uptown'}
+                                  {selectedLine?.startsWith('PATH-') ? 'To NY' : selectedLine?.startsWith('LIRR') ? 'Inbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Outbound' : 'Uptown'}
                                 </span>
                               </div>
                               <div 
@@ -1847,7 +1854,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('LIRR') ? 'Outbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Inbound' : 'Downtown'}
+                                  {selectedLine?.startsWith('PATH-') ? 'To NJ' : selectedLine?.startsWith('LIRR') ? 'Outbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Inbound' : 'Downtown'}
                                 </span>
                               </div>
                             </>
@@ -1866,7 +1873,9 @@ export default function Settings() {
                                   className="font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px', color: '#000000' }}
                                 >
-                                  {selectedLine?.startsWith('LIRR')
+                                  {selectedLine?.startsWith('PATH-')
+                                    ? (selectedDirection === 'Uptown' ? 'To NY' : 'To NJ')
+                                    : selectedLine?.startsWith('LIRR')
                                     ? (selectedDirection === 'Uptown' ? 'Inbound' : 'Outbound')
                                     : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR'))
                                     ? (selectedDirection === 'Uptown' ? 'Outbound' : 'Inbound')

@@ -1048,3 +1048,45 @@ stopIdMap["MNR-6"] = { // Waterbury Branch
   "Naugatuck": "171",
   "Waterbury": "172",
 };
+
+// PATH Stations - using Matt Razza API station codes
+// Newark - World Trade Center route
+stopIdMap["PATH-NWK"] = {
+  "Newark": "newark",
+  "Harrison": "harrison",
+  "Journal Square": "journal_square",
+  "Grove Street": "grove_street",
+  "Exchange Place": "exchange_place",
+  "World Trade Center": "world_trade_center",
+};
+
+// Journal Square - 33 Street route
+stopIdMap["PATH-JSQ"] = {
+  "Journal Square": "journal_square",
+  "Grove Street": "grove_street",
+  "Newport": "newport",
+  "Hoboken": "hoboken",
+  "Christopher Street": "christopher_street",
+  "9th Street": "ninth_street",
+  "14th Street": "fourteenth_street",
+  "23rd Street": "twenty_third_street",
+  "33rd Street": "thirty_third_street",
+};
+
+// Hoboken - World Trade Center route
+stopIdMap["PATH-HOB-WTC"] = {
+  "Hoboken": "hoboken",
+  "Newport": "newport",
+  "Exchange Place": "exchange_place",
+  "World Trade Center": "world_trade_center",
+};
+
+// Hoboken - 33 Street route
+stopIdMap["PATH-HOB-33"] = {
+  "Hoboken": "hoboken",
+  "Christopher Street": "christopher_street",
+  "9th Street": "ninth_street",
+  "14th Street": "fourteenth_street",
+  "23rd Street": "twenty_third_street",
+  "33rd Street": "thirty_third_street",
+};
