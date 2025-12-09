@@ -551,8 +551,6 @@ stopIdMap["Q"] = {
   "West 8 St-NY Aquarium": "D25",
   "Coney Island-Stillwell Av": "D43",
 };
-// R shares many stops with N
-stopIdMap["R"] = { ...stopIdMap["N"] };
 // C shares many stops with A
 stopIdMap["C"] = { ...stopIdMap["A"] };
 // E has its own stops but shares some with A/C
@@ -733,10 +731,27 @@ stopIdMap["F"] = {
   "Neptune Av": "F39",
   "Coney Island-Stillwell Av": "D43",
 };
-// M shares many stops with F
-stopIdMap["M"] = { ...stopIdMap["F"] };
+// M shares many stops with F, plus Queens Blvd local stations
+stopIdMap["M"] = { 
+  ...stopIdMap["F"],
+  // Queens Boulevard local stations (M/R only)
+  "65 St": "G22",
+  "Northern Blvd": "G21",
+  "46 St": "G20",
+  "Steinway St": "G19",
+};
 // Z shares all stops with J
 stopIdMap["Z"] = { ...stopIdMap["J"] };
+
+// Add Queens Boulevard local stations to R line
+stopIdMap["R"] = {
+  ...stopIdMap["N"],
+  // Queens Boulevard local stations (M/R only)
+  "65 St": "G22",
+  "Northern Blvd": "G21",
+  "46 St": "G20",
+  "Steinway St": "G19",
+};
 
 // LIRR Stations - using GTFS stop_id values
 // Note: LIRR doesn't use N/S suffixes - stop IDs are used directly
