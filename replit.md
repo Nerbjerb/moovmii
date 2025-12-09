@@ -173,6 +173,7 @@ Preferred communication style: Simple, everyday language.
   - Most subway lines: Uptown/Downtown
   - 7 train: Inbound (towards 34 St-Hudson Yards) / Outbound (towards Flushing-Main St)
   - L train: Inbound (towards 8 Av) / Outbound (towards Canarsie-Rockaway Pkwy)
+  - J/Z trains: Inbound (towards Broad St) / Outbound (towards Jamaica Center)
   - LIRR: Inbound (towards Manhattan) / Outbound (away from Manhattan)
 - Internal state always uses Uptown/Downtown, UI displays appropriate terminology
 - Universal favorite selection: Selecting a station on one line automatically shows flag on same-color lines
