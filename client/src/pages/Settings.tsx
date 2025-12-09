@@ -1460,7 +1460,7 @@ export default function Settings() {
                 <img src={metroNorthIcon} alt="Metro-North" className="h-[21px] object-contain" />
               </div>
               <img src={pathIcon} alt="PATH" className="h-[26px] object-contain" />
-              <img src={njTransitIcon} alt="NJ Transit" className="h-[14px] object-contain" />
+              <img src={njTransitIcon} alt="NJ Transit" className="h-[16px] object-contain" />
             </div>
           ) : null}
         </div>
