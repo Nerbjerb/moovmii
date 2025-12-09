@@ -139,6 +139,9 @@ export default function TrackCard({
 
   // Check if a line is LIRR (should show text instead of logo)
   const isLirrLine = (lineName: string) => lineName === 'LIRR' || lineName.startsWith('LIRR-');
+  
+  // Check if a line is Metro-North (should show text instead of logo)
+  const isMnrLine = (lineName: string) => lineName === 'MetroNorth' || lineName.startsWith('MNR-');
 
   // Get display direction - LIRR, 7, L, J, Z trains use Inbound/Outbound
   // LIRR: Inbound = towards Manhattan (Uptown), Outbound = away from Manhattan (Downtown)
@@ -194,6 +197,19 @@ export default function TrackCard({
             >
               LIRR
             </span>
+          ) : isMnrLine(line) ? (
+            <div 
+              className="font-bold text-white text-center"
+              style={{ 
+                fontSize: '22px',
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                transform: 'translate(-35px, -10px)',
+                lineHeight: '1.1'
+              }}
+            >
+              <div>Metro-</div>
+              <div>North</div>
+            </div>
           ) : iconSrc ? (
             <img 
               src={iconSrc} 
@@ -260,6 +276,19 @@ export default function TrackCard({
                 >
                   LIRR
                 </span>
+              ) : secondLine && isMnrLine(secondLine) ? (
+                <div 
+                  className="font-bold text-white text-center"
+                  style={{ 
+                    fontSize: '11px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    transform: 'translate(-32px, 45px)',
+                    lineHeight: '1.1'
+                  }}
+                >
+                  <div>Metro-</div>
+                  <div>North</div>
+                </div>
               ) : secondIconSrc ? (
                 <img
                   src={secondIconSrc}
@@ -292,6 +321,19 @@ export default function TrackCard({
                 >
                   LIRR
                 </span>
+              ) : thirdLine && isMnrLine(thirdLine) ? (
+                <div 
+                  className="font-bold text-white text-center"
+                  style={{ 
+                    fontSize: '11px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    transform: 'translate(-32px, 45px)',
+                    lineHeight: '1.1'
+                  }}
+                >
+                  <div>Metro-</div>
+                  <div>North</div>
+                </div>
               ) : thirdIconSrc ? (
                 <img
                   src={thirdIconSrc}
