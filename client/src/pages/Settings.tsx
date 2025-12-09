@@ -1741,7 +1741,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  Uptown
+                                  {selectedLine?.startsWith('LIRR') ? 'East' : 'Uptown'}
                                 </span>
                               </div>
                               <div 
@@ -1761,7 +1761,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  Downtown
+                                  {selectedLine?.startsWith('LIRR') ? 'West' : 'Downtown'}
                                 </span>
                               </div>
                             </>
@@ -1780,7 +1780,9 @@ export default function Settings() {
                                   className="font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px', color: '#000000' }}
                                 >
-                                  {selectedDirection}
+                                  {selectedLine?.startsWith('LIRR') 
+                                    ? (selectedDirection === 'Uptown' ? 'East' : 'West')
+                                    : selectedDirection}
                                 </span>
                               </div>
                               <div 
