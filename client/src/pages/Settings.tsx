@@ -1208,7 +1208,6 @@ export default function Settings() {
   const [selectedDirection, setSelectedDirection] = useState<'Uptown' | 'Downtown' | null>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
-  const [contentFitsWithoutScroll, setContentFitsWithoutScroll] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
 
   // Load preferences from API
@@ -1260,8 +1259,6 @@ export default function Settings() {
       const { scrollTop, scrollHeight, clientHeight } = container;
       setCanScrollUp(scrollTop > 5);
       setCanScrollDown(scrollTop + clientHeight < scrollHeight - 5);
-      // Check if content fits without scrolling
-      setContentFitsWithoutScroll(scrollHeight <= clientHeight);
     }
   }, []);
 
@@ -1589,8 +1586,8 @@ export default function Settings() {
     
     return (
       <div 
-        className={`flex items-center ${contentFitsWithoutScroll ? 'justify-center' : ''}`}
-        style={{ width: '760px', height: '370px', margin: 'auto', paddingLeft: contentFitsWithoutScroll ? '0' : '65px' }}
+        className="flex items-center"
+        style={{ width: '760px', height: '370px', margin: 'auto', paddingLeft: '65px' }}
       >
         {/* Station list container */}
         <div 
