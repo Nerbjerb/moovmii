@@ -130,6 +130,16 @@ export default function TrackCard({
   // Check if a line is LIRR (should show text instead of logo)
   const isLirrLine = (lineName: string) => lineName === 'LIRR' || lineName.startsWith('LIRR-');
 
+  // Get display direction - LIRR uses East/West instead of Uptown/Downtown
+  // East = towards Manhattan, West = away from Manhattan
+  const getDisplayDirection = () => {
+    if (isLirrLine(line)) {
+      if (direction === 'Uptown') return 'East';
+      if (direction === 'Downtown') return 'West';
+    }
+    return direction;
+  };
+
   // Extract text before dash for destination
   const displayDestination = destination.split('-')[0].trim();
 
@@ -147,7 +157,7 @@ export default function TrackCard({
             }}
             data-testid="text-direction"
           >
-            {direction}
+            {getDisplayDirection()}
           </div>
         </div>
 
