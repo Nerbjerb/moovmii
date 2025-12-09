@@ -167,8 +167,13 @@ Preferred communication style: Simple, everyday language.
 **Settings Page - Station Selection**
 - Located at `/settings` route
 - Hierarchical navigation: Line groups → Individual lines → Station stops
-- Selection workflow: Click station → Choose direction (Uptown/Downtown) → Assign to Row 1 or Row 2
+- Selection workflow: Click station → Choose direction → Assign to Row 1 or Row 2
 - Selection state stores `{stop, direction, line}` for each row assignment
+- Direction terminology varies by service:
+  - Most subway lines: Uptown/Downtown
+  - 7 train: Inbound (towards 34 St-Hudson Yards) / Outbound (towards Flushing-Main St)
+  - LIRR: Inbound (towards Manhattan) / Outbound (away from Manhattan)
+- Internal state always uses Uptown/Downtown, UI displays appropriate terminology
 - Universal favorite selection: Selecting a station on one line automatically shows flag on same-color lines
   - Color groups: NQRW (yellow), ACE (blue), 123 (red), 456 (green), BDFM (orange), JZ (brown), 7 (purple), L (gray), G (light green)
   - Regional services (SIR, LIRR, MetroNorth, PATH, NJT) are isolated and don't cross-propagate

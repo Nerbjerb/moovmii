@@ -140,12 +140,17 @@ export default function TrackCard({
   // Check if a line is LIRR (should show text instead of logo)
   const isLirrLine = (lineName: string) => lineName === 'LIRR' || lineName.startsWith('LIRR-');
 
-  // Get display direction - LIRR uses East/West instead of Uptown/Downtown
-  // East = towards Manhattan, West = away from Manhattan
+  // Get display direction - LIRR and 7 train use Inbound/Outbound
+  // LIRR: Inbound = towards Manhattan (Uptown), Outbound = away from Manhattan (Downtown)
+  // 7 train: Inbound = towards 34 St-Hudson Yards (Downtown), Outbound = towards Flushing-Main St (Uptown)
   const getDisplayDirection = () => {
     if (isLirrLine(line)) {
-      if (direction === 'Uptown') return 'East';
-      if (direction === 'Downtown') return 'West';
+      if (direction === 'Uptown') return 'Inbound';
+      if (direction === 'Downtown') return 'Outbound';
+    }
+    if (line === '7') {
+      if (direction === 'Uptown') return 'Outbound';
+      if (direction === 'Downtown') return 'Inbound';
     }
     return direction;
   };
