@@ -1696,8 +1696,10 @@ export default function Settings() {
           
           <div 
             ref={stopsContainerRef}
-            className="flex-1 overflow-y-auto min-h-0"
+            className="overflow-y-auto"
             style={{ 
+              height: '370px',
+              maxHeight: '370px',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch',
