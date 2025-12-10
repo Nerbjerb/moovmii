@@ -1666,13 +1666,13 @@ export default function Settings() {
     
     return (
       <div 
-        className="flex items-center"
-        style={{ width: '760px', height: '370px', margin: 'auto', paddingLeft: '65px' }}
+        className="flex items-center flex-1 min-h-0"
+        style={{ width: '760px', margin: 'auto', paddingLeft: '65px' }}
       >
         {/* Station list container */}
         <div 
-          className="relative flex flex-col min-h-0"
-          style={{ height: '370px', flexShrink: 0 }}
+          className="relative flex flex-col flex-1 min-h-0"
+          style={{ maxHeight: '370px' }}
         >
           {canScrollUp && (
             <div 
@@ -1686,7 +1686,7 @@ export default function Settings() {
           
           <div 
             ref={stopsContainerRef}
-            className="overflow-y-auto h-full touch-scroll-container"
+            className="flex-1 overflow-y-auto min-h-0"
             style={{ 
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
@@ -1995,7 +1995,7 @@ export default function Settings() {
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8">
       <div className="relative">
         <main 
-          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative"
+          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative min-h-0"
           style={{ width: '800px', height: '480px', padding: '15px 20px' }}
           data-testid="settings-main"
         >
