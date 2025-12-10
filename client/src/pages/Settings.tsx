@@ -1313,11 +1313,21 @@ export default function Settings() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  const mainContainerRef = useRef<HTMLDivElement>(null);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error('Error attempting to enable fullscreen:', err);
-      });
+      // Request fullscreen on the main container wrapper, not the entire document
+      const container = mainContainerRef.current?.closest('.fullscreen-wrapper');
+      if (container) {
+        container.requestFullscreen().catch((err) => {
+          console.error('Error attempting to enable fullscreen:', err);
+        });
+      } else {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.error('Error attempting to enable fullscreen:', err);
+        });
+      }
     } else {
       document.exitFullscreen().catch((err) => {
         console.error('Error attempting to exit fullscreen:', err);
@@ -2004,8 +2014,8 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8">
-      <div className="relative">
+    <div ref={mainContainerRef} className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
+      <div className="relative fullscreen-container">
         <main 
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative min-h-0"
           style={{ width: '800px', height: '480px', padding: '15px 20px' }}

@@ -297,3 +297,47 @@
   -webkit-touch-callout: none !important;
   -webkit-tap-highlight-color: transparent !important;
 }
+
+/* Fullscreen mode - remove all padding/margins so 800x480 fits exactly */
+.fullscreen-wrapper:fullscreen {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #0b0b0b !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+.fullscreen-wrapper:fullscreen .fullscreen-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.fullscreen-wrapper:fullscreen main {
+  box-shadow: none !important;
+}
+
+/* Webkit prefix for Safari/Chrome */
+.fullscreen-wrapper:-webkit-full-screen {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #0b0b0b !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+.fullscreen-wrapper:-webkit-full-screen .fullscreen-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.fullscreen-wrapper:-webkit-full-screen main {
+  box-shadow: none !important;
+}
