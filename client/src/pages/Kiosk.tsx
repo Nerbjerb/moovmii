@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Settings } from "lucide-react";
@@ -13,94 +13,6 @@ import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 export default function Kiosk() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
-  // Double-tap detection with improved reliability
-  const lastTapTimeRef = useRef<number>(0);
-  const lastTapPositionRef = useRef<{ x: number; y: number } | null>(null);
-  const isTogglingRef = useRef<boolean>(false);
-  const doubleTapDelay = 450; // Increased from 300ms for touch screen latency
-  const maxTapDistance = 50; // Maximum pixels between taps to count as double-tap
-
-  const toggleFullscreen = useCallback(() => {
-    // Debounce: prevent rapid re-triggering
-    if (isTogglingRef.current) return;
-    isTogglingRef.current = true;
-    
-    // Reset debounce after 500ms
-    setTimeout(() => {
-      isTogglingRef.current = false;
-    }, 500);
-
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().then(() => {
-        setIsFullscreen(true);
-      }).catch((err) => {
-        console.log('Fullscreen request failed:', err);
-      });
-    } else {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false);
-      }).catch((err) => {
-        console.log('Exit fullscreen failed:', err);
-      });
-    }
-  }, []);
-
-  // Calculate distance between two points
-  const getDistance = (x1: number, y1: number, x2: number, y2: number): number => {
-    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-  };
-
-  // Handle touch start - track when finger first touches
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (!touch) return;
-
-    const now = Date.now();
-    const currentPosition = { x: touch.clientX, y: touch.clientY };
-
-    // Check if this is a double-tap
-    if (lastTapPositionRef.current && now - lastTapTimeRef.current < doubleTapDelay) {
-      const distance = getDistance(
-        lastTapPositionRef.current.x,
-        lastTapPositionRef.current.y,
-        currentPosition.x,
-        currentPosition.y
-      );
-
-      // Only trigger if taps are close enough together
-      if (distance <= maxTapDistance) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleFullscreen();
-        // Reset after successful double-tap
-        lastTapTimeRef.current = 0;
-        lastTapPositionRef.current = null;
-        return;
-      }
-    }
-
-    // Store this tap for potential double-tap detection
-    lastTapTimeRef.current = now;
-    lastTapPositionRef.current = currentPosition;
-  }, [toggleFullscreen]);
-
-  // Handle touch end - prevent default behaviors except for links
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    // Check if the touch target is inside a link - if so, allow default behavior
-    const target = e.target as HTMLElement;
-    if (target.closest('a')) {
-      return; // Allow link navigation
-    }
-    // Prevent ghost clicks and other default behaviors
-    e.preventDefault();
-  }, []);
-
-  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleFullscreen();
-  }, [toggleFullscreen]);
 
   // Fetch preferences
   const { data: preferences } = useQuery<KioskPreference[]>({
@@ -250,11 +162,8 @@ export default function Kiosk() {
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
       <div className="relative fullscreen-container">
         <main 
-          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative cursor-pointer select-none"
-          style={{ width: '800px', height: '480px', touchAction: 'manipulation' }}
-          onDoubleClick={handleDoubleClick}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
+          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative"
+          style={{ width: '800px', height: '480px' }}
           data-testid="kiosk-main"
         >
         {/* Settings icon - bottom right corner */}
