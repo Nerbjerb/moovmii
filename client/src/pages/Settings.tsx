@@ -2035,7 +2035,7 @@ export default function Settings() {
 
               <div 
                 className="rounded-[6px] flex items-center justify-center" 
-                style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '20px' }}
+                style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '17px' }}
                 data-testid="card-settings-bottom"
               >
                 <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Advanced Settings</span>
