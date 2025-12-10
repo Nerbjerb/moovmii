@@ -34,6 +34,7 @@ import iconW from "@assets/moovmii/MTA Icons/src/svg/w.svg";
 import iconZ from "@assets/moovmii/MTA Icons/src/svg/z.svg";
 import iconLirr from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
 import iconMnr from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
+import iconPath from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 
 interface TrackCardProps {
   direction: string;
@@ -196,16 +197,16 @@ export default function TrackCard({
           style={{ left: '67px', top: '18px' }}
         >
           {isPathLine(line) ? (
-            <span 
-              className="font-bold text-white"
+            <img 
+              src={iconPath} 
+              alt="PATH" 
+              className="object-contain"
               style={{ 
-                fontSize: '28px',
-                fontFamily: 'Helvetica, Arial, sans-serif',
+                width: '65px',
+                height: 'auto',
                 transform: 'translate(-35px, -10px)'
               }}
-            >
-              PATH
-            </span>
+            />
           ) : isLirrLine(line) ? (
             <span 
               className="font-bold text-white"
@@ -286,16 +287,16 @@ export default function TrackCard({
           <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {secondLine && isPathLine(secondLine) ? (
-                <span 
-                  className="font-bold text-white"
+                <img 
+                  src={iconPath} 
+                  alt="PATH" 
+                  className="object-contain"
                   style={{ 
-                    fontSize: '14px',
-                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    width: '38px',
+                    height: 'auto',
                     transform: 'translate(-32px, 45px)'
                   }}
-                >
-                  PATH
-                </span>
+                />
               ) : secondLine && isLirrLine(secondLine) ? (
                 <span 
                   className="font-bold text-white"
@@ -342,16 +343,16 @@ export default function TrackCard({
           <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {thirdLine && isPathLine(thirdLine) ? (
-                <span 
-                  className="font-bold text-white"
+                <img 
+                  src={iconPath} 
+                  alt="PATH" 
+                  className="object-contain"
                   style={{ 
-                    fontSize: '14px',
-                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    width: '38px',
+                    height: 'auto',
                     transform: 'translate(-32px, 45px)'
                   }}
-                >
-                  PATH
-                </span>
+                />
               ) : thirdLine && isLirrLine(thirdLine) ? (
                 <span 
                   className="font-bold text-white"
