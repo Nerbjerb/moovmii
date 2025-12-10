@@ -1686,7 +1686,7 @@ export default function Settings() {
           
           <div 
             ref={stopsContainerRef}
-            className="overflow-y-auto h-full"
+            className="overflow-y-auto h-full touch-scroll-container"
             style={{ 
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',

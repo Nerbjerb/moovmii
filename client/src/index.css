@@ -286,3 +286,14 @@
     inset: -1px;
   }
 }
+
+/* Touch-friendly scroll container - prevents text selection on all browsers including iOS Safari */
+/* Placed outside @layer to prevent Tailwind from purging it */
+.touch-scroll-container {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
