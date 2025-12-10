@@ -85,8 +85,13 @@ export default function Kiosk() {
     lastTapPositionRef.current = currentPosition;
   }, [toggleFullscreen]);
 
-  // Handle touch end - prevent default behaviors
+  // Handle touch end - prevent default behaviors except for links
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Check if the touch target is inside a link - if so, allow default behavior
+    const target = e.target as HTMLElement;
+    if (target.closest('a')) {
+      return; // Allow link navigation
+    }
     // Prevent ghost clicks and other default behaviors
     e.preventDefault();
   }, []);
