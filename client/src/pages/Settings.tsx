@@ -2052,7 +2052,7 @@ export default function Settings() {
             </>
           )}
 
-          <div className="absolute bottom-[5px] left-[5px]">
+          <div className="absolute bottom-[0px] left-[5px]">
             <button 
               onClick={toggleFullscreen}
               className="cursor-pointer p-4"
@@ -2064,7 +2064,7 @@ export default function Settings() {
               />
             </button>
           </div>
-          <div className="absolute bottom-[5px] right-[5px]">
+          <div className="absolute bottom-[0px] right-[5px]">
             <Link href="/" className="block p-4" data-testid="link-back">
               <Home className="w-6 h-6 text-white cursor-pointer" data-testid="button-home" />
             </Link>
