@@ -253,9 +253,9 @@ export default function Kiosk() {
           data-testid="kiosk-main"
         >
         {/* Settings icon - bottom right corner */}
-        <div className="absolute bottom-[10px] right-[10px]">
-          <Link href="/settings" data-testid="link-settings">
-            <Settings className="w-5 h-5 text-white cursor-pointer" data-testid="button-settings" />
+        <div className="absolute bottom-[5px] right-[5px]">
+          <Link href="/settings" className="block p-4" data-testid="link-settings">
+            <Settings className="w-6 h-6 text-white cursor-pointer" data-testid="button-settings" />
           </Link>
         </div>
 

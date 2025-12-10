@@ -2015,10 +2015,10 @@ export default function Settings() {
             <div className="absolute top-[5px] left-[5px] z-30">
               <button 
                 onClick={handleBack}
-                className="cursor-pointer p-3"
+                className="cursor-pointer p-4"
                 data-testid="button-back-to-groups"
               >
-                <ArrowLeft className="w-5 h-5 text-white" />
+                <ArrowLeft className="w-6 h-6 text-white" />
               </button>
             </div>
           )}
@@ -2042,21 +2042,21 @@ export default function Settings() {
             </>
           )}
 
-          <div className="absolute bottom-[5px] left-[10px]">
+          <div className="absolute bottom-[5px] left-[5px]">
             <button 
               onClick={toggleFullscreen}
-              className="cursor-pointer"
+              className="cursor-pointer p-4"
               data-testid="button-fullscreen-toggle"
             >
               <Square 
-                className={`w-5 h-5 ${isFullscreen ? 'text-[#ffd200]' : 'text-white'}`} 
+                className={`w-6 h-6 ${isFullscreen ? 'text-[#ffd200]' : 'text-white'}`} 
                 fill={isFullscreen ? '#ffd200' : 'none'}
               />
             </button>
           </div>
-          <div className="absolute bottom-[10px] right-[10px]">
-            <Link href="/" data-testid="link-back">
-              <Home className="w-5 h-5 text-white cursor-pointer" data-testid="button-home" />
+          <div className="absolute bottom-[5px] right-[5px]">
+            <Link href="/" className="block p-4" data-testid="link-back">
+              <Home className="w-6 h-6 text-white cursor-pointer" data-testid="button-home" />
             </Link>
           </div>
         </main>
