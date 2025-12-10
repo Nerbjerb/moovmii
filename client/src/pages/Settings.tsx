@@ -1671,7 +1671,7 @@ export default function Settings() {
       >
         {/* Station list container */}
         <div 
-          className="relative flex flex-col"
+          className="relative flex flex-col min-h-0"
           style={{ height: '370px', flexShrink: 0 }}
         >
           {canScrollUp && (
@@ -1691,7 +1691,6 @@ export default function Settings() {
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch',
-              touchAction: 'pan-y',
               overscrollBehavior: 'contain'
             }}
             onScroll={checkScrollPosition}
