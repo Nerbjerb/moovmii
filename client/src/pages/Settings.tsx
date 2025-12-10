@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Home, Square, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getStopId } from "@shared/stopMetadata";
+import { usePressScroll } from "@/hooks/use-press-scroll";
 import type { KioskPreference } from "@shared/schema";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
@@ -1240,6 +1241,11 @@ export default function Settings() {
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
+  
+  const { shouldBlockClick } = usePressScroll(stopsContainerRef, {
+    activationDelay: 300,
+    scrollMultiplier: 1.5,
+  });
 
   // Load preferences from API
   const { data: preferences } = useQuery<KioskPreference[]>({
@@ -1371,6 +1377,10 @@ export default function Settings() {
   };
 
   const handleStopSelect = (stopName: string) => {
+    // Block clicks if we just finished press-scrolling
+    if (shouldBlockClick()) {
+      return;
+    }
     // Toggle selection - if same stop clicked, deselect; otherwise select
     if (selectedStop === stopName) {
       setSelectedStop(null);
