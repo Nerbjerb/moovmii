@@ -1523,7 +1523,7 @@ export default function Settings() {
       return (
         <div 
           className="flex items-center justify-center"
-          style={{ width: '984px', height: '490px', margin: 'auto' }}
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
         >
           <div className="flex flex-col gap-[8px] items-center">
             {serviceGroup.lines.map((line) => (
@@ -1573,7 +1573,7 @@ export default function Settings() {
       return (
         <div 
           className="flex items-center justify-center"
-          style={{ width: '984px', height: '490px', margin: 'auto' }}
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
         >
           <div className="flex gap-[10px]">
             {/* Left column */}
@@ -1632,7 +1632,7 @@ export default function Settings() {
     return (
       <div 
         className="flex items-center justify-center"
-        style={{ width: '984px', height: '490px', margin: 'auto' }}
+        style={{ width: '760px', height: '370px', margin: 'auto' }}
       >
         <div className="flex flex-col gap-[8px] items-center">
           {currentGroup.lines.map((line) => (
@@ -1678,7 +1678,7 @@ export default function Settings() {
     return (
       <div 
         className="flex items-center flex-1 min-h-0"
-        style={{ width: '984px', margin: 'auto', paddingLeft: '65px' }}
+        style={{ width: '760px', margin: 'auto', paddingLeft: '65px' }}
       >
         {/* Station list container */}
         <div 
@@ -2009,7 +2009,7 @@ export default function Settings() {
       <div className="relative fullscreen-container">
         <main 
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative min-h-0"
-          style={{ width: '1024px', height: '600px', padding: '15px 20px' }}
+          style={{ width: '800px', height: '480px', padding: '15px 20px' }}
           data-testid="settings-main"
         >
           {(selectedGroup || selectedLine || selectedRegionalService) && (
@@ -2029,13 +2029,13 @@ export default function Settings() {
           {!selectedGroup && !selectedLine && !selectedRegionalService && (
             <>
               <div 
-                style={{ width: '984px', height: '1px', backgroundColor: '#4a4a4a', marginTop: '20px' }}
+                style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a', marginTop: '20px' }}
                 data-testid="separator-line"
               />
 
               <div 
                 className="rounded-[6px] flex items-center justify-center" 
-                style={{ width: '984px', height: '58px', backgroundColor: '#2D2C31', marginTop: '17px' }}
+                style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '17px' }}
                 data-testid="card-settings-bottom"
               >
                 <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Advanced Settings</span>

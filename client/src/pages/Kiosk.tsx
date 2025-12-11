@@ -163,7 +163,7 @@ export default function Kiosk() {
       <div className="relative fullscreen-container">
         <main 
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative"
-          style={{ width: '1024px', height: '600px' }}
+          style={{ width: '800px', height: '480px' }}
           data-testid="kiosk-main"
         >
         {/* Settings icon - bottom right corner */}
@@ -194,7 +194,7 @@ export default function Kiosk() {
           </div>
 
           <div data-testid="section-weather">
-            <div className="absolute" style={{ left: '714px', top: '50%', transform: 'translateY(calc(-50% - 3px))' }}>
+            <div className="absolute" style={{ left: '490px', top: '50%', transform: 'translateY(calc(-50% - 3px))' }}>
               <WeatherTile
                 icon={displayWeather[0].icon}
                 temperature={displayWeather[0].temperature}
@@ -202,7 +202,7 @@ export default function Kiosk() {
                 time={displayWeather[0].time}
               />
             </div>
-            <div className="absolute" style={{ left: '830px', top: '50%', transform: 'translateY(calc(-50% - 3px))' }}>
+            <div className="absolute" style={{ left: '606px', top: '50%', transform: 'translateY(calc(-50% - 3px))' }}>
               <WeatherTile
                 icon={displayWeather[1].icon}
                 temperature={displayWeather[1].temperature}

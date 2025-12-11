@@ -126,7 +126,7 @@ Preferred communication style: Simple, everyday language.
 - SVG icons imported directly into React components for better bundling
 
 **Kiosk Display Mode**
-- Clean 1024x600 pixel kiosk display (10.1 inch screen) without navigation or controls
+- Clean 800x480 pixel kiosk display without navigation or controls
 - Removed moovmii logo, grid rulers, and time format toggle
 - Clock fixed to 12-hour format for consistent kiosk display
 
@@ -150,7 +150,7 @@ Preferred communication style: Simple, everyday language.
 
 **Fixed Element Positioning**
 - TrackCard uses fixed absolute positioning for all elements (icon, destination, subtitle, arrival minutes)
-- Card dimensions: 680px width × 115px height (updated for 1024x600 screen)
+- Card dimensions: 570px width × 115px height
 - Icon positioned at left: 24px, top: 18px with transform: translate(-35px, -10px)
 - Destination text positioned at left: 120px with transform: translate(-30px, -90px)
 - Subtitle text positioned at left: 120px with transform: translate(-30px/-29px, -165px)
