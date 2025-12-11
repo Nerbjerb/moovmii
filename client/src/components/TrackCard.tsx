@@ -176,7 +176,7 @@ export default function TrackCard({
   return (
     <div className="relative flex items-center gap-[9px]">
       {/* Main card - front layer with fixed positioning */}
-      <Card className="relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[510px] h-[115px]">
+      <Card className="relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[680px] h-[115px]">
         {/* Direction label - left strip */}
         <div className="absolute left-0 top-0 w-10 h-full bg-[#2D2C31] flex items-center justify-center rounded-l-[9px]">
           <div 
