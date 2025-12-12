@@ -56,3 +56,18 @@ export type WeatherData = {
   description: string;
   time: string;
 };
+
+// Kiosk display settings table
+export const kioskSettings = pgTable("kiosk_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  kioskId: varchar("kiosk_id").notNull().default("default").unique(),
+  temperatureUnit: text("temperature_unit").notNull().default("fahrenheit"), // "fahrenheit" or "celsius"
+  clockFormat: text("clock_format").notNull().default("12hr"), // "12hr" or "24hr"
+});
+
+export const insertKioskSettingsSchema = createInsertSchema(kioskSettings).omit({
+  id: true,
+});
+
+export type InsertKioskSettings = z.infer<typeof insertKioskSettingsSchema>;
+export type KioskSettings = typeof kioskSettings.$inferSelect;

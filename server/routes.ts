@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { mapOWMCodeToIcon } from "@shared/weatherIconMapper";
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import { feedUrls, lineToFeedGroup, getSameColorLines, getStopId, getFeedUrlsForLines } from "@shared/stopMetadata";
-import { insertKioskPreferenceSchema } from "@shared/schema";
+import { insertKioskPreferenceSchema, insertKioskSettingsSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Weather API route - fetches current and 3-hour forecast for NYC
@@ -307,6 +307,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting preference:", error);
       res.status(500).json({ error: "Failed to delete preference" });
+    }
+  });
+
+  // Settings API - Get kiosk settings
+  app.get("/api/settings", async (req, res) => {
+    try {
+      const kioskId = (req.query.kioskId as string) || "default";
+      const settings = await storage.getKioskSettings(kioskId);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  // Settings API - Update kiosk settings
+  app.post("/api/settings", async (req, res) => {
+    try {
+      const parsed = insertKioskSettingsSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid settings data", details: parsed.error });
+      }
+      const settings = await storage.setKioskSettings(parsed.data);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      res.status(500).json({ error: "Failed to save settings" });
     }
   });
 

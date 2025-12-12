@@ -6,7 +6,7 @@ import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
 import GridOverlay from "@/components/GridOverlay";
-import type { SubwayArrival, WeatherData, KioskPreference } from "@shared/schema";
+import type { SubwayArrival, WeatherData, KioskPreference, KioskSettings } from "@shared/schema";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 
@@ -17,6 +17,11 @@ export default function Kiosk() {
   // Fetch preferences
   const { data: preferences } = useQuery<KioskPreference[]>({
     queryKey: ['/api/preferences'],
+  });
+
+  // Fetch settings
+  const { data: settings } = useQuery<KioskSettings>({
+    queryKey: ['/api/settings'],
   });
 
   // Get preferences for each row
@@ -138,7 +143,25 @@ export default function Kiosk() {
     { icon: "day-cloudy", temperature: "--°", description: "Loading", time: "..." },
   ];
 
-  const displayWeather = weatherData || defaultWeather;
+  // Convert temperature based on settings
+  const convertTemperature = (tempStr: string): string => {
+    if (!settings || settings.temperatureUnit === "fahrenheit") {
+      return tempStr; // Already in Fahrenheit from API
+    }
+    // Convert from Fahrenheit to Celsius
+    const match = tempStr.match(/(-?\d+)/);
+    if (match) {
+      const fahrenheit = parseInt(match[1], 10);
+      const celsius = Math.round((fahrenheit - 32) * 5 / 9);
+      return `${celsius}°`;
+    }
+    return tempStr;
+  };
+
+  const displayWeather = (weatherData || defaultWeather).map(w => ({
+    ...w,
+    temperature: convertTemperature(w.temperature),
+  }));
 
   useEffect(() => {
     // Update current time every minute
@@ -190,7 +213,7 @@ export default function Kiosk() {
 
         <section className="relative flex-1">
           <div className="flex flex-col justify-center items-start h-full">
-            <ClockDisplay format="12" />
+            <ClockDisplay format={settings?.clockFormat === "24hr" ? "24" : "12"} />
           </div>
 
           <div data-testid="section-weather">
