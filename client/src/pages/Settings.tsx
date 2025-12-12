@@ -1777,10 +1777,13 @@ export default function Settings() {
                             {(() => {
                               const isLIRR = selectedLine?.startsWith('LIRR');
                               const isPATH = selectedLine?.startsWith('PATH-');
+                              const isSIR = selectedLine === 'SIR';
                               const is7orLorJZorMNR = selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR');
                               let displayDir: string = selection.direction || '';
                               if (isPATH) {
                                 displayDir = selection.direction === 'Uptown' ? 'To NY' : 'To NJ';
+                              } else if (isSIR) {
+                                displayDir = selection.direction === 'Uptown' ? 'St George' : 'Tottenville';
                               } else if (isLIRR) {
                                 displayDir = selection.direction === 'Uptown' ? 'Inbound' : 'Outbound';
                               } else if (is7orLorJZorMNR) {
@@ -1875,7 +1878,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('PATH-') ? 'To NY' : selectedLine?.startsWith('LIRR') ? 'Inbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Outbound' : 'Uptown'}
+                                  {selectedLine?.startsWith('PATH-') ? 'To NY' : selectedLine === 'SIR' ? 'St George' : selectedLine?.startsWith('LIRR') ? 'Inbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Outbound' : 'Uptown'}
                                 </span>
                               </div>
                               <div 
@@ -1896,7 +1899,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('PATH-') ? 'To NJ' : selectedLine?.startsWith('LIRR') ? 'Outbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Inbound' : 'Downtown'}
+                                  {selectedLine?.startsWith('PATH-') ? 'To NJ' : selectedLine === 'SIR' ? 'Tottenville' : selectedLine?.startsWith('LIRR') ? 'Outbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Inbound' : 'Downtown'}
                                 </span>
                               </div>
                             </>
@@ -1917,6 +1920,8 @@ export default function Settings() {
                                 >
                                   {selectedLine?.startsWith('PATH-')
                                     ? (selectedDirection === 'Uptown' ? 'To NY' : 'To NJ')
+                                    : selectedLine === 'SIR'
+                                    ? (selectedDirection === 'Uptown' ? 'St George' : 'Tottenville')
                                     : selectedLine?.startsWith('LIRR')
                                     ? (selectedDirection === 'Uptown' ? 'Inbound' : 'Outbound')
                                     : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR'))
