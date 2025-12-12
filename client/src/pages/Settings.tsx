@@ -978,6 +978,11 @@ const lineStops: Record<string, string[]> = {
     "Fulton St",
     "Broad St"
   ],
+  "S": [
+    "Franklin Av",
+    "Park Pl",
+    "Botanic Garden"
+  ],
   "SIR": [
     "St George",
     "Tompkinsville",

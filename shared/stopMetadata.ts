@@ -539,7 +539,31 @@ export function getStopId(stationName: string, line: string): string | null {
 
 // Copy stop mappings for same-color lines that share stations
 // W shares all N stops
-stopIdMap["W"] = { ...stopIdMap["N"] };
+stopIdMap["W"] = {
+  "Astoria-Ditmars Blvd": "R01",
+  "Astoria Blvd": "R03",
+  "30 Av": "R04",
+  "Broadway": "R05",
+  "36 Av": "R06",
+  "39 Av-Dutch Kills": "R08",
+  "Queensboro Plaza": "R09",
+  "Lexington Av/59 St": "R11",
+  "5 Av/59 St": "R13",
+  "57 St-7 Av": "R14",
+  "49 St": "R15",
+  "Times Sq-42 St": "R16",
+  "34 St-Herald Sq": "R17",
+  "28 St": "R18",
+  "23 St": "R19",
+  "14 St-Union Sq": "R20",
+  "8 St-NYU": "R21",
+  "Prince St": "R22",
+  "Canal St": "R23",
+  "City Hall": "R24",
+  "Cortlandt St": "R25",
+  "Rector St": "R26",
+  "Whitehall St-South Ferry": "R27",
+};
 // Q shares many stops with N
 stopIdMap["Q"] = {
   "96 St": "Q03",
@@ -574,7 +598,48 @@ stopIdMap["Q"] = {
   "Coney Island-Stillwell Av": "D43",
 };
 // C shares many stops with A
-stopIdMap["C"] = { ...stopIdMap["A"] };
+stopIdMap["C"] = {
+  "168 St": "A09",
+  "163 St-Amsterdam Av": "A10",
+  "155 St": "A11",
+  "145 St": "A12",
+  "135 St": "A14",
+  "125 St": "A15",
+  "116 St": "A16",
+  "Cathedral Pkwy-110 St": "A17",
+  "103 St": "A18",
+  "96 St": "A19",
+  "86 St": "A20",
+  "81 St-Museum of Natural History": "A21",
+  "72 St": "A22",
+  "59 St-Columbus Circle": "A24",
+  "50 St": "A25",
+  "42 St-Port Authority": "A27",
+  "34 St-Penn Station": "A28",
+  "23 St": "A30",
+  "14 St": "A31",
+  "W 4 St-Wash Sq": "A32",
+  "Spring St": "A33",
+  "Canal St": "A34",
+  "Chambers St": "A36",
+  "Fulton St": "A38",
+  "High St": "A40",
+  "Jay St-MetroTech": "A41",
+  "Hoyt-Schermerhorn Sts": "A42",
+  "Lafayette Av": "A43",
+  "Clinton-Washington Avs": "A44",
+  "Franklin Av": "A45",
+  "Nostrand Av": "A46",
+  "Kingston-Throop Avs": "A47",
+  "Utica Av": "A48",
+  "Ralph Av": "A49",
+  "Rockaway Av": "A50",
+  "Broadway Junction": "A51",
+  "Liberty Av": "A52",
+  "Van Siclen Av": "A53",
+  "Shepherd Av": "A54",
+  "Euclid Av": "A55",
+};
 // E has its own stops but shares some with A/C
 stopIdMap["E"] = {
   "Jamaica Center-Parsons/Archer": "G05",
@@ -850,18 +915,55 @@ stopIdMap["M"] = {
 // Z shares all stops with J
 stopIdMap["Z"] = { ...stopIdMap["J"] };
 
-// Add Queens Boulevard local stations to R line
+// R train - Queens local + Brooklyn local to Bay Ridge
 stopIdMap["R"] = {
-  ...stopIdMap["N"],
-  // Queens Boulevard local stations (M/R only)
+  // Queens local stations (Forest Hills line)
+  "Forest Hills-71 Av": "G11",
+  "67 Av": "G12",
+  "63 Dr-Rego Park": "G13",
+  "Woodhaven Blvd": "G14",
+  "Grand Av-Newtown": "G15",
+  "Elmhurst Av": "G16",
+  "Jackson Hts-Roosevelt Av": "G18",
   "65 St": "G22",
   "Northern Blvd": "G21",
   "46 St": "G20",
   "Steinway St": "G19",
-  // Missing R train Brooklyn stations
-  "25 St": "R35",
+  "Queens Plaza": "G19",
+  // Shared with N/W
+  "Lexington Av/59 St": "R11",
+  "5 Av/59 St": "R13",
+  "57 St-7 Av": "R14",
+  "49 St": "R15",
+  "Times Sq-42 St": "R16",
+  "34 St-Herald Sq": "R17",
+  "28 St": "R18",
+  "23 St": "R19",
+  "14 St-Union Sq": "R20",
+  "8 St-NYU": "R21",
+  "Prince St": "R22",
+  "Canal St": "R23",
+  "City Hall": "R24",
+  "Cortlandt St": "R25",
+  "Rector St": "R26",
+  "Whitehall St-South Ferry": "R27",
+  // Brooklyn local stations
+  "Court St": "R28",
+  "Jay St-MetroTech": "R29",
+  "DeKalb Av": "R30",
+  "Atlantic Av-Barclays Ctr": "R31",
   "Union St": "R32",
+  "4 Av-9 St": "R33",
+  "Prospect Av": "R34",
+  "25 St": "R35",
+  "36 St": "R36",
+  "45 St": "R39",
   "53 St": "R40",
+  "59 St": "R41",
+  "Bay Ridge Av": "R42",
+  "77 St": "R43",
+  "86 St": "R44",
+  "Bay Ridge-95 St": "R45",
 };
 
 // LIRR Stations - using GTFS stop_id values
@@ -1183,6 +1285,11 @@ stopIdMap["SIR"] = {
   "Richmond Valley": "S13",
   "Arthur Kill": "S11",
   "Tottenville": "S09",
+};
+
+// S train (Franklin Avenue Shuttle)
+stopIdMap["S"] = {
+  "Franklin Av": "S01",
   "Park Pl": "S03",
   "Botanic Garden": "S04",
 };
