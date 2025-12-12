@@ -423,9 +423,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             }
           } else {
-            // Subway - direct match
-            matchesLine = linesToFetch.includes(routeId);
-            matchedLine = routeId;
+            // Subway - direct match (SIR uses "SI" in GTFS)
+            if (routeId === "SI" && linesToFetch.includes("SIR")) {
+              matchesLine = true;
+              matchedLine = "SIR";
+            } else {
+              matchesLine = linesToFetch.includes(routeId);
+              matchedLine = routeId;
+            }
           }
 
           if (!matchesLine) continue;
