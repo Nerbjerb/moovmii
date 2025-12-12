@@ -520,6 +520,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "MNR-4": { station: "New Canaan", borough: "Connecticut" },
           "MNR-5": { station: "Danbury", borough: "Connecticut" },
           "MNR-6": { station: "Waterbury", borough: "Connecticut" },
+          // Staten Island Railway
+          "SIR": { station: "St George", borough: "Staten Island" },
         },
         "Downtown": {
           "A": { station: "Far Rockaway", borough: "Queens" },
@@ -562,6 +564,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "MNR-4": { station: "Grand Central", borough: "Manhattan" },
           "MNR-5": { station: "Grand Central", borough: "Manhattan" },
           "MNR-6": { station: "Grand Central", borough: "Manhattan" },
+          // Staten Island Railway
+          "SIR": { station: "Tottenville", borough: "Staten Island" },
         },
       };
 
