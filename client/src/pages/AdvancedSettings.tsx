@@ -46,21 +46,14 @@ export default function AdvancedSettings() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex flex-col"
-      style={{ 
-        backgroundColor: '#0b0b0b',
-        width: '800px',
-        height: '480px',
-        overflow: 'hidden'
-      }}
-    >
-      <div 
-        className="flex-1 flex flex-col relative overflow-hidden"
-        style={{ padding: '18px' }}
-      >
-        <main className="flex-1 flex flex-col">
-          <div className="absolute top-[-2px] left-[5px]">
+    <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
+      <div className="relative fullscreen-container">
+        <main 
+          className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative"
+          style={{ width: '800px', height: '480px', padding: '15px 20px' }}
+          data-testid="advanced-settings-main"
+        >
+          <div className="absolute top-[5px] left-[5px]">
             <Link href="/settings" className="block p-4" data-testid="link-back-settings">
               <ArrowLeft className="w-6 h-6 text-white cursor-pointer" data-testid="button-back" />
             </Link>
