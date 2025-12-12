@@ -16,6 +16,8 @@ export const feedUrls: Record<string, string> = {
   "L": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l",
   "NQRW": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
   "1234567": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
+  // Staten Island Railway
+  "SIR": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si",
   // Commuter Rail feeds
   "LIRR": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/lirr%2Fgtfs-lirr",
   "MNR": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/mnr%2Fgtfs-mnr",
@@ -45,6 +47,8 @@ export const lineToFeedGroup: Record<string, string> = {
   "5": "1234567",
   "6": "1234567",
   "7": "1234567",
+  // Staten Island Railway
+  "SIR": "SIR",
   // LIRR Branches (route_id from GTFS)
   "LIRR-1": "LIRR",  // Babylon Branch
   "LIRR-2": "LIRR",  // Hempstead Branch
@@ -76,6 +80,7 @@ export const colorGroups: Record<string, string[]> = {
   "#A7A9AC": ["L"],                      // Gray
   "#6CBE45": ["G"],                      // Light Green
   "#996633": ["J", "Z"],                 // Brown
+  "#1D6EB5": ["SIR"],                    // Staten Island Railway (Blue)
   // LIRR Branches - each is its own group (no merging)
   "#00985F-LIRR": ["LIRR-1"],           // Babylon (green)
   "#CE8E00-LIRR": ["LIRR-2"],           // Hempstead (orange)
@@ -104,6 +109,7 @@ export const lineToColor: Record<string, string> = {
   "L": "#A7A9AC",
   "G": "#6CBE45",
   "J": "#996633", "Z": "#996633",
+  "SIR": "#1D6EB5",  // Staten Island Railway
   // LIRR Branches
   "LIRR-1": "#00985F-LIRR",   // Babylon
   "LIRR-2": "#CE8E00-LIRR",   // Hempstead
@@ -232,6 +238,21 @@ export const stopIdMap: Record<string, Record<string, string>> = {
     "104 St": "A61",
     "111 St": "A62",
     "Ozone Park-Lefferts Blvd": "A64",
+    "Cathedral Pkwy (110 St)": "A17",
+    "Howard Beach-JFK Airport": "H03",
+    "Broad Channel": "H04",
+    "Beach 90 St": "H12",
+    "Beach 98 St": "H13",
+    "Beach 105 St": "H14",
+    "Rockaway Park-Beach 116 St": "H15",
+    "Beach 67 St": "H06",
+    "Beach 60 St": "H07",
+    "Beach 44 St": "H08",
+    "Beach 36 St": "H09",
+    "Beach 25 St": "H10",
+    "Far Rockaway-Mott Av": "H11",
+    "Aqueduct Racetrack": "H01",
+    "Aqueduct-N Conduit Av": "H02",
   },
   // 123 Lines
   "1": {
@@ -432,6 +453,7 @@ export const stopIdMap: Record<string, Record<string, string>> = {
     "59 St-Columbus Circle": "A24",
     "7 Av": "D17",
     "47-50 Sts-Rockefeller Ctr": "D18",
+    "42 St-Bryant Pk": "D16",
     "42 St-Bryant Park": "D19",
     "34 St-Herald Sq": "D20",
     "W 4 St-Wash Sq": "A32",
@@ -634,10 +656,24 @@ stopIdMap["2"] = {
   "Beverly Rd": "248",
   "Newkirk Av": "249",
   "Flatbush Av-Brooklyn College": "250",
+  "23 St-Baruch College": "634",
 };
 stopIdMap["3"] = { ...stopIdMap["2"] };
 // 5/6 share many stops with 4
-stopIdMap["5"] = { ...stopIdMap["4"] };
+stopIdMap["5"] = { 
+  ...stopIdMap["4"],
+  // 5 train Dyre Ave / Bronx stations
+  "Eastchester-Dyre Av": "501",
+  "Baychester Av": "502",
+  "Morris Park": "505",
+  "E 180 St": "213",
+  // IRT White Plains Road stations
+  "Harlem-148 St": "301",
+  "Junius St": "254",
+  "Pennsylvania Av": "255",
+  "Saratoga Av": "252",
+  "Sutter Av-Rutland Rd": "251",
+};
 stopIdMap["6"] = {
   "Pelham Bay Park": "601",
   "Buhre Av": "602",
@@ -739,6 +775,13 @@ stopIdMap["M"] = {
   "Northern Blvd": "G21",
   "46 St": "G20",
   "Steinway St": "G19",
+  // M train Ridgewood/Middle Village stations
+  "Middle Village-Metropolitan Av": "M01",
+  "Fresh Pond Rd": "M04",
+  "Forest Av": "M05",
+  "Seneca Av": "M06",
+  "Knickerbocker Av": "M09",
+  "Central Av": "M10",
 };
 // Z shares all stops with J
 stopIdMap["Z"] = { ...stopIdMap["J"] };
@@ -751,6 +794,10 @@ stopIdMap["R"] = {
   "Northern Blvd": "G21",
   "46 St": "G20",
   "Steinway St": "G19",
+  // Missing R train Brooklyn stations
+  "25 St": "R35",
+  "Union St": "R32",
+  "53 St": "R40",
 };
 
 // LIRR Stations - using GTFS stop_id values
@@ -1047,6 +1094,33 @@ stopIdMap["MNR-6"] = { // Waterbury Branch
   "Beacon Falls": "170",
   "Naugatuck": "171",
   "Waterbury": "172",
+};
+
+// Staten Island Railway (SIR) Stations
+stopIdMap["SIR"] = {
+  "St George": "S31",
+  "Tompkinsville": "S30",
+  "Stapleton": "S29",
+  "Clifton": "S28",
+  "Grasmere": "S27",
+  "Old Town": "S26",
+  "Dongan Hills": "S25",
+  "Jefferson Av": "S24",
+  "Grant City": "S23",
+  "New Dorp": "S22",
+  "Oakwood Heights": "S21",
+  "Bay Terrace": "S20",
+  "Great Kills": "S19",
+  "Eltingville": "S18",
+  "Annadale": "S17",
+  "Huguenot": "S16",
+  "Prince's Bay": "S15",
+  "Pleasant Plains": "S14",
+  "Richmond Valley": "S13",
+  "Arthur Kill": "S11",
+  "Tottenville": "S09",
+  "Park Pl": "S03",
+  "Botanic Garden": "S04",
 };
 
 // PATH Stations - using Matt Razza API station codes
