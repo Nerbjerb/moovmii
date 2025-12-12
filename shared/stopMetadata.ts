@@ -780,8 +780,10 @@ stopIdMap["M"] = {
   "Fresh Pond Rd": "M04",
   "Forest Av": "M05",
   "Seneca Av": "M06",
+  "Myrtle-Wyckoff Avs": "M08",
   "Knickerbocker Av": "M09",
   "Central Av": "M10",
+  "Myrtle Av": "M11",
 };
 // Z shares all stops with J
 stopIdMap["Z"] = { ...stopIdMap["J"] };
