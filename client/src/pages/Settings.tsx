@@ -255,7 +255,8 @@ const lineStops: Record<string, string[]> = {
     "Church Av",
     "Beverly Rd",
     "Newkirk Av",
-    "Flatbush Av-Brooklyn College"
+    "Flatbush Av-Brooklyn College",
+    "23 St-Baruch College"
   ],
   "3": [
     "Harlem-148 St",
@@ -435,6 +436,7 @@ const lineStops: Record<string, string[]> = {
     "155 St",
     "145 St",
     "125 St",
+    "Cathedral Pkwy (110 St)",
     "59 St-Columbus Circle",
     "42 St-Port Authority",
     "34 St-Penn Station",
@@ -466,7 +468,21 @@ const lineStops: Record<string, string[]> = {
     "Rockaway Blvd",
     "104 St",
     "111 St",
-    "Ozone Park-Lefferts Blvd"
+    "Ozone Park-Lefferts Blvd",
+    "Aqueduct Racetrack",
+    "Aqueduct-N Conduit Av",
+    "Howard Beach-JFK Airport",
+    "Broad Channel",
+    "Beach 90 St",
+    "Beach 98 St",
+    "Beach 105 St",
+    "Rockaway Park-Beach 116 St",
+    "Beach 67 St",
+    "Beach 60 St",
+    "Beach 44 St",
+    "Beach 36 St",
+    "Beach 25 St",
+    "Far Rockaway-Mott Av"
   ],
   "C": [
     "168 St",
