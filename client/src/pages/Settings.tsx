@@ -2106,13 +2106,13 @@ export default function Settings() {
                   style={{ 
                     width: '60px', 
                     height: '28px', 
-                    backgroundColor: '#ffd200'
+                    backgroundColor: '#2D2C31'
                   }}
                   data-testid="button-save"
                 >
                   <span 
                     className="font-bold"
-                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', color: '#000000' }}
+                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', color: '#FFFFFF' }}
                   >
                     Save
                   </span>
