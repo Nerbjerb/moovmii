@@ -2080,9 +2080,34 @@ export default function Settings() {
             </button>
           </div>
           <div className="absolute bottom-[-2px] right-[5px]">
-            <Link href="/" className="block p-4" data-testid="link-back">
-              <Home className="w-6 h-6 text-white cursor-pointer" data-testid="button-home" />
-            </Link>
+            {selectedDirection !== null ? (
+              <Link 
+                href="/" 
+                className="block p-4" 
+                data-testid="link-save"
+              >
+                <div 
+                  className="rounded-[6px] flex items-center justify-center"
+                  style={{ 
+                    width: '60px', 
+                    height: '28px', 
+                    backgroundColor: '#ffd200'
+                  }}
+                  data-testid="button-save"
+                >
+                  <span 
+                    className="font-bold"
+                    style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', color: '#000000' }}
+                  >
+                    Save
+                  </span>
+                </div>
+              </Link>
+            ) : (
+              <Link href="/" className="block p-4" data-testid="link-back">
+                <Home className="w-6 h-6 text-white cursor-pointer" data-testid="button-home" />
+              </Link>
+            )}
           </div>
         </main>
       </div>
