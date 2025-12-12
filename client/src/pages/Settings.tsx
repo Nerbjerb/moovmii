@@ -1262,6 +1262,7 @@ export default function Settings() {
   const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'Uptown' | 'Downtown' | null>(null);
+  const [selectedRow, setSelectedRow] = useState<1 | 2 | null>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
@@ -1367,6 +1368,7 @@ export default function Settings() {
       const group = groups.find(g => g.id === selectedGroup);
       setSelectedStop(null);
       setSelectedDirection(null);
+      setSelectedRow(null);
       if (group && group.lines.length === 1) {
         setSelectedLine(null);
         setSelectedGroup(null);
@@ -1410,9 +1412,11 @@ export default function Settings() {
     if (selectedStop === stopName) {
       setSelectedStop(null);
       setSelectedDirection(null);
+      setSelectedRow(null);
     } else {
       setSelectedStop(stopName);
       setSelectedDirection(null);
+      setSelectedRow(null);
     }
   };
 
@@ -1863,6 +1867,7 @@ export default function Settings() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedDirection('Uptown');
+                                  setSelectedRow(null);
                                 }}
                                 data-testid="button-select-uptown"
                               >
@@ -1883,6 +1888,7 @@ export default function Settings() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedDirection('Downtown');
+                                  setSelectedRow(null);
                                 }}
                                 data-testid="button-select-downtown"
                               >
@@ -1923,28 +1929,22 @@ export default function Settings() {
                                 style={{ 
                                   width: '70px', 
                                   height: '26px', 
-                                  backgroundColor: '#2D2C31'
+                                  backgroundColor: selectedRow === 1 ? '#FFFFFF' : '#2D2C31'
                                 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  console.log(`Selected as Row 1 ${selectedDirection}:`, selectedStop);
-                                  if (selectedStop && selectedDirection && selectedLine) {
-                                    setRow1Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
-                                    savePreferenceMutation.mutate({
-                                      row: 1,
-                                      stop: selectedStop,
-                                      direction: selectedDirection,
-                                      line: selectedLine,
-                                    });
-                                  }
-                                  setSelectedStop(null);
-                                  setSelectedDirection(null);
+                                  console.log(`Selected Row 1 for ${selectedDirection}:`, selectedStop);
+                                  setSelectedRow(1);
                                 }}
                                 data-testid="button-select-row-1"
                               >
                                 <span 
-                                  className="text-white font-medium"
-                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                  className="font-medium"
+                                  style={{ 
+                                    fontFamily: 'Helvetica, Arial, sans-serif', 
+                                    fontSize: '11px',
+                                    color: selectedRow === 1 ? '#000000' : '#FFFFFF'
+                                  }}
                                 >
                                   Row 1
                                 </span>
@@ -1954,28 +1954,22 @@ export default function Settings() {
                                 style={{ 
                                   width: '70px', 
                                   height: '26px', 
-                                  backgroundColor: '#2D2C31'
+                                  backgroundColor: selectedRow === 2 ? '#FFFFFF' : '#2D2C31'
                                 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  console.log(`Selected as Row 2 ${selectedDirection}:`, selectedStop);
-                                  if (selectedStop && selectedDirection && selectedLine) {
-                                    setRow2Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
-                                    savePreferenceMutation.mutate({
-                                      row: 2,
-                                      stop: selectedStop,
-                                      direction: selectedDirection,
-                                      line: selectedLine,
-                                    });
-                                  }
-                                  setSelectedStop(null);
-                                  setSelectedDirection(null);
+                                  console.log(`Selected Row 2 for ${selectedDirection}:`, selectedStop);
+                                  setSelectedRow(2);
                                 }}
                                 data-testid="button-select-row-2"
                               >
                                 <span 
-                                  className="text-white font-medium"
-                                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
+                                  className="font-medium"
+                                  style={{ 
+                                    fontFamily: 'Helvetica, Arial, sans-serif', 
+                                    fontSize: '11px',
+                                    color: selectedRow === 2 ? '#000000' : '#FFFFFF'
+                                  }}
                                 >
                                   Row 2
                                 </span>
@@ -2080,11 +2074,27 @@ export default function Settings() {
             </button>
           </div>
           <div className="absolute bottom-[-2px] right-[5px]">
-            {selectedDirection !== null ? (
+            {selectedDirection !== null && selectedRow !== null ? (
               <Link 
                 href="/" 
                 className="block p-4" 
                 data-testid="link-save"
+                onClick={() => {
+                  if (selectedStop && selectedDirection && selectedLine && selectedRow) {
+                    console.log(`Saving Row ${selectedRow} ${selectedDirection}:`, selectedStop);
+                    if (selectedRow === 1) {
+                      setRow1Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
+                    } else {
+                      setRow2Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
+                    }
+                    savePreferenceMutation.mutate({
+                      row: selectedRow,
+                      stop: selectedStop,
+                      direction: selectedDirection,
+                      line: selectedLine,
+                    });
+                  }
+                }}
               >
                 <div 
                   className="rounded-[6px] flex items-center justify-center"
