@@ -216,8 +216,7 @@ export default function TrackCard({
                     backgroundColor: line === 'PATH-NWK' ? '#D93A30' : 
                                      line === 'PATH-JSQ' ? '#F0A01E' : 
                                      line === 'PATH-HOB-WTC' ? '#4CAF50' : 
-                                     line === 'PATH-HOB-33' ? '#0078D7' : '#FFFFFF',
-                    borderRadius: '1px'
+                                     line === 'PATH-HOB-33' ? '#0078D7' : '#FFFFFF'
                   }}
                 />
                 <span 
