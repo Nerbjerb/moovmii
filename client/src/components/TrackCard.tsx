@@ -208,7 +208,7 @@ export default function TrackCard({
                 }}
               />
               {/* PATH line descriptor */}
-              <div className="flex items-center gap-[6px] mt-[8px]">
+              <div className="flex items-center gap-[5px] mt-[8px]">
                 <div 
                   style={{ 
                     width: '2px', 
