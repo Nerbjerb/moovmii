@@ -111,16 +111,14 @@ Preferred communication style: Simple, everyday language.
   - Each line treated separately (no merging between lines)
   - Stop IDs are numeric (no N/S suffix like subway)
   - Line IDs mapped: MNR-1 through MNR-6
-- **PATH Real-time Feed**: Live PATH train arrivals
-  - Feed URL: `https://path.transitdata.nyc/gtfsrt` (community GTFS-RT feed)
-  - Updates every 5 seconds for accurate real-time data
+- **PATH Real-time API**: Live PATH train arrivals
+  - API URL: `https://www.panynj.gov/bin/portauthority/ridepath.json` (official PANYNJ API)
+  - Same data source as official RidePATH website for accurate times
   - No API key required
-  - 4 main routes: NWK-WTC (862), JSQ-33rd (861), HOB-WTC (860), HOB-33rd (859)
-  - Stop IDs are numeric GTFS IDs (e.g., 26733=Newark, 26730=Hoboken, 26734=WTC, 26724=33rd St)
-  - Route-specific terminal detection: Direction flipping at terminals respects individual route layouts
-  - Terminal stations: Newark (NWK route), Hoboken (HOB routes), JSQ (JSQ route), WTC & 33rd St (NY terminals)
+  - All 13 PATH stations supported: Newark, Harrison, JSQ, Grove St, Newport, Exchange Place, Hoboken, WTC, Christopher St, 9th St, 14th St, 23rd St, 33rd St
+  - Station codes mapped from GTFS IDs to PANYNJ codes (e.g., 26728→GRV for Grove St)
   - Direction terminology: "To NY" (Manhattan-bound) / "To NJ" (New Jersey-bound)
-  - Uses `gtfs-realtime-bindings` package to decode Protocol Buffer data
+  - API returns arrival times in seconds, headsigns, and line colors
   - Automatic 30-second refresh interval on frontend
 - All external APIs accessed server-side via `/api` endpoints
 
