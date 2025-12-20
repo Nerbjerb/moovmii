@@ -1294,44 +1294,100 @@ stopIdMap["S"] = {
   "Botanic Garden": "S04",
 };
 
-// PATH Stations - using Matt Razza API station codes
+// PATH Stations - using GTFS stop IDs from path.transitdata.nyc
+// GTFS Stop ID mapping for all PATH stations
+export const pathGtfsStopIds: Record<string, string> = {
+  "Newark": "26733",
+  "Harrison": "26729",
+  "Journal Square": "26731",
+  "Grove Street": "26728",
+  "Exchange Place": "26727",
+  "Newport": "26732",
+  "Hoboken": "26730",
+  "Christopher Street": "26726",
+  "9th Street": "26725",
+  "14th Street": "26722",
+  "23rd Street": "26723",
+  "33rd Street": "26724",
+  "World Trade Center": "26734",
+};
+
+// Reverse mapping: GTFS stop ID to station name
+export const pathGtfsStopNames: Record<string, string> = {
+  "26733": "Newark",
+  "26729": "Harrison",
+  "26731": "Journal Square",
+  "26728": "Grove Street",
+  "26727": "Exchange Place",
+  "26732": "Newport",
+  "26730": "Hoboken",
+  "26726": "Christopher Street",
+  "26725": "9th Street",
+  "26722": "14th Street",
+  "26723": "23rd Street",
+  "26724": "33rd Street",
+  "26734": "World Trade Center",
+};
+
+// PATH route ID to name mapping
+export const pathRouteNames: Record<string, string> = {
+  "859": "Hoboken - 33rd Street",
+  "860": "Hoboken - World Trade Center",
+  "861": "Journal Square - 33rd Street",
+  "862": "Newark - World Trade Center",
+  "1024": "Journal Square - 33rd Street (via Hoboken)",
+  "74320": "Newark - Harrison Shuttle",
+  "77285": "World Trade Center - 33rd Street",
+};
+
+// PATH route terminal stations (for determining direction)
+export const pathRouteTerminals: Record<string, { ny: string; nj: string }> = {
+  "859": { ny: "33rd Street", nj: "Hoboken" },
+  "860": { ny: "World Trade Center", nj: "Hoboken" },
+  "861": { ny: "33rd Street", nj: "Journal Square" },
+  "862": { ny: "World Trade Center", nj: "Newark" },
+  "1024": { ny: "33rd Street", nj: "Journal Square" },
+  "74320": { ny: "Harrison", nj: "Newark" }, // Newark-Harrison Shuttle (both in NJ)
+  "77285": { ny: "33rd Street", nj: "World Trade Center" },
+};
+
 // Newark - World Trade Center route
 stopIdMap["PATH-NWK"] = {
-  "Newark": "newark",
-  "Harrison": "harrison",
-  "Journal Square": "journal_square",
-  "Grove Street": "grove_street",
-  "Exchange Place": "exchange_place",
-  "World Trade Center": "world_trade_center",
+  "Newark": "26733",
+  "Harrison": "26729",
+  "Journal Square": "26731",
+  "Grove Street": "26728",
+  "Exchange Place": "26727",
+  "World Trade Center": "26734",
 };
 
 // Journal Square - 33 Street route
 stopIdMap["PATH-JSQ"] = {
-  "Journal Square": "journal_square",
-  "Grove Street": "grove_street",
-  "Newport": "newport",
-  "Hoboken": "hoboken",
-  "Christopher Street": "christopher_street",
-  "9th Street": "ninth_street",
-  "14th Street": "fourteenth_street",
-  "23rd Street": "twenty_third_street",
-  "33rd Street": "thirty_third_street",
+  "Journal Square": "26731",
+  "Grove Street": "26728",
+  "Newport": "26732",
+  "Hoboken": "26730",
+  "Christopher Street": "26726",
+  "9th Street": "26725",
+  "14th Street": "26722",
+  "23rd Street": "26723",
+  "33rd Street": "26724",
 };
 
 // Hoboken - World Trade Center route
 stopIdMap["PATH-HOB-WTC"] = {
-  "Hoboken": "hoboken",
-  "Newport": "newport",
-  "Exchange Place": "exchange_place",
-  "World Trade Center": "world_trade_center",
+  "Hoboken": "26730",
+  "Newport": "26732",
+  "Exchange Place": "26727",
+  "World Trade Center": "26734",
 };
 
 // Hoboken - 33 Street route
 stopIdMap["PATH-HOB-33"] = {
-  "Hoboken": "hoboken",
-  "Christopher Street": "christopher_street",
-  "9th Street": "ninth_street",
-  "14th Street": "fourteenth_street",
-  "23rd Street": "twenty_third_street",
-  "33rd Street": "thirty_third_street",
+  "Hoboken": "26730",
+  "Christopher Street": "26726",
+  "9th Street": "26725",
+  "14th Street": "26722",
+  "23rd Street": "26723",
+  "33rd Street": "26724",
 };

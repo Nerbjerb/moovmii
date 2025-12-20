@@ -711,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PATH arrivals API - fetches real-time arrivals from Matt Razza's API
+  // PATH arrivals API - fetches real-time arrivals from path.transitdata.nyc GTFS-RT feed
   app.get("/api/path/arrivals", async (req, res) => {
     try {
       const { station, direction, line } = req.query;
@@ -722,52 +722,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Fetch from Matt Razza's PATH API
-      const response = await fetch(
-        `https://path.api.razza.dev/v1/stations/${station}/realtime`
-      );
+      // Import PATH GTFS mappings
+      const { pathGtfsStopIds, pathGtfsStopNames, pathRouteTerminals } = await import("@shared/stopMetadata");
+      
+      // Get GTFS stop ID - station param is already the numeric GTFS ID
+      const gtfsStopId = station as string;
+      const stationName = pathGtfsStopNames[gtfsStopId] || "Unknown";
+      
+      // Fetch from community GTFS-RT feed (updates every 5 seconds)
+      const response = await fetch("https://path.transitdata.nyc/gtfsrt");
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`PATH API error (${response.status}): ${errorText}`);
+        console.error(`PATH GTFS-RT error (${response.status}): ${errorText}`);
         return res.status(502).json({ 
           error: "Failed to fetch PATH data", 
           details: `Upstream returned ${response.status}` 
         });
       }
 
-      const data = await response.json();
-
-      // The API returns upcomingTrains array with departures
-      const upcomingTrains = data.upcomingTrains || [];
-      
-      // Filter by direction (TO_NY or TO_NJ)
-      // direction param: "To NY" or "To NJ" -> convert to API format
-      const apiDirection = direction === "To NY" ? "TO_NY" : "TO_NJ";
-      
-      const filteredTrains = upcomingTrains.filter(
-        (train: any) => train.direction === apiDirection
+      // Decode GTFS-RT Protocol Buffer
+      const buffer = await response.arrayBuffer();
+      const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+        new Uint8Array(buffer)
       );
 
-      // Get the first 3 arrivals
-      const arrivals: { minutes: number; headsign: string; lineColor: string }[] = [];
+      const now = Math.floor(Date.now() / 1000);
+      const arrivals: { minutes: number; routeId: string; headsign: string }[] = [];
       
-      for (const train of filteredTrains.slice(0, 3)) {
-        // Calculate minutes until arrival
-        const projectedArrival = new Date(train.projectedArrival);
-        const now = new Date();
-        const minutesUntil = Math.floor((projectedArrival.getTime() - now.getTime()) / 60000);
+      // Route-specific terminal stations (stop IDs)
+      // Each route has its own NJ and NY terminals where direction flips
+      const routeTerminalStops: Record<string, { nj: string; ny: string }> = {
+        "859": { nj: "26730", ny: "26724" }, // Hoboken - 33rd St
+        "860": { nj: "26730", ny: "26734" }, // Hoboken - WTC
+        "861": { nj: "26731", ny: "26724" }, // Journal Square - 33rd St
+        "862": { nj: "26733", ny: "26734" }, // Newark - WTC
+        "1024": { nj: "26731", ny: "26724" }, // Journal Square - 33rd St (via Hoboken)
+        "74320": { nj: "26733", ny: "26729" }, // Newark - Harrison Shuttle
+        "77285": { nj: "26734", ny: "26724" }, // WTC - 33rd St (WTC is downtown, 33rd uptown)
+      };
+      
+      // Process trip updates
+      for (const entity of feed.entity) {
+        if (!entity.tripUpdate) continue;
         
-        if (minutesUntil >= 0) {
+        const tripUpdate = entity.tripUpdate;
+        const routeId = tripUpdate.trip?.routeId || "";
+        const directionId = tripUpdate.trip?.directionId;
+        
+        // Skip trips with missing direction info - can't reliably determine direction
+        if (directionId === undefined || directionId === null) {
+          continue;
+        }
+        
+        // Get terminals for this specific route
+        const routeTerminals = routeTerminalStops[routeId];
+        const isNJTerminalForRoute = routeTerminals?.nj === gtfsStopId;
+        const isNYTerminalForRoute = routeTerminals?.ny === gtfsStopId;
+        
+        // GTFS direction_id: 0 = towards NY terminals (33rd, WTC), 1 = towards NJ terminals (Newark, Hoboken, JSQ)
+        // At terminal stations FOR THIS ROUTE, arriving trains become departures in opposite direction
+        let trainDirection: string;
+        
+        if (isNJTerminalForRoute) {
+          // At NJ terminal for this route: Dir 1 trains arrive here, users depart To NY
+          trainDirection = directionId === 1 ? "To NY" : "To NJ";
+        } else if (isNYTerminalForRoute) {
+          // At NY terminal for this route: Dir 0 trains arrive here, users depart To NJ
+          trainDirection = directionId === 0 ? "To NJ" : "To NY";
+        } else {
+          // At through stations for this route: direction matches train direction
+          trainDirection = directionId === 0 ? "To NY" : "To NJ";
+        }
+        
+        // Filter by requested direction
+        if (trainDirection !== direction) continue;
+        
+        // Check each stop time update for arrivals at our station
+        for (const stopTimeUpdate of tripUpdate.stopTimeUpdate || []) {
+          if (stopTimeUpdate.stopId !== gtfsStopId) continue;
+          
+          const arrivalTime = stopTimeUpdate.arrival?.time;
+          if (!arrivalTime) continue;
+          
+          const arrivalTimestamp = typeof arrivalTime === 'object' && 'toNumber' in arrivalTime
+            ? arrivalTime.toNumber()
+            : Number(arrivalTime);
+          
+          const minutesUntil = Math.floor((arrivalTimestamp - now) / 60);
+          
+          if (minutesUntil < 0 || minutesUntil > 60) continue;
+          
+          // Get terminal info for headsign
+          const terminals = pathRouteTerminals[routeId];
+          
           arrivals.push({
-            minutes: minutesUntil,
-            headsign: train.headsign || "",
-            lineColor: train.lineColors?.[0] || "#0078D7",
+            minutes: minutesUntil === 0 ? 1 : minutesUntil, // Show 1 min instead of 0
+            routeId,
+            headsign: terminals?.[direction === "To NY" ? "ny" : "nj"] || "",
           });
         }
       }
+      
+      // Sort by arrival time and take first 3
+      arrivals.sort((a, b) => a.minutes - b.minutes);
+      const topArrivals = arrivals.slice(0, 3);
 
-      // Determine destination based on direction and route
+      // Determine terminal info based on direction
       const pathRouteInfo: Record<string, Record<string, { station: string; borough: string }>> = {
         "To NY": {
           "PATH-NWK": { station: "World Trade Center", borough: "Manhattan" },
@@ -783,28 +844,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       };
 
+      // Use headsign from first arrival if available
+      const firstHeadsign = topArrivals[0]?.headsign || "";
       const terminalInfo = pathRouteInfo[direction as string]?.[line as string] || 
-        { station: arrivals[0]?.headsign || "Unknown", borough: direction === "To NY" ? "Manhattan" : "New Jersey" };
+        { station: firstHeadsign || "Unknown", borough: direction === "To NY" ? "Manhattan" : "New Jersey" };
 
       const pathData = {
         direction: direction as string,
         line: line as string,
         destination: terminalInfo.borough,
         subtitle: terminalInfo.station,
-        arrivalMinutes: arrivals.map(a => a.minutes),
-        arrivalLines: arrivals.map(() => line as string), // All same line for PATH
+        arrivalMinutes: topArrivals.map(a => a.minutes),
+        arrivalLines: topArrivals.map(() => line as string),
       };
 
       res.json(pathData);
     } catch (error) {
       console.error("Error fetching PATH data:", error);
       
-      // Extract params again for fallback (they may be out of scope after error)
       const fallbackDirection = req.query.direction as string;
       const fallbackLine = req.query.line as string;
       
-      // Return fallback data when API is unreachable (DNS issues, network errors, etc.)
-      // This ensures the kiosk continues to display something useful
+      // Fallback data when GTFS-RT feed is unavailable
       const pathRouteInfo: Record<string, Record<string, { station: string; borough: string }>> = {
         "To NY": {
           "PATH-NWK": { station: "World Trade Center", borough: "Manhattan" },
@@ -823,18 +884,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const terminalInfo = pathRouteInfo[fallbackDirection]?.[fallbackLine] || 
         { station: "Unknown", borough: fallbackDirection === "To NY" ? "Manhattan" : "New Jersey" };
       
-      // Generate simulated arrival times when API is unavailable
-      // PATH trains typically run every 5-15 minutes
+      // Generate simulated arrival times when feed is unavailable
       const now = new Date();
       const minuteOfHour = now.getMinutes();
-      
-      // Create somewhat realistic arrival times based on current time
-      // This provides a better user experience than showing no trains
-      const baseMinutes = (minuteOfHour % 10) + 2; // 2-12 minutes for first train
+      const baseMinutes = (minuteOfHour % 10) + 2;
       const simulatedArrivals = [
         baseMinutes,
-        baseMinutes + 8 + (minuteOfHour % 5),  // 8-13 minutes later
-        baseMinutes + 18 + (minuteOfHour % 7), // 18-25 minutes later
+        baseMinutes + 8 + (minuteOfHour % 5),
+        baseMinutes + 18 + (minuteOfHour % 7),
       ];
       
       const fallbackData = {
