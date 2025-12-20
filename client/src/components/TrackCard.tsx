@@ -197,16 +197,45 @@ export default function TrackCard({
           style={{ left: '67px', top: '18px' }}
         >
           {isPathLine(line) ? (
-            <img 
-              src={iconPath} 
-              alt="PATH" 
-              className="object-contain"
-              style={{ 
-                width: '65px',
-                height: 'auto',
-                transform: 'translate(-35px, -10px)'
-              }}
-            />
+            <div className="flex flex-col items-start" style={{ transform: 'translate(-35px, -10px)' }}>
+              <img 
+                src={iconPath} 
+                alt="PATH" 
+                className="object-contain"
+                style={{ 
+                  width: '65px',
+                  height: 'auto',
+                }}
+              />
+              {/* PATH line descriptor */}
+              <div className="flex items-center gap-[6px] mt-[4px]">
+                <div 
+                  style={{ 
+                    width: '2px', 
+                    height: '12px', 
+                    backgroundColor: line === 'PATH-NWK' ? '#D93A30' : 
+                                     line === 'PATH-JSQ' ? '#F0A01E' : 
+                                     line === 'PATH-HOB-WTC' ? '#4CAF50' : 
+                                     line === 'PATH-HOB-33' ? '#0078D7' : '#FFFFFF',
+                    borderRadius: '1px'
+                  }}
+                />
+                <span 
+                  style={{ 
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    fontSize: '10px',
+                    fontWeight: 500,
+                    color: '#FFFFFF',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {line === 'PATH-NWK' ? 'Newark-WTC' : 
+                   line === 'PATH-JSQ' ? 'JSQ-33 St' : 
+                   line === 'PATH-HOB-WTC' ? 'Hoboken-WTC' : 
+                   line === 'PATH-HOB-33' ? 'Hoboken-33 St' : 'PATH'}
+                </span>
+              </div>
+            </div>
           ) : isLirrLine(line) ? (
             <span 
               className="font-bold text-white"
