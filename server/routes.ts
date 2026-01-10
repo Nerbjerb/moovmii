@@ -880,18 +880,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Service Alerts API - fetches MTA subway service alerts
   app.get("/api/alerts", async (req, res) => {
     try {
-      const mtaApiKey = process.env.MTA_API_KEY;
-      
-      // Build headers with API key if available
-      const headers: Record<string, string> = {};
-      if (mtaApiKey) {
-        headers['x-api-key'] = mtaApiKey;
-      }
-
-      // Fetch protobuf endpoint (MTA alerts don't have JSON variant)
+      // Fetch protobuf endpoint (URL-encoded path works without API key)
       const response = await fetch(
-        "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys/subway-alerts",
-        { headers }
+        "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts"
       );
       
       if (!response.ok) {

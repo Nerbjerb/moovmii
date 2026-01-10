@@ -121,13 +121,12 @@ Preferred communication style: Simple, everyday language.
   - API returns arrival times in seconds, headsigns, and line colors
   - Automatic 30-second refresh interval on frontend
 - **MTA Service Alerts API**: Service disruption alerts for subway lines
-  - Feed URL: `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys/subway-alerts`
-  - **Requires MTA API key** (register at https://datamine.mta.info/)
-  - API key must be set as `MTA_API_KEY` secret
+  - Feed URL: `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts`
+  - No API key required (uses URL-encoded path format)
   - Returns GTFS-realtime Protocol Buffer data with active alerts by route
   - Automatic 60-second refresh interval on frontend
   - Alert indicator: Yellow triangle with exclamation mark appears on train logo when line has active alerts
-  - Graceful fallback: No alerts shown if API key is missing or invalid
+  - Graceful fallback: No alerts shown if API is unavailable
 - All external APIs accessed server-side via `/api` endpoints
 
 ### Key Architectural Decisions
