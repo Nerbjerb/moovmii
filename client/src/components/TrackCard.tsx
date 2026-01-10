@@ -204,9 +204,13 @@ export default function TrackCard({
   const displayDestination = destination.split('-')[0].trim();
 
   return (
-    <div className="relative flex items-center gap-[9px]">
+    <div className="relative flex items-center gap-[9px]" onClick={handleCardClick}>
       {/* Main card - front layer with fixed positioning */}
-      <Card className="relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 w-[510px] h-[115px]">
+      <Card 
+        className={`relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 h-[115px] transition-all duration-300 ${
+          isExpanded ? 'w-[805px]' : 'w-[510px]'
+        }`}
+      >
         {/* Direction label - left strip */}
         <div className="absolute left-0 top-0 w-10 h-full bg-[#2D2C31] flex items-center justify-center rounded-l-[9px]">
           <div 
@@ -221,10 +225,18 @@ export default function TrackCard({
           </div>
         </div>
 
-        {/* Train icon - absolute positioned */}
+        {/* Train icon - absolute positioned, clickable when alert exists */}
         <div 
-          className="absolute w-24 h-24 rounded-full flex items-center justify-center" 
+          className={`absolute w-24 h-24 rounded-full flex items-center justify-center ${
+            hasAlert && alertDescriptions.length > 0 ? 'cursor-pointer' : ''
+          }`}
           style={{ left: '67px', top: '18px' }}
+          onClick={(e) => {
+            if (hasAlert && alertDescriptions.length > 0) {
+              e.stopPropagation();
+              handleLogoClick();
+            }
+          }}
         >
           {isPathLine(line) ? (
             <div className="flex flex-col items-start" style={{ transform: 'translate(-35px, -10px)' }}>
@@ -340,47 +352,82 @@ export default function TrackCard({
           )}
         </div>
 
-        {/* Destination - absolute positioned */}
-        <div 
-          className="absolute text-[35px] font-bold text-white whitespace-nowrap" 
-          style={{ 
-            left: '160px',
-            top: '98px',
-            lineHeight: '1.3',
-            transform: 'translate(-30px, -80px)'
-          }}
-        >
-          {displayDestination}
-        </div>
-
-        {/* Subtitle - absolute positioned */}
-        <div 
-          className="absolute text-[20px] text-white" 
-          style={{ 
-            left: '160px',
-            top: '178px',
-            lineHeight: '1.3',
-            transform: isDowntown ? 'translate(-30px, -110px)' : 'translate(-29px, -110px)'
-          }}
-        >
-          {subtitle}
-        </div>
-
-        {/* Arrival time - absolute positioned */}
-        <div 
-          className="absolute w-[140px] text-center flex flex-col" 
-          style={{ right: '4px', top: '18px', transform: 'translateY(-10px)' }}
-        >
-          <div className="text-[85px] font-bold leading-[0.8] text-white">
-            {firstArrivalData.value}
+        {/* Destination - absolute positioned (hidden when expanded) */}
+        {!isExpanded && (
+          <div 
+            className="absolute text-[35px] font-bold text-white whitespace-nowrap" 
+            style={{ 
+              left: '160px',
+              top: '98px',
+              lineHeight: '1.3',
+              transform: 'translate(-30px, -80px)'
+            }}
+          >
+            {displayDestination}
           </div>
-          <div className="text-xl mt-1 text-white">{firstArrivalData.unit}</div>
-        </div>
+        )}
+
+        {/* Subtitle - absolute positioned (hidden when expanded) */}
+        {!isExpanded && (
+          <div 
+            className="absolute text-[20px] text-white" 
+            style={{ 
+              left: '160px',
+              top: '178px',
+              lineHeight: '1.3',
+              transform: isDowntown ? 'translate(-30px, -110px)' : 'translate(-29px, -110px)'
+            }}
+          >
+            {subtitle}
+          </div>
+        )}
+
+        {/* Arrival time - absolute positioned (hidden when expanded) */}
+        {!isExpanded && (
+          <div 
+            className="absolute w-[140px] text-center flex flex-col" 
+            style={{ right: '4px', top: '18px', transform: 'translateY(-10px)' }}
+          >
+            <div className="text-[85px] font-bold leading-[0.8] text-white">
+              {firstArrivalData.value}
+            </div>
+            <div className="text-xl mt-1 text-white">{firstArrivalData.unit}</div>
+          </div>
+        )}
+
+        {/* Alert text - shown when expanded */}
+        {isExpanded && alertDescriptions.length > 0 && (
+          <div 
+            className="absolute overflow-y-auto"
+            style={{ 
+              left: '160px',
+              top: '10px',
+              right: '20px',
+              bottom: '10px',
+              maxHeight: '95px'
+            }}
+          >
+            <div 
+              className="text-[20px] text-white leading-[1.4] pr-2"
+              style={{ 
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                display: '-webkit-box',
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {alertDescriptions.join(' • ')}
+            </div>
+          </div>
+        )}
       </Card>
 
-      {/* Secondary arrivals positioned outside main card */}
-      <div className="flex gap-[9px] items-center z-40">
-        {secondArrival !== undefined && (
+      {/* Secondary arrivals positioned outside main card (hidden when expanded) */}
+      {!isExpanded && (
+        <div className="flex gap-[9px] items-center z-40">
+          {secondArrival !== undefined && (
           <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {secondLine && isPathLine(secondLine) ? (
@@ -491,7 +538,8 @@ export default function TrackCard({
             <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(23px, -25px)' }}>{thirdArrivalData.unit}</div>
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
