@@ -208,7 +208,7 @@ export default function TrackCard({
       {/* Main card - front layer with fixed positioning */}
       <Card 
         className={`relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 h-[115px] transition-all duration-300 ${
-          isExpanded ? 'w-[805px]' : 'w-[510px]'
+          isExpanded ? 'w-[752px]' : 'w-[510px]'
         }`}
       >
         {/* Direction label - left strip */}

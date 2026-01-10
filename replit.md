@@ -126,7 +126,7 @@ Preferred communication style: Simple, everyday language.
   - Returns GTFS-realtime Protocol Buffer data with active alerts by route
   - Automatic 60-second refresh interval on frontend
   - Alert indicator: Yellow triangle with exclamation mark (25×25px) appears on train logo when line has active alerts
-  - Expandable alert view: Click on train logo/alert icon to expand card to 805px width
+  - Expandable alert view: Click on train logo/alert icon to expand card to 752px width (full container width with equal margins)
   - When expanded: 2nd/3rd arrival cards hidden, destination/subtitle/minutes hidden, alert text displayed
   - Alert text: 20px Helvetica font, scrollable container (95px max-height) for long descriptions
   - Auto-dismiss: Expanded view automatically closes after 15 seconds
