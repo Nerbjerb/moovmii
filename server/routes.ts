@@ -877,7 +877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Service Alerts API - fetches MTA subway service alerts
+  // Service Alerts API - fetches MTA subway service alerts with descriptions
   app.get("/api/alerts", async (req, res) => {
     try {
       // Fetch protobuf endpoint (URL-encoded path works without API key)
@@ -900,19 +900,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         new Uint8Array(buffer)
       );
 
-      // Extract alerts by route (line)
-      const alertsByRoute: Record<string, boolean> = {};
+      // Extract alerts by route with descriptions
+      const alertsByRoute: Record<string, { hasAlert: boolean; descriptions: string[] }> = {};
 
       for (const entity of feed.entity) {
         if (!entity.alert) continue;
 
         const alert = entity.alert;
         
+        // Extract alert header text (plain text version, not HTML)
+        let alertText = "";
+        if (alert.headerText?.translation) {
+          // Prefer plain English text over HTML version
+          const plainText = alert.headerText.translation.find(
+            (t) => t.language === "en"
+          );
+          const htmlText = alert.headerText.translation.find(
+            (t) => t.language === "en-html"
+          );
+          alertText = plainText?.text || htmlText?.text || "";
+          
+          // Strip HTML tags if we got HTML version
+          if (alertText && htmlText && !plainText) {
+            alertText = alertText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+          }
+        }
+        
         // Check informed entities for affected routes
         for (const informed of alert.informedEntity || []) {
           const routeId = informed.routeId;
-          if (routeId) {
-            alertsByRoute[routeId] = true;
+          if (routeId && alertText) {
+            if (!alertsByRoute[routeId]) {
+              alertsByRoute[routeId] = { hasAlert: true, descriptions: [] };
+            }
+            // Avoid duplicate descriptions
+            if (!alertsByRoute[routeId].descriptions.includes(alertText)) {
+              alertsByRoute[routeId].descriptions.push(alertText);
+            }
+          } else if (routeId) {
+            // Route has alert but no description available
+            if (!alertsByRoute[routeId]) {
+              alertsByRoute[routeId] = { hasAlert: true, descriptions: [] };
+            }
           }
         }
       }
