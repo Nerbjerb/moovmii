@@ -398,24 +398,23 @@ export default function TrackCard({
         {/* Alert text - shown when expanded */}
         {isExpanded && alertDescriptions.length > 0 && (
           <div 
-            className="absolute overflow-y-auto"
+            className="absolute"
             style={{ 
               left: '160px',
               top: '10px',
               right: '20px',
               bottom: '10px',
-              maxHeight: '95px'
+              maxHeight: '95px',
+              overflowY: 'auto',
+              overflowX: 'hidden'
             }}
           >
             <div 
-              className="text-[20px] text-white leading-[1.4] pr-2"
+              className="text-white pr-2"
               style={{ 
                 fontFamily: 'Helvetica, Arial, sans-serif',
-                display: '-webkit-box',
-                WebkitLineClamp: 4,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                fontSize: '20px',
+                lineHeight: '1.4'
               }}
             >
               {alertDescriptions.join(' • ')}
