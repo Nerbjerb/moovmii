@@ -125,7 +125,12 @@ Preferred communication style: Simple, everyday language.
   - No API key required (uses URL-encoded path format)
   - Returns GTFS-realtime Protocol Buffer data with active alerts by route
   - Automatic 60-second refresh interval on frontend
-  - Alert indicator: Yellow triangle with exclamation mark appears on train logo when line has active alerts
+  - Alert indicator: Yellow triangle with exclamation mark (25×25px) appears on train logo when line has active alerts
+  - Expandable alert view: Click on train logo/alert icon to expand card to 805px width
+  - When expanded: 2nd/3rd arrival cards hidden, destination/subtitle/minutes hidden, alert text displayed
+  - Alert text: 20px Helvetica font, scrollable container (95px max-height) for long descriptions
+  - Auto-dismiss: Expanded view automatically closes after 15 seconds
+  - Click-to-dismiss: Click anywhere on expanded card to close
   - Graceful fallback: No alerts shown if API is unavailable
 - All external APIs accessed server-side via `/api` endpoints
 
