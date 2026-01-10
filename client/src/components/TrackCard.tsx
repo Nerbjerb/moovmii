@@ -440,10 +440,9 @@ export default function TrackCard({
               }}
             >
               {alertDescriptions.map((desc, i) => (
-                <span key={i}>
+                <div key={i} style={{ marginBottom: i < alertDescriptions.length - 1 ? '8px' : '0' }}>
                   {renderAlertText(desc)}
-                  {i < alertDescriptions.length - 1 && ' • '}
-                </span>
+                </div>
               ))}
             </div>
           </div>
