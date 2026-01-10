@@ -136,6 +136,37 @@ export default function TrackCard({
     }
   };
 
+  // Parse alert text and replace [X] patterns with inline icons
+  const renderAlertText = (text: string) => {
+    // Match patterns like [N], [W], [A], [1], [7], etc.
+    const parts = text.split(/(\[[A-Z0-9]+\])/g);
+    
+    return parts.map((part, index) => {
+      const match = part.match(/^\[([A-Z0-9]+)\]$/);
+      if (match) {
+        const lineName = match[1];
+        const iconSrcForLine = lineIcons[lineName];
+        if (iconSrcForLine) {
+          return (
+            <img 
+              key={index}
+              src={iconSrcForLine} 
+              alt={`${lineName} train`}
+              style={{ 
+                width: '18px', 
+                height: '18px', 
+                display: 'inline-block',
+                verticalAlign: 'middle',
+                margin: '0 2px'
+              }}
+            />
+          );
+        }
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   // Handle click anywhere on expanded card to dismiss
   const handleCardClick = () => {
     if (isExpanded) {
@@ -408,7 +439,12 @@ export default function TrackCard({
                 lineHeight: '1.4'
               }}
             >
-              {alertDescriptions.join(' • ')}
+              {alertDescriptions.map((desc, i) => (
+                <span key={i}>
+                  {renderAlertText(desc)}
+                  {i < alertDescriptions.length - 1 && ' • '}
+                </span>
+              ))}
             </div>
           </div>
         )}
