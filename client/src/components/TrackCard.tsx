@@ -428,8 +428,11 @@ export default function TrackCard({
               bottom: '10px',
               maxHeight: '95px',
               overflowY: 'auto',
-              overflowX: 'hidden'
+              overflowX: 'hidden',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
             }}
+            className="[&::-webkit-scrollbar]:hidden"
           >
             <div 
               className="text-white pr-2"
