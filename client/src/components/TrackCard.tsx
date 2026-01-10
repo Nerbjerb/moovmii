@@ -277,7 +277,7 @@ export default function TrackCard({
             <div 
               className="absolute"
               style={{ 
-                right: '31px', 
+                right: '34px', 
                 bottom: '20px',
                 width: '20px',
                 height: '20px',
