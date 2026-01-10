@@ -176,7 +176,7 @@ export default function TrackCard({
 
   // Helper to display arrival time (show "1" for 0 minutes, hours for 120+ minutes)
   const formatArrival = (mins: number | undefined): { value: string | number; unit: string } => {
-    if (mins === undefined) return { value: '', unit: 'Min' };
+    if (mins === undefined) return { value: '', unit: '' };
     if (mins === 0) return { value: 1, unit: 'Min' };
     if (mins >= 120) {
       const hours = Math.floor(mins / 60);
