@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 
 // Import all subway line icons
@@ -45,6 +46,7 @@ interface TrackCardProps {
   arrivalLines: string[];
   isDowntown?: boolean;
   hasAlert?: boolean;
+  alertDescriptions?: string[];
 }
 
 // Map all subway lines to their icons
@@ -116,13 +118,39 @@ export default function TrackCard({
   arrivalLines,
   isDowntown = false,
   hasAlert = false,
+  alertDescriptions = [],
 }: TrackCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const iconSrc = lineIcons[line];
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
   const [firstLine, secondLine, thirdLine] = arrivalLines || [];
   
   const secondIconSrc = secondLine ? lineIcons[secondLine] : null;
   const thirdIconSrc = thirdLine ? lineIcons[thirdLine] : null;
+
+  // Auto-dismiss expanded view after 15 seconds
+  useEffect(() => {
+    if (isExpanded) {
+      const timer = setTimeout(() => {
+        setIsExpanded(false);
+      }, 15000);
+      return () => clearTimeout(timer);
+    }
+  }, [isExpanded]);
+
+  // Handle click on logo/alert icon area
+  const handleLogoClick = () => {
+    if (hasAlert && alertDescriptions.length > 0) {
+      setIsExpanded(!isExpanded);
+    }
+  };
+
+  // Handle click anywhere on expanded card to dismiss
+  const handleCardClick = () => {
+    if (isExpanded) {
+      setIsExpanded(false);
+    }
+  };
 
   // Helper to display arrival time (show "1" for 0 minutes, hours for 120+ minutes)
   const formatArrival = (mins: number | undefined): { value: string | number; unit: string } => {

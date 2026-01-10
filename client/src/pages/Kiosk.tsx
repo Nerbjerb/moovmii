@@ -19,8 +19,8 @@ export default function Kiosk() {
     queryKey: ['/api/preferences'],
   });
 
-  // Fetch service alerts
-  const { data: alertsData } = useQuery<{ alertsByRoute: Record<string, boolean> }>({
+  // Fetch service alerts with descriptions
+  const { data: alertsData } = useQuery<{ alertsByRoute: Record<string, { hasAlert: boolean; descriptions: string[] }> }>({
     queryKey: ['/api/alerts'],
     refetchInterval: 60 * 1000, // Refresh every minute
   });
@@ -124,12 +124,40 @@ export default function Kiosk() {
     
     // For PATH, LIRR, MNR - check specific line
     if (line.startsWith('PATH-') || line.startsWith('LIRR-') || line.startsWith('MNR-')) {
-      return !!alertsData.alertsByRoute[line];
+      return !!alertsData.alertsByRoute[line]?.hasAlert;
     }
     
     // For subway, check all same-color lines
     const sameColorLines = getSameColorLines(line);
-    return sameColorLines.some(l => alertsData.alertsByRoute[l]);
+    return sameColorLines.some(l => alertsData.alertsByRoute[l]?.hasAlert);
+  };
+
+  // Get all alert descriptions for a line and same-color group
+  const getAlertDescriptions = (line: string): string[] => {
+    if (!alertsData?.alertsByRoute) return [];
+    
+    const allDescriptions: string[] = [];
+    
+    // For PATH, LIRR, MNR - get specific line alerts only
+    if (line.startsWith('PATH-') || line.startsWith('LIRR-') || line.startsWith('MNR-')) {
+      const alert = alertsData.alertsByRoute[line];
+      if (alert?.descriptions) {
+        allDescriptions.push(...alert.descriptions);
+      }
+      return allDescriptions;
+    }
+    
+    // For subway, collect alerts from all same-color lines
+    const sameColorLines = getSameColorLines(line);
+    for (const l of sameColorLines) {
+      const alert = alertsData.alertsByRoute[l];
+      if (alert?.descriptions) {
+        allDescriptions.push(...alert.descriptions);
+      }
+    }
+    
+    // Remove duplicates
+    return Array.from(new Set(allDescriptions));
   };
 
   // Combine arrivals for display
@@ -228,6 +256,7 @@ export default function Kiosk() {
               arrivalLines={track.arrivalLines}
               isDowntown={idx === 1}
               hasAlert={hasAlertForLine(track.line)}
+              alertDescriptions={getAlertDescriptions(track.line)}
             />
           ))}
         </section>
