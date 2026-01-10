@@ -420,7 +420,7 @@ export default function TrackCard({
         {/* Alert text - shown when expanded */}
         {isExpanded && alertDescriptions.length > 0 && (
           <div 
-            className="absolute"
+            className="absolute [&::-webkit-scrollbar]:hidden"
             style={{ 
               left: '160px',
               top: '10px',
@@ -428,7 +428,9 @@ export default function TrackCard({
               bottom: '10px',
               maxHeight: '95px',
               overflowY: 'auto',
-              overflowX: 'hidden'
+              overflowX: 'hidden',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
             }}
           >
             <div 
