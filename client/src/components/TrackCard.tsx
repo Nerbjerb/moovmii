@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 
 // Import all subway line icons
@@ -128,15 +128,6 @@ export default function TrackCard({
   const secondIconSrc = secondLine ? lineIcons[secondLine] : null;
   const thirdIconSrc = thirdLine ? lineIcons[thirdLine] : null;
 
-  // Auto-dismiss expanded view after 15 seconds
-  useEffect(() => {
-    if (isExpanded) {
-      const timer = setTimeout(() => {
-        setIsExpanded(false);
-      }, 15000);
-      return () => clearTimeout(timer);
-    }
-  }, [isExpanded]);
 
   // Handle click on logo/alert icon area
   const handleLogoClick = () => {

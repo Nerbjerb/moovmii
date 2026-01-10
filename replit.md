@@ -129,7 +129,6 @@ Preferred communication style: Simple, everyday language.
   - Expandable alert view: Click on train logo/alert icon to expand card to 752px width (full container width with equal margins)
   - When expanded: 2nd/3rd arrival cards hidden, destination/subtitle/minutes hidden, alert text displayed
   - Alert text: 20px Helvetica font, scrollable container (95px max-height) for long descriptions
-  - Auto-dismiss: Expanded view automatically closes after 15 seconds
   - Click-to-dismiss: Click anywhere on expanded card to close
   - Graceful fallback: No alerts shown if API is unavailable
 - All external APIs accessed server-side via `/api` endpoints
