@@ -44,6 +44,7 @@ interface TrackCardProps {
   arrivalMinutes: number[];
   arrivalLines: string[];
   isDowntown?: boolean;
+  hasAlert?: boolean;
 }
 
 // Map all subway lines to their icons
@@ -114,6 +115,7 @@ export default function TrackCard({
   arrivalMinutes,
   arrivalLines,
   isDowntown = false,
+  hasAlert = false,
 }: TrackCardProps) {
   const iconSrc = lineIcons[line];
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
@@ -268,6 +270,45 @@ export default function TrackCard({
             />
           ) : (
             <span className="text-[48px] font-bold text-primary-foreground">{line}</span>
+          )}
+          
+          {/* Alert indicator - triangle with exclamation mark */}
+          {hasAlert && (
+            <div 
+              className="absolute flex items-center justify-center"
+              style={{ 
+                right: '28px', 
+                bottom: '20px',
+                width: '20px',
+                height: '20px',
+              }}
+              data-testid="alert-indicator"
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ width: '20px', height: '20px' }}
+              >
+                <path 
+                  d="M12 2L1 21h22L12 2z" 
+                  fill="#FFD200"
+                  stroke="#000000"
+                  strokeWidth="1"
+                />
+                <text 
+                  x="12" 
+                  y="18" 
+                  textAnchor="middle" 
+                  fontSize="12" 
+                  fontWeight="bold" 
+                  fill="#000000"
+                  fontFamily="Helvetica, Arial, sans-serif"
+                >
+                  !
+                </text>
+              </svg>
+            </div>
           )}
         </div>
 

@@ -877,6 +877,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Service Alerts API - fetches MTA subway service alerts
+  app.get("/api/alerts", async (req, res) => {
+    try {
+      const mtaApiKey = process.env.MTA_API_KEY;
+      
+      // Build headers with API key if available
+      const headers: Record<string, string> = {};
+      if (mtaApiKey) {
+        headers['x-api-key'] = mtaApiKey;
+      }
+
+      // Fetch protobuf endpoint (MTA alerts don't have JSON variant)
+      const response = await fetch(
+        "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys/subway-alerts",
+        { headers }
+      );
+      
+      if (!response.ok) {
+        if (response.status === 403) {
+          console.warn("MTA Alerts API returned 403 - API key may be required or invalid");
+        } else {
+          console.error(`MTA Alerts API error (${response.status})`);
+        }
+        return res.json({ alertsByRoute: {} }); // Return empty alerts on failure
+      }
+
+      // Decode Protocol Buffer data
+      const buffer = await response.arrayBuffer();
+      const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+        new Uint8Array(buffer)
+      );
+
+      // Extract alerts by route (line)
+      const alertsByRoute: Record<string, boolean> = {};
+
+      for (const entity of feed.entity) {
+        if (!entity.alert) continue;
+
+        const alert = entity.alert;
+        
+        // Check informed entities for affected routes
+        for (const informed of alert.informedEntity || []) {
+          const routeId = informed.routeId;
+          if (routeId) {
+            alertsByRoute[routeId] = true;
+          }
+        }
+      }
+
+      res.json({ alertsByRoute });
+    } catch (error) {
+      console.error("Error fetching service alerts:", error);
+      res.json({ alertsByRoute: {} }); // Return empty alerts on failure
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

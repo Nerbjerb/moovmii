@@ -19,6 +19,12 @@ export default function Kiosk() {
     queryKey: ['/api/preferences'],
   });
 
+  // Fetch service alerts
+  const { data: alertsData } = useQuery<{ alertsByRoute: Record<string, boolean> }>({
+    queryKey: ['/api/alerts'],
+    refetchInterval: 60 * 1000, // Refresh every minute
+  });
+
   // Fetch settings
   const { data: settings } = useQuery<KioskSettings>({
     queryKey: ['/api/settings'],
@@ -111,6 +117,20 @@ export default function Kiosk() {
     refetchInterval: 30 * 1000, // Refresh every 30 seconds
     enabled: true,
   });
+
+  // Check if any line in the same-color group has an alert
+  const hasAlertForLine = (line: string): boolean => {
+    if (!alertsData?.alertsByRoute) return false;
+    
+    // For PATH, LIRR, MNR - check specific line
+    if (line.startsWith('PATH-') || line.startsWith('LIRR-') || line.startsWith('MNR-')) {
+      return !!alertsData.alertsByRoute[line];
+    }
+    
+    // For subway, check all same-color lines
+    const sameColorLines = getSameColorLines(line);
+    return sameColorLines.some(l => alertsData.alertsByRoute[l]);
+  };
 
   // Combine arrivals for display
   const subwayData: SubwayArrival[] = [
@@ -207,6 +227,7 @@ export default function Kiosk() {
               arrivalMinutes={track.arrivalMinutes}
               arrivalLines={track.arrivalLines}
               isDowntown={idx === 1}
+              hasAlert={hasAlertForLine(track.line)}
             />
           ))}
         </section>
