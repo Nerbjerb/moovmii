@@ -275,7 +275,7 @@ export default function TrackCard({
           {/* Alert indicator - triangle with exclamation mark */}
           {hasAlert && (
             <div 
-              className="absolute flex items-center justify-center"
+              className="absolute"
               style={{ 
                 right: '31px', 
                 bottom: '20px',
