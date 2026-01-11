@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useSearch } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, Car } from "lucide-react";
+import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, CarFront } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getStopId } from "@shared/stopMetadata";
 import { usePressScroll } from "@/hooks/use-press-scroll";
@@ -1588,7 +1588,7 @@ export default function Settings() {
           style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31', paddingRight: '8px' }}
           data-testid="card-settings-12"
         >
-          <Car className="w-[28px] h-[28px] text-white" />
+          <CarFront className="w-[28px] h-[28px] text-white" />
           <span 
             style={{ 
               fontFamily: 'Helvetica, Arial, sans-serif',
