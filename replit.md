@@ -205,6 +205,15 @@ Preferred communication style: Simple, everyday language.
 - MTA-style flag indicators with CSS clip-path polygon shapes
 - Station list includes all NYC subway lines with scrollable interface
 
+**Edit Mode (Kiosk Screen)**
+- Pencil icon in bottom-left corner enters edit mode
+- In edit mode: Pencil replaced with Cancel button (70px×28px, #2D2C31), fullscreen icon hidden
+- Track rows display yellow box-shadow highlight and "Edit Row 1" / "Edit Row 2" overlays
+- Clicking a row navigates to `/settings?editRow={rowNumber}` with pre-selected row context
+- Edit mode preserves selectedRow throughout the selection flow (handlers guarded with `!isEditMode`)
+- After selecting station/direction, Save button appears and saves directly to the specified row
+- Saving redirects back to kiosk with updated preferences
+
 **Dynamic Arrivals Integration**
 - Settings selections are saved to database via `/api/preferences` endpoint
 - Kiosk loads preferences on mount and fetches arrivals for each row dynamically
