@@ -387,18 +387,17 @@ export default function Kiosk() {
         </section>
         </main>
         
-        {/* White rounded plateau at bottom center */}
-        <div 
+        {/* White rounded plateau shape at bottom center */}
+        <svg 
           className="absolute left-1/2 -translate-x-1/2"
-          style={{ 
-            bottom: '12px',
-            width: '120px',
-            height: '6px',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '3px',
-            opacity: 0.6
-          }}
-        />
+          style={{ bottom: '0px' }}
+          width="200" 
+          height="40" 
+          viewBox="0 0 200 40"
+          fill="white"
+        >
+          <path d="M0 40 L0 38 L60 38 Q70 38 70 28 L70 12 Q70 2 80 2 L120 2 Q130 2 130 12 L130 28 Q130 38 140 38 L200 38 L200 40 Z" />
+        </svg>
       </div>
     </div>
   );
