@@ -466,7 +466,7 @@ export default function TrackCard({
             ref={alertScrollRef}
             className="absolute [&::-webkit-scrollbar]:hidden"
             style={{ 
-              left: '142px',
+              left: '137px',
               top: '10px',
               right: '20px',
               bottom: '10px',
