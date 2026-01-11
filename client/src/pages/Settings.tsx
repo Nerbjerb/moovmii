@@ -1269,6 +1269,7 @@ export default function Settings() {
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
   const [selectedBusBorough, setSelectedBusBorough] = useState<string | null>(null);
   const [selectedBusRoute, setSelectedBusRoute] = useState<string | null>(null);
+  const [selectedBusDirection, setSelectedBusDirection] = useState<string | null>(null);
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
   const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
@@ -1388,8 +1389,24 @@ export default function Settings() {
 
   const handleBack = () => {
     // Handle bus selection back navigation
+    if (selectedStop && selectedBusDirection) {
+      // Go back from stop selection to direction selection
+      setSelectedStop(null);
+      setSelectedDirection(null);
+      if (!isEditMode) {
+        setSelectedRow(null);
+      }
+      return;
+    }
+    if (selectedBusDirection) {
+      // Go back from direction selection to route selection
+      setSelectedBusDirection(null);
+      setSelectedStop(null);
+      return;
+    }
     if (selectedBusRoute) {
       setSelectedBusRoute(null);
+      setSelectedBusDirection(null);
       setSelectedStop(null);
       setSelectedDirection(null);
       if (!isEditMode) {
@@ -1740,6 +1757,8 @@ export default function Settings() {
                   onClick={() => {
                     if (shouldBlockClick()) return;
                     setSelectedBusRoute(route.id);
+                    setSelectedBusDirection(null); // Reset direction when route changes
+                    setSelectedStop(null); // Reset stop when route changes
                   }}
                   data-testid={`card-bus-route-${route.shortName}`}
                 >
@@ -1794,7 +1813,102 @@ export default function Settings() {
     );
   };
 
-  // Bus stops list with direction selection
+  // Bus direction selection - two boxes showing endpoints
+  const renderBusDirectionView = () => {
+    const directions = busStopsData?.directions || [];
+    
+    if (busStopsLoading) {
+      return (
+        <div 
+          className="flex items-center justify-center"
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
+        >
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', color: '#FFFFFF' }}>
+            Loading directions...
+          </span>
+        </div>
+      );
+    }
+
+    if (directions.length === 0) {
+      return (
+        <div 
+          className="flex items-center justify-center"
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
+        >
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', color: '#FFFFFF' }}>
+            No directions available
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        className="flex flex-col items-center justify-center gap-4"
+        style={{ width: '760px', height: '370px', margin: 'auto' }}
+      >
+        <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          Select Direction
+        </span>
+        <div className="flex flex-col gap-[12px]">
+          {directions.map((direction, index) => (
+            <div 
+              key={direction.directionId || index}
+              className="rounded-[6px] flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ 
+                width: '450px', 
+                height: '70px', 
+                backgroundColor: '#2D2C31',
+                paddingLeft: '20px',
+                paddingRight: '20px',
+              }}
+              onClick={() => {
+                setSelectedBusDirection(direction.directionId);
+                setSelectedStop(null);
+              }}
+              data-testid={`card-bus-direction-${index}`}
+            >
+              <div 
+                className="flex items-center justify-center rounded-[4px]"
+                style={{ 
+                  minWidth: '48px',
+                  height: '32px',
+                  backgroundColor: '#1565C0',
+                  marginRight: '16px',
+                  padding: '0 8px',
+                }}
+              >
+                <span 
+                  style={{ 
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    color: '#FFFFFF'
+                  }}
+                >
+                  {selectedBusRoute?.split('_')[1] || 'Bus'}
+                </span>
+              </div>
+              <span 
+                style={{ 
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  color: '#FFFFFF',
+                  flex: 1,
+                }}
+              >
+                {direction.headsign || direction.directionName || `Direction ${index + 1}`}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Bus stops list - shows only stops for selected direction
   const renderBusStopsView = () => {
     const directions = busStopsData?.directions || [];
     
@@ -1811,15 +1925,10 @@ export default function Settings() {
       );
     }
 
-    // Find the selected stop's direction info for headsign display
-    const selectedStopDirection = directions.find(d => 
-      d.stops.some(s => s.id === selectedStop)
-    );
-
-    // Combine all stops from all directions for display
-    const allStops = directions.flatMap(d => 
-      d.stops.map(s => ({ ...s, direction: d.directionName, headsign: d.headsign }))
-    );
+    // Find the selected direction's stops
+    const selectedDir = directions.find(d => d.directionId === selectedBusDirection);
+    const stopsToShow = selectedDir?.stops || [];
+    const directionHeadsign = selectedDir?.headsign || '';
 
     return (
       <div 
@@ -1842,7 +1951,7 @@ export default function Settings() {
             onScroll={checkScrollPosition}
           >
             <div className="flex flex-col gap-[6px]">
-              {allStops.map((stop, index) => {
+              {stopsToShow.map((stop: { id: string; name: string; code: string }, index: number) => {
                 const isSelected = selectedStop === stop.id;
                 return (
                   <div 
@@ -1880,21 +1989,23 @@ export default function Settings() {
                       {isSelected && (
                         <div className="flex gap-2 mt-2">
                           <div
-                            className={`rounded-[4px] px-3 py-1 cursor-pointer ${selectedDirection === 'Uptown' ? 'bg-[#ffd200]' : 'bg-[#444]'}`}
+                            className={`rounded-[4px] px-3 py-1 cursor-pointer ${selectedDirection ? 'bg-[#ffd200]' : 'bg-[#444]'}`}
                             onClick={(e) => {
                               e.stopPropagation();
+                              // For buses, use 'Uptown' as internal marker (actual direction is in selectedBusDirection)
                               setSelectedDirection('Uptown');
                               // In edit mode, use editRow; otherwise default to row 1
                               setSelectedRow(isEditMode ? (editRow || 1) : 1);
                             }}
+                            data-testid="button-bus-headsign"
                           >
                             <span style={{ 
                               fontFamily: 'Helvetica, Arial, sans-serif', 
                               fontSize: '12px', 
-                              color: selectedDirection === 'Uptown' ? '#000' : '#FFF',
+                              color: selectedDirection ? '#000' : '#FFF',
                               fontWeight: 600,
                             }}>
-                              {stop.headsign || 'Direction 1'}
+                              {directionHeadsign || 'Confirm'}
                             </span>
                           </div>
                         </div>
@@ -2408,8 +2519,12 @@ export default function Settings() {
       return renderSubView();
     } else if (selectedGroup) {
       return renderSubView();
-    } else if (selectedBusRoute) {
+    } else if (selectedBusRoute && selectedBusDirection) {
+      // Show stops for the selected direction
       return renderBusStopsView();
+    } else if (selectedBusRoute) {
+      // Show direction selection after route is selected
+      return renderBusDirectionView();
     } else if (selectedBusBorough === 'select') {
       return renderBusBoroughView();
     } else if (selectedBusBorough) {
