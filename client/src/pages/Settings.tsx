@@ -1501,11 +1501,11 @@ export default function Settings() {
               style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
               data-testid="card-settings-10"
             >
-              <div style={{ overflow: 'hidden', height: '40px' }}>
+              <div style={{ overflow: 'hidden', height: '20px' }}>
                 <img 
                   src={mtaBusIcon} 
                   alt="MTA NYC Bus" 
-                  style={{ height: '84px', objectFit: 'contain', marginTop: '-44px' }} 
+                  style={{ height: '42px', objectFit: 'contain', marginTop: '-22px' }} 
                 />
               </div>
             </div>
