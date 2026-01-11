@@ -283,8 +283,8 @@ export default function TrackCard({
   // Buses: Show empty direction (headsign shown in destination)
   const getDisplayDirection = () => {
     if (isBusLine(line)) {
-      // For buses, show the destination (e.g., "Astoria", "Sunnyside")
-      return displayDestination || 'Bus';
+      // For buses, show the destination in proper case (e.g., "Astoria", "Sunnyside")
+      return busDestination || 'Bus';
     }
     if (isPathLine(line)) {
       if (direction === 'Uptown' || direction === 'To NY') return 'To NY';
@@ -301,8 +301,27 @@ export default function TrackCard({
     return direction;
   };
 
+  // Helper to proper case text (ASTORIA -> Astoria)
+  const toProperCase = (text: string): string => {
+    return text.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  };
+
   // Extract text before dash for destination
   const displayDestination = destination.split('-')[0].trim();
+  
+  // For buses, use proper case destination
+  const busDestination = toProperCase(displayDestination);
+  
+  // Calculate dynamic font size for bus text to prevent overlap with minutes
+  const getBusDestinationStyle = () => {
+    const fullText = `To: ${busDestination}`;
+    const baseSize = 35;
+    // Shrink text if longer than ~12 characters to prevent overlap
+    if (fullText.length > 18) return { fontSize: '24px' };
+    if (fullText.length > 14) return { fontSize: '28px' };
+    if (fullText.length > 12) return { fontSize: '32px' };
+    return { fontSize: `${baseSize}px` };
+  };
 
   return (
     <div className="relative flex items-center gap-[9px]" onClick={handleCardClick}>
@@ -481,15 +500,16 @@ export default function TrackCard({
         {/* Destination - absolute positioned (hidden when expanded) */}
         {!isExpanded && (
           <div 
-            className="absolute text-[35px] font-bold text-white whitespace-nowrap" 
+            className="absolute font-bold text-white whitespace-nowrap" 
             style={{ 
               left: '160px',
               top: '98px',
               lineHeight: '1.3',
-              transform: 'translate(-30px, -80px)'
+              transform: 'translate(-30px, -80px)',
+              fontSize: isBusLine(line) ? getBusDestinationStyle().fontSize : '35px'
             }}
           >
-            {isBusLine(line) ? `Towards: ${displayDestination}` : displayDestination}
+            {isBusLine(line) ? `To: ${busDestination}` : displayDestination}
           </div>
         )}
 
