@@ -1738,11 +1738,21 @@ export default function Settings() {
           )}
           <div
             ref={stopsContainerRef}
-            className="overflow-y-auto scrollbar-hide"
-            style={{ maxHeight: '350px', width: '450px' }}
+            className="overflow-y-auto overflow-x-hidden"
+            style={{ 
+              maxHeight: '350px', 
+              width: '450px',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
             onScroll={checkScrollPosition}
           >
-            <div className="flex flex-col gap-[6px]">
+            <style>{`
+              [data-testid="bus-routes-container"]::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+            <div className="flex flex-col gap-[6px]" data-testid="bus-routes-container">
               {routes.map((route) => (
                 <div 
                   key={route.id}
@@ -1946,11 +1956,21 @@ export default function Settings() {
           )}
           <div
             ref={stopsContainerRef}
-            className="overflow-y-auto scrollbar-hide"
-            style={{ maxHeight: '350px', width: '450px' }}
+            className="overflow-y-auto overflow-x-hidden"
+            style={{ 
+              maxHeight: '350px', 
+              width: '450px',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
             onScroll={checkScrollPosition}
           >
-            <div className="flex flex-col gap-[6px]">
+            <style>{`
+              [data-testid="bus-stops-container"]::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+            <div className="flex flex-col gap-[6px]" data-testid="bus-stops-container">
               {stopsToShow.map((stop: { id: string; name: string; code: string }, index: number) => {
                 const isSelected = selectedStop === stop.id;
                 return (

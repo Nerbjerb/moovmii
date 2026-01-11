@@ -982,20 +982,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid borough" });
       }
 
-      // Fetch all routes from MTA Bus Time API
-      const response = await fetch(
-        `https://bustime.mta.info/api/where/routes-for-agency/MTA%20NYCT.json?key=${apiKey}`
-      );
+      // Fetch routes from both MTA NYCT and MTABC agencies
+      // MTA NYCT covers Manhattan, Bronx, Brooklyn, Staten Island
+      // MTABC (MTA Bus Company) covers most Queens routes and some express buses
+      const [nycResponse, mtabcResponse] = await Promise.all([
+        fetch(`https://bustime.mta.info/api/where/routes-for-agency/MTA%20NYCT.json?key=${apiKey}`),
+        fetch(`https://bustime.mta.info/api/where/routes-for-agency/MTABC.json?key=${apiKey}`)
+      ]);
 
-      if (!response.ok) {
-        console.error(`MTA Bus API error (${response.status}): ${await response.text()}`);
+      if (!nycResponse.ok) {
+        console.error(`MTA Bus API error (${nycResponse.status}): ${await nycResponse.text()}`);
         return res.status(500).json({ error: "Failed to fetch bus routes" });
       }
 
-      const data = await response.json();
+      const nycData = await nycResponse.json();
+      const mtabcData = mtabcResponse.ok ? await mtabcResponse.json() : { data: { list: [] } };
 
-      // Filter routes by borough prefix
-      const routes = data.data?.list || [];
+      // Combine routes from both agencies
+      const nycRoutes = nycData.data?.list || [];
+      const mtabcRoutes = mtabcData.data?.list || [];
+      const routes = [...nycRoutes, ...mtabcRoutes];
       const filteredRoutes = routes
         .filter((route: any) => {
           const shortName = route.shortName || '';
