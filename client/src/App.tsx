@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Kiosk from "@/pages/Kiosk";
 import Settings from "@/pages/Settings";
 import AdvancedSettings from "@/pages/AdvancedSettings";
+import ClockSettings from "@/pages/ClockSettings";
+import WeatherSettings from "@/pages/WeatherSettings";
 
 function Router() {
   return (
@@ -13,6 +15,8 @@ function Router() {
       <Route path="/" component={Kiosk} />
       <Route path="/settings" component={Settings} />
       <Route path="/advanced-settings" component={AdvancedSettings} />
+      <Route path="/clock-settings" component={ClockSettings} />
+      <Route path="/weather-settings" component={WeatherSettings} />
     </Switch>
   );
 }

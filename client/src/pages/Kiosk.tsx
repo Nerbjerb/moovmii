@@ -323,12 +323,14 @@ export default function Kiosk() {
         <section className="relative flex-1">
           <div className="flex flex-col justify-center items-start h-full">
             <div 
-              className="inline-block"
+              className={`inline-block ${isEditMode ? 'cursor-pointer' : ''}`}
               style={isEditMode ? { 
                 boxShadow: '0 0 0 3px #FFFFFF',
                 borderRadius: '12px',
                 padding: '8px 12px'
               } : {}}
+              onClick={() => isEditMode && setLocation('/clock-settings')}
+              data-testid="clock-edit-area"
             >
               <ClockDisplay format={settings?.clockFormat === "24hr" ? "24" : "12"} />
             </div>
@@ -344,12 +346,14 @@ export default function Kiosk() {
               }}
             >
               <div
-                className="flex items-center justify-center"
+                className={`flex items-center justify-center ${isEditMode ? 'cursor-pointer' : ''}`}
                 style={{
                   width: '102px',
                   height: '169px',
                   ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
                 }}
+                onClick={() => isEditMode && setLocation('/weather-settings')}
+                data-testid="weather-edit-area-1"
               >
                 <WeatherTile
                   icon={displayWeather[0].icon}
@@ -368,12 +372,14 @@ export default function Kiosk() {
               }}
             >
               <div
-                className="flex items-center justify-center"
+                className={`flex items-center justify-center ${isEditMode ? 'cursor-pointer' : ''}`}
                 style={{
                   width: '102px',
                   height: '169px',
                   ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
                 }}
+                onClick={() => isEditMode && setLocation('/weather-settings')}
+                data-testid="weather-edit-area-2"
               >
                 <WeatherTile
                   icon={displayWeather[1].icon}
