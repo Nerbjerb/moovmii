@@ -34,6 +34,7 @@ import lirrIcon from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
 import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
 import mtaBusIcon from "@assets/MTA_Regional_Bus_logo.svg_1768100704004.png";
+import nycFerryIcon from "@assets/NYC_Ferry_Horizontal_White_1768103579529.png";
 
 type LineItem = {
   id: string;
@@ -1573,7 +1574,9 @@ export default function Settings() {
               className="rounded-[6px] flex items-center justify-center" 
               style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
               data-testid="card-settings-11"
-            />
+            >
+              <img src={nycFerryIcon} alt="NYC Ferry" className="h-[32px] object-contain" />
+            </div>
           ) : null}
         </div>
       ))}
