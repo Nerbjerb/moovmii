@@ -243,7 +243,7 @@ export default function Kiosk() {
           {isEditMode ? (
             <button 
               onClick={() => setIsEditMode(false)}
-              className="block p-10 cursor-pointer"
+              className="block p-4 cursor-pointer"
               data-testid="button-cancel-edit"
             >
               <div 
