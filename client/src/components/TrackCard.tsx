@@ -140,34 +140,54 @@ export default function TrackCard({
     
     let animationId: number;
     let scrollPosition = 0;
+    let isPaused = true;
+    let pauseTimeoutId: NodeJS.Timeout;
     const scrollSpeed = 0.167; // pixels per frame (~10px/sec at 60fps)
+    const pauseDuration = 3000; // 3 second pause at top and bottom
     
     const animate = () => {
       if (!container) return;
+      
+      if (isPaused) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
       
       const maxScroll = container.scrollHeight - container.clientHeight;
       
       if (maxScroll > 0) {
         scrollPosition += scrollSpeed;
         
-        // Loop back to top when reaching the bottom
+        // Pause at bottom, then loop back to top
         if (scrollPosition >= maxScroll) {
-          scrollPosition = 0;
+          scrollPosition = maxScroll;
+          container.scrollTop = scrollPosition;
+          isPaused = true;
+          pauseTimeoutId = setTimeout(() => {
+            scrollPosition = 0;
+            container.scrollTop = 0;
+            // Pause at top before starting again
+            pauseTimeoutId = setTimeout(() => {
+              isPaused = false;
+            }, pauseDuration);
+          }, pauseDuration);
+        } else {
+          container.scrollTop = scrollPosition;
         }
-        
-        container.scrollTop = scrollPosition;
       }
       
       animationId = requestAnimationFrame(animate);
     };
     
-    // Start animation after a brief delay
-    const timeoutId = setTimeout(() => {
+    // Start animation after 3 second pause at top
+    const initialTimeoutId = setTimeout(() => {
+      isPaused = false;
       animationId = requestAnimationFrame(animate);
-    }, 1000);
+    }, pauseDuration);
     
     return () => {
-      clearTimeout(timeoutId);
+      clearTimeout(initialTimeoutId);
+      clearTimeout(pauseTimeoutId);
       cancelAnimationFrame(animationId);
     };
   }, [isExpanded, alertDescriptions]);
