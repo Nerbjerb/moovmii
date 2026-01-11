@@ -1582,7 +1582,7 @@ export default function Settings() {
       ))}
       
       {/* Driving box - centered under the bottom row */}
-      <div className="flex justify-center mt-[8px]">
+      <div className="flex justify-center">
         <div 
           className="rounded-[6px] flex items-center justify-center gap-3"
           style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
