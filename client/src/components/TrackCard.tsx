@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 
 // Import all subway line icons
@@ -128,6 +128,49 @@ export default function TrackCard({
   const secondIconSrc = secondLine ? lineIcons[secondLine] : null;
   const thirdIconSrc = thirdLine ? lineIcons[thirdLine] : null;
 
+  // Ref for auto-scrolling alert container
+  const alertScrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll effect for service alerts
+  useEffect(() => {
+    if (!isExpanded || alertDescriptions.length === 0) return;
+    
+    const container = alertScrollRef.current;
+    if (!container) return;
+    
+    let animationId: number;
+    let scrollPosition = 0;
+    const scrollSpeed = 0.5; // pixels per frame (slow and continuous)
+    
+    const animate = () => {
+      if (!container) return;
+      
+      const maxScroll = container.scrollHeight - container.clientHeight;
+      
+      if (maxScroll > 0) {
+        scrollPosition += scrollSpeed;
+        
+        // Loop back to top when reaching the bottom
+        if (scrollPosition >= maxScroll) {
+          scrollPosition = 0;
+        }
+        
+        container.scrollTop = scrollPosition;
+      }
+      
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    // Start animation after a brief delay
+    const timeoutId = setTimeout(() => {
+      animationId = requestAnimationFrame(animate);
+    }, 1000);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      cancelAnimationFrame(animationId);
+    };
+  }, [isExpanded, alertDescriptions]);
 
   // Handle click on logo/alert icon area
   const handleLogoClick = () => {
@@ -420,6 +463,7 @@ export default function TrackCard({
         {/* Alert text - shown when expanded */}
         {isExpanded && alertDescriptions.length > 0 && (
           <div 
+            ref={alertScrollRef}
             className="absolute [&::-webkit-scrollbar]:hidden"
             style={{ 
               left: '160px',
