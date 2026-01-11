@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Home, Square, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -1254,6 +1254,13 @@ const groups: GroupItem[] = [
 ];
 
 export default function Settings() {
+  // Parse query params for edit mode
+  const searchString = useSearch();
+  const searchParams = new URLSearchParams(searchString);
+  const editRowParam = searchParams.get('editRow');
+  const editRow = editRowParam ? (parseInt(editRowParam) as 1 | 2) : null;
+  const isEditMode = editRow !== null;
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedRegionalService, setSelectedRegionalService] = useState<string | null>(null);
@@ -1262,7 +1269,8 @@ export default function Settings() {
   const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'Uptown' | 'Downtown' | null>(null);
-  const [selectedRow, setSelectedRow] = useState<1 | 2 | null>(null);
+  // In edit mode, pre-set the row; otherwise null until user selects
+  const [selectedRow, setSelectedRow] = useState<1 | 2 | null>(editRow);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
@@ -1368,7 +1376,10 @@ export default function Settings() {
       const group = groups.find(g => g.id === selectedGroup);
       setSelectedStop(null);
       setSelectedDirection(null);
-      setSelectedRow(null);
+      // Only reset selectedRow if not in edit mode
+      if (!isEditMode) {
+        setSelectedRow(null);
+      }
       if (group && group.lines.length === 1) {
         setSelectedLine(null);
         setSelectedGroup(null);
@@ -1412,11 +1423,17 @@ export default function Settings() {
     if (selectedStop === stopName) {
       setSelectedStop(null);
       setSelectedDirection(null);
-      setSelectedRow(null);
+      // Only reset selectedRow if not in edit mode
+      if (!isEditMode) {
+        setSelectedRow(null);
+      }
     } else {
       setSelectedStop(stopName);
       setSelectedDirection(null);
-      setSelectedRow(null);
+      // Only reset selectedRow if not in edit mode
+      if (!isEditMode) {
+        setSelectedRow(null);
+      }
     }
   };
 
@@ -1870,7 +1887,10 @@ export default function Settings() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedDirection('Uptown');
-                                  setSelectedRow(null);
+                                  // Only reset selectedRow if not in edit mode
+                                  if (!isEditMode) {
+                                    setSelectedRow(null);
+                                  }
                                 }}
                                 data-testid="button-select-uptown"
                               >
@@ -1891,7 +1911,10 @@ export default function Settings() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedDirection('Downtown');
-                                  setSelectedRow(null);
+                                  // Only reset selectedRow if not in edit mode
+                                  if (!isEditMode) {
+                                    setSelectedRow(null);
+                                  }
                                 }}
                                 data-testid="button-select-downtown"
                               >
@@ -1929,56 +1952,81 @@ export default function Settings() {
                                     : selectedDirection}
                                 </span>
                               </div>
-                              <div 
-                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                                style={{ 
-                                  width: '70px', 
-                                  height: '26px', 
-                                  backgroundColor: selectedRow === 1 ? '#FFFFFF' : '#2D2C31'
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  console.log(`Selected Row 1 for ${selectedDirection}:`, selectedStop);
-                                  setSelectedRow(1);
-                                }}
-                                data-testid="button-select-row-1"
-                              >
-                                <span 
-                                  className="font-medium"
+                              {isEditMode ? (
+                                <div 
+                                  className="rounded-[6px] flex items-center justify-center"
                                   style={{ 
-                                    fontFamily: 'Helvetica, Arial, sans-serif', 
-                                    fontSize: '11px',
-                                    color: selectedRow === 1 ? '#000000' : '#FFFFFF'
+                                    width: '70px', 
+                                    height: '26px', 
+                                    backgroundColor: '#ffd200'
                                   }}
+                                  data-testid={`edit-row-${editRow}-indicator`}
                                 >
-                                  Row 1
-                                </span>
-                              </div>
-                              <div 
-                                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                                style={{ 
-                                  width: '70px', 
-                                  height: '26px', 
-                                  backgroundColor: selectedRow === 2 ? '#FFFFFF' : '#2D2C31'
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  console.log(`Selected Row 2 for ${selectedDirection}:`, selectedStop);
-                                  setSelectedRow(2);
-                                }}
-                                data-testid="button-select-row-2"
-                              >
-                                <span 
-                                  className="font-medium"
-                                  style={{ 
-                                    fontFamily: 'Helvetica, Arial, sans-serif', 
-                                    fontSize: '11px',
-                                    color: selectedRow === 2 ? '#000000' : '#FFFFFF'
-                                  }}
-                                >
-                                  Row 2
-                                </span>
-                              </div>
+                                  <span 
+                                    className="font-medium"
+                                    style={{ 
+                                      fontFamily: 'Helvetica, Arial, sans-serif', 
+                                      fontSize: '11px',
+                                      color: '#000000'
+                                    }}
+                                  >
+                                    Row {editRow}
+                                  </span>
+                                </div>
+                              ) : (
+                                <>
+                                  <div 
+                                    className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                                    style={{ 
+                                      width: '70px', 
+                                      height: '26px', 
+                                      backgroundColor: selectedRow === 1 ? '#FFFFFF' : '#2D2C31'
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log(`Selected Row 1 for ${selectedDirection}:`, selectedStop);
+                                      setSelectedRow(1);
+                                    }}
+                                    data-testid="button-select-row-1"
+                                  >
+                                    <span 
+                                      className="font-medium"
+                                      style={{ 
+                                        fontFamily: 'Helvetica, Arial, sans-serif', 
+                                        fontSize: '11px',
+                                        color: selectedRow === 1 ? '#000000' : '#FFFFFF'
+                                      }}
+                                    >
+                                      Row 1
+                                    </span>
+                                  </div>
+                                  <div 
+                                    className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                                    style={{ 
+                                      width: '70px', 
+                                      height: '26px', 
+                                      backgroundColor: selectedRow === 2 ? '#FFFFFF' : '#2D2C31'
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log(`Selected Row 2 for ${selectedDirection}:`, selectedStop);
+                                      setSelectedRow(2);
+                                    }}
+                                    data-testid="button-select-row-2"
+                                  >
+                                    <span 
+                                      className="font-medium"
+                                      style={{ 
+                                        fontFamily: 'Helvetica, Arial, sans-serif', 
+                                        fontSize: '11px',
+                                        color: selectedRow === 2 ? '#000000' : '#FFFFFF'
+                                      }}
+                                    >
+                                      Row 2
+                                    </span>
+                                  </div>
+                                </>
+                              )}
                             </>
                           )}
                         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { Settings, Pencil } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Settings, Pencil, Square } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
@@ -13,6 +13,8 @@ import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 export default function Kiosk() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [, setLocation] = useLocation();
 
   // Fetch preferences
   const { data: preferences } = useQuery<KioskPreference[]>({
@@ -229,6 +231,26 @@ export default function Kiosk() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  const toggleFullscreen = () => {
+    const container = document.querySelector('.fullscreen-container');
+    if (container) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        container.requestFullscreen();
+      }
+    }
+  };
+
+  const handleRowClick = (rowIndex: number) => {
+    if (isEditMode) {
+      // Navigate to settings with edit context
+      // Row 1 is index 0, Row 2 is index 1
+      const rowNumber = rowIndex + 1;
+      setLocation(`/settings?editRow=${rowNumber}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
       <div className="relative fullscreen-container">
@@ -237,12 +259,56 @@ export default function Kiosk() {
           style={{ width: '800px', height: '480px' }}
           data-testid="kiosk-main"
         >
-        {/* Pencil icon - bottom left corner */}
+        {/* Bottom left corner - Edit mode toggle */}
         <div className="absolute bottom-[-5px] left-[2px]">
-          <div className="block p-4">
-            <Pencil className="w-6 h-6 text-white" data-testid="icon-pencil" />
-          </div>
+          {isEditMode ? (
+            <button 
+              onClick={() => setIsEditMode(false)}
+              className="block p-4"
+              data-testid="button-cancel-edit"
+            >
+              <div 
+                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ 
+                  width: '70px', 
+                  height: '28px', 
+                  backgroundColor: '#2D2C31'
+                }}
+              >
+                <span 
+                  className="font-bold"
+                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', color: '#FFFFFF' }}
+                >
+                  Cancel
+                </span>
+              </div>
+            </button>
+          ) : (
+            <button 
+              onClick={() => setIsEditMode(true)}
+              className="block p-4 cursor-pointer"
+              data-testid="button-enter-edit"
+            >
+              <Pencil className="w-6 h-6 text-white" data-testid="icon-pencil" />
+            </button>
+          )}
         </div>
+
+        {/* Fullscreen icon - bottom left, hidden in edit mode */}
+        {!isEditMode && (
+          <div className="absolute bottom-[-5px] left-[75px]">
+            <button 
+              onClick={toggleFullscreen}
+              className="block p-4 cursor-pointer"
+              data-testid="button-fullscreen-toggle"
+            >
+              <Square 
+                className={`w-6 h-6 ${isFullscreen ? 'text-[#ffd200]' : 'text-white'}`} 
+                fill={isFullscreen ? '#ffd200' : 'none'}
+              />
+            </button>
+          </div>
+        )}
 
         {/* Settings icon - bottom right corner */}
         <div className="absolute bottom-[-5px] right-[2px]">
@@ -253,18 +319,49 @@ export default function Kiosk() {
 
         <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
           {subwayData.map((track, idx) => (
-            <TrackCard
+            <div
               key={idx}
-              direction={track.direction}
-              line={track.line}
-              destination={track.destination}
-              subtitle={track.subtitle}
-              arrivalMinutes={track.arrivalMinutes}
-              arrivalLines={track.arrivalLines}
-              isDowntown={idx === 1}
-              hasAlert={hasAlertForLine(track.line)}
-              alertDescriptions={getAlertDescriptions(track.line)}
-            />
+              onClick={() => handleRowClick(idx)}
+              className={`relative ${isEditMode ? 'cursor-pointer' : ''}`}
+              style={isEditMode ? { 
+                boxShadow: '0 0 0 3px #ffd200',
+                borderRadius: '12px'
+              } : undefined}
+              data-testid={`track-row-${idx}`}
+            >
+              <TrackCard
+                direction={track.direction}
+                line={track.line}
+                destination={track.destination}
+                subtitle={track.subtitle}
+                arrivalMinutes={track.arrivalMinutes}
+                arrivalLines={track.arrivalLines}
+                isDowntown={idx === 1}
+                hasAlert={hasAlertForLine(track.line)}
+                alertDescriptions={getAlertDescriptions(track.line)}
+              />
+              {isEditMode && (
+                <div 
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                  style={{ 
+                    backgroundColor: 'rgba(255, 210, 0, 0.1)',
+                    borderRadius: '12px'
+                  }}
+                >
+                  <div 
+                    className="rounded-[6px] px-4 py-2"
+                    style={{ backgroundColor: '#ffd200' }}
+                  >
+                    <span 
+                      className="font-bold text-black"
+                      style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}
+                    >
+                      Edit Row {idx + 1}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </section>
 
