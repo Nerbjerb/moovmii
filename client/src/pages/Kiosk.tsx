@@ -322,12 +322,7 @@ export default function Kiosk() {
             <div
               key={idx}
               onClick={() => handleRowClick(idx)}
-              className={`relative ${isEditMode ? 'cursor-pointer' : ''}`}
-              style={isEditMode ? { 
-                boxShadow: '0 0 0 3px #ffd200',
-                borderRadius: '12px',
-                zIndex: 10
-              } : undefined}
+              className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
               data-testid={`track-row-${idx}`}
             >
               <TrackCard
