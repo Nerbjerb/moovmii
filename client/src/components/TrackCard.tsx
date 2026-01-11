@@ -335,6 +335,27 @@ export default function TrackCard({
     return { fontSize: `${baseSize}px` };
   };
   
+  // Calculate subtitle top position - adjust if destination wraps to 2 lines
+  const getSubtitleTop = () => {
+    const baseTop = 58;
+    
+    if (isBusLine(line)) {
+      const fullText = `To: ${busDestination}`;
+      const fontSize = parseInt(getBusDestinationStyle().fontSize);
+      // Estimate characters per line based on font size and 270px max width
+      // Approximate: larger font = fewer chars per line
+      const charsPerLine = Math.floor(270 / (fontSize * 0.6));
+      
+      // If text likely wraps to 2 lines, add extra space
+      if (fullText.length > charsPerLine) {
+        // Add roughly one line height worth of space
+        return `${baseTop + fontSize * 1.1}px`;
+      }
+    }
+    
+    return `${baseTop}px`;
+  };
+  
   // Canonical direction labels that should never wrap - show on single line
   const CANONICAL_DIRECTIONS = ['Downtown', 'Uptown', 'Inbound', 'Outbound', 'To NY', 'To NJ'];
   
@@ -596,7 +617,7 @@ export default function TrackCard({
             className="absolute text-[20px] text-white" 
             style={{ 
               left: '130px',
-              top: '58px',
+              top: getSubtitleTop(),
               lineHeight: '1.2',
               maxWidth: '270px',
               wordBreak: 'break-word',
