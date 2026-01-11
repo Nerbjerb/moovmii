@@ -1624,11 +1624,24 @@ export default function Settings() {
             </div>
           ) : row === 5 ? (
             <div 
-              className="rounded-[6px] flex items-center justify-center" 
+              className="rounded-[6px] flex items-center justify-center gap-3" 
               style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
               data-testid="card-settings-11"
             >
               <img src={nycFerryIcon} alt="NYC Ferry" className="h-[32px] object-contain" />
+              <span 
+                className="rounded-full px-2 py-0.5"
+                style={{ 
+                  backgroundColor: '#FFD200',
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  color: '#000000',
+                  textTransform: 'uppercase'
+                }}
+              >
+                Coming Soon
+              </span>
             </div>
           ) : null}
         </div>
@@ -1651,6 +1664,19 @@ export default function Settings() {
             }}
           >
             Driving
+          </span>
+          <span 
+            className="rounded-full px-2 py-0.5"
+            style={{ 
+              backgroundColor: '#FFD200',
+              fontFamily: 'Helvetica, Arial, sans-serif',
+              fontSize: '10px',
+              fontWeight: 600,
+              color: '#000000',
+              textTransform: 'uppercase'
+            }}
+          >
+            Coming Soon
           </span>
         </div>
       </div>
