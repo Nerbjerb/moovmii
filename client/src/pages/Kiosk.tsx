@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Settings, Pencil, Square } from "lucide-react";
+import { Settings, Pencil } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
@@ -12,7 +12,6 @@ import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 
 export default function Kiosk() {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [, setLocation] = useLocation();
 
@@ -222,26 +221,6 @@ export default function Kiosk() {
     return () => clearInterval(timeInterval);
   }, []);
 
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    const container = document.querySelector('.fullscreen-container');
-    if (container) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        container.requestFullscreen();
-      }
-    }
-  };
-
   const handleRowClick = (rowIndex: number) => {
     if (isEditMode) {
       // Navigate to settings with edit context
@@ -294,21 +273,6 @@ export default function Kiosk() {
           )}
         </div>
 
-        {/* Fullscreen icon - bottom left, hidden in edit mode */}
-        {!isEditMode && (
-          <div className="absolute bottom-[-5px] left-[75px]">
-            <button 
-              onClick={toggleFullscreen}
-              className="block p-4 cursor-pointer"
-              data-testid="button-fullscreen-toggle"
-            >
-              <Square 
-                className={`w-6 h-6 ${isFullscreen ? 'text-[#ffd200]' : 'text-white'}`} 
-                fill={isFullscreen ? '#ffd200' : 'none'}
-              />
-            </button>
-          </div>
-        )}
 
         {/* Settings icon - bottom right corner */}
         <div className="absolute bottom-[-5px] right-[2px]">
