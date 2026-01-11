@@ -274,6 +274,7 @@ export default function Kiosk() {
               key={idx}
               onClick={() => handleRowClick(idx)}
               className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
+              style={idx === 0 ? { transform: 'translateX(-8px)' } : undefined}
               data-testid={`track-row-${idx}`}
             >
               <TrackCard
