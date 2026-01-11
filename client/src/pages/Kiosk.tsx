@@ -399,7 +399,8 @@ export default function Kiosk() {
             style={{ 
               height: '28px', 
               objectFit: 'contain',
-              filter: 'brightness(0) invert(1)'
+              filter: 'brightness(0) invert(1)',
+              mixBlendMode: 'screen'
             }} 
           />
         </div>
