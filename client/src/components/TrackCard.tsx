@@ -370,7 +370,8 @@ export default function TrackCard({
       WebkitLineClamp: 2,
       WebkitBoxOrient: 'vertical',
       overflow: 'hidden',
-      wordBreak: 'break-word'
+      wordBreak: 'break-word',
+      textAlign: 'center'
     };
   };
 
