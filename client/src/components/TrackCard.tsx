@@ -418,8 +418,7 @@ export default function TrackCard({
               transformOrigin: 'top left',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(255, 0, 0, 0.3)' // DEBUG: Red = rotated wrapper (115x41)
+              justifyContent: 'center'
             }}
           >
             <div 
@@ -428,7 +427,6 @@ export default function TrackCard({
                 width: '105px',
                 height: '31px',
                 lineHeight: '1.15',
-                backgroundColor: 'rgba(0, 255, 0, 0.3)', // DEBUG: Green = text area (105x31)
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

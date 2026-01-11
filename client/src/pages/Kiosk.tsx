@@ -5,7 +5,6 @@ import { Settings, X } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
-import GridOverlay from "@/components/GridOverlay";
 import type { SubwayArrival, WeatherData, KioskPreference, KioskSettings } from "@shared/schema";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
@@ -279,8 +278,6 @@ export default function Kiosk() {
           style={{ width: '800px', height: '480px', overflow: 'visible' }}
           data-testid="kiosk-main"
         >
-        {/* Temporary grid overlay with pixel markers */}
-        <GridOverlay spacing={50} markerInterval={100} />
         {/* Settings/Edit mode toggle - bottom right corner */}
         <div className="absolute bottom-[-5px] right-[-1px] z-20">
           {isEditMode ? (
