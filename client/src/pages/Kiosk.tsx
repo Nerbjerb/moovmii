@@ -352,7 +352,7 @@ export default function Kiosk() {
                 className="flex items-center justify-center"
                 style={{
                   width: '120px',
-                  height: '152px',
+                  height: '157px',
                   ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
                 }}
               >
@@ -376,7 +376,7 @@ export default function Kiosk() {
                 className="flex items-center justify-center"
                 style={{
                   width: '120px',
-                  height: '152px',
+                  height: '157px',
                   ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
                 }}
               >
