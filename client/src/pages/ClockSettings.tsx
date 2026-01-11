@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Square } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import type { KioskSettings } from "@shared/schema";
 
 export default function ClockSettings() {
   const [clockFormat, setClockFormat] = useState<"12hr" | "24hr">("12hr");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const { data: settings } = useQuery<KioskSettings>({
     queryKey: ['/api/settings'],
@@ -39,6 +40,26 @@ export default function ClockSettings() {
   const handleClockToggle = (format: "12hr" | "24hr") => {
     setClockFormat(format);
     saveSettingsMutation.mutate({ clockFormat: format });
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error('Error attempting to enable fullscreen:', err);
+      });
+    } else {
+      document.exitFullscreen().catch((err) => {
+        console.error('Error attempting to exit fullscreen:', err);
+      });
+    }
   };
 
   return (
@@ -115,6 +136,19 @@ export default function ClockSettings() {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="absolute bottom-[-2px] left-[5px]">
+            <button 
+              onClick={toggleFullscreen}
+              className="cursor-pointer p-4"
+              data-testid="button-fullscreen-toggle"
+            >
+              <Square 
+                className={`w-6 h-6 ${isFullscreen ? 'text-[#ffd200]' : 'text-white'}`} 
+                fill={isFullscreen ? '#ffd200' : 'none'}
+              />
+            </button>
           </div>
         </main>
       </div>

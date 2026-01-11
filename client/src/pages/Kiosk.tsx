@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
-import { Settings, Pencil, X } from "lucide-react";
+import { useLocation } from "wouter";
+import { Settings, X } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
@@ -238,8 +238,8 @@ export default function Kiosk() {
           style={{ width: '800px', height: '480px' }}
           data-testid="kiosk-main"
         >
-        {/* Bottom left corner - Edit mode toggle */}
-        <div className="absolute bottom-[-5px] left-[2px] z-20">
+        {/* Settings/Edit mode toggle - bottom right corner */}
+        <div className="absolute bottom-[-5px] right-[2px] z-20">
           {isEditMode ? (
             <button 
               onClick={() => setIsEditMode(false)}
@@ -263,17 +263,9 @@ export default function Kiosk() {
               className="block p-4 cursor-pointer"
               data-testid="button-enter-edit"
             >
-              <Pencil className="w-6 h-6 text-white" data-testid="icon-pencil" />
+              <Settings className="w-6 h-6 text-white" data-testid="button-settings" />
             </button>
           )}
-        </div>
-
-
-        {/* Settings icon - bottom right corner */}
-        <div className="absolute bottom-[-5px] right-[2px]">
-          <Link href="/settings" className="block p-4" data-testid="link-settings">
-            <Settings className="w-6 h-6 text-white cursor-pointer" data-testid="button-settings" />
-          </Link>
         </div>
 
         <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
