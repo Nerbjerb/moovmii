@@ -301,16 +301,28 @@ export default function TrackCard({
     return direction;
   };
 
-  // Helper to proper case text (ASTORIA -> Astoria)
+  // Known abbreviations to preserve in uppercase
+  const ABBREVIATIONS = ['LES', 'JFK', 'NYC', 'WTC', 'NJ', 'NY', 'SBS', 'LIRR', 'MNR', 'PATH', 'AV', 'ST', 'PL', 'BLVD', 'RD', 'DR', 'CT', 'HWY'];
+  
+  // Helper to proper case text while preserving abbreviations (ASTORIA -> Astoria, but LES stays LES)
   const toProperCase = (text: string): string => {
-    return text.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    return text.split(/\s+/).map(word => {
+      const upper = word.toUpperCase();
+      if (ABBREVIATIONS.includes(upper)) return upper;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }).join(' ');
+  };
+  
+  // Shorten "Select Bus" to "SBS"
+  const shortenSelectBus = (text: string): string => {
+    return text.replace(/Select Bus/gi, 'SBS');
   };
 
   // Extract text before dash for destination
   const displayDestination = destination.split('-')[0].trim();
   
-  // For buses, use proper case destination
-  const busDestination = toProperCase(displayDestination);
+  // For buses, use proper case destination with Select Bus shortened
+  const busDestination = shortenSelectBus(toProperCase(displayDestination));
   
   // Calculate dynamic font size for bus text to prevent overlap with minutes
   const getBusDestinationStyle = () => {
@@ -322,6 +334,19 @@ export default function TrackCard({
     if (fullText.length > 12) return { fontSize: '32px' };
     return { fontSize: `${baseSize}px` };
   };
+  
+  // Calculate direction text style - shrink for long text to fit in strip
+  const getDirectionStyle = () => {
+    const dirText = getDisplayDirection();
+    const len = dirText.length;
+    // Card height is 115px, so max text height is ~100px
+    // Shrink text more aggressively for longer strings
+    if (len > 14) return { fontSize: '10px' };
+    if (len > 12) return { fontSize: '11px' };
+    if (len > 10) return { fontSize: '13px' };
+    if (len > 8) return { fontSize: '15px' };
+    return { fontSize: '17px' };
+  };
 
   return (
     <div className="relative flex items-center gap-[9px]" onClick={handleCardClick}>
@@ -332,16 +357,38 @@ export default function TrackCard({
         }`}
       >
         {/* Direction label - left strip */}
-        <div className="absolute left-0 top-0 w-10 h-full bg-[#2D2C31] flex items-center justify-center rounded-l-[9px]">
-          <div 
-            className="text-[17px] font-medium tracking-[0.14em] whitespace-nowrap text-white text-center"
-            style={{ 
-              writingMode: 'vertical-rl',
-              transform: 'rotate(180deg)'
+        <div className="absolute left-0 top-0 w-10 h-full bg-[#2D2C31] rounded-l-[9px] overflow-hidden">
+          {/* Inner wrapper: sized 115x40, rotated so it fits in the 40x115 strip */}
+          <div
+            style={{
+              position: 'absolute',
+              width: '115px',
+              height: '40px',
+              top: '0',
+              left: '0',
+              transform: 'rotate(-90deg) translateX(-115px)',
+              transformOrigin: 'top left',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
-            data-testid="text-direction"
           >
-            {getDisplayDirection()}
+            <div 
+              className="font-medium tracking-[0.10em] text-white text-center"
+              style={{ 
+                fontSize: getDirectionStyle().fontSize,
+                width: '105px',
+                lineHeight: '1.15',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                wordBreak: 'break-word'
+              }}
+              data-testid="text-direction"
+            >
+              {getDisplayDirection()}
+            </div>
           </div>
         </div>
 
@@ -500,13 +547,15 @@ export default function TrackCard({
         {/* Destination - absolute positioned (hidden when expanded) */}
         {!isExpanded && (
           <div 
-            className="absolute font-bold text-white whitespace-nowrap" 
+            className="absolute font-bold text-white" 
             style={{ 
-              left: '160px',
-              top: '98px',
-              lineHeight: '1.3',
-              transform: 'translate(-30px, -80px)',
-              fontSize: isBusLine(line) ? getBusDestinationStyle().fontSize : '35px'
+              left: '130px',
+              top: '18px',
+              lineHeight: '1.1',
+              fontSize: isBusLine(line) ? getBusDestinationStyle().fontSize : '35px',
+              maxWidth: '270px',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
             }}
           >
             {isBusLine(line) ? `To: ${busDestination}` : displayDestination}
@@ -518,13 +567,15 @@ export default function TrackCard({
           <div 
             className="absolute text-[20px] text-white" 
             style={{ 
-              left: '160px',
-              top: '178px',
-              lineHeight: '1.3',
-              transform: isDowntown ? 'translate(-30px, -110px)' : 'translate(-29px, -110px)'
+              left: '130px',
+              top: '58px',
+              lineHeight: '1.2',
+              maxWidth: '270px',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
             }}
           >
-            {isBusLine(line) ? `Stop: ${subtitle}` : subtitle}
+            {isBusLine(line) ? `Stop: ${shortenSelectBus(toProperCase(subtitle))}` : subtitle}
           </div>
         )}
 
