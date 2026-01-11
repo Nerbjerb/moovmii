@@ -274,6 +274,8 @@ export default function Kiosk() {
   return (
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
       <div className="relative fullscreen-container">
+        {/* Temporary grid overlay with pixel markers */}
+        <GridOverlay spacing={50} markerInterval={100} />
         <main 
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative overflow-hidden"
           style={{ width: '800px', height: '480px' }}
