@@ -478,7 +478,7 @@ export default function TrackCard({
             }}
           >
             <div 
-              className="text-white pr-2"
+              className="text-white pr-1"
               style={{ 
                 fontFamily: 'Helvetica, Arial, sans-serif',
                 fontSize: '20px',
