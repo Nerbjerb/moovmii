@@ -355,11 +355,14 @@ export default function TrackCard({
     // For other directions (bus destinations, etc.): allow 2-line wrap
     const len = dirText.length;
     // Shrink text more aggressively for longer strings
-    let fontSize = '17px';
-    if (len > 14) fontSize = '10px';
-    else if (len > 12) fontSize = '11px';
-    else if (len > 10) fontSize = '13px';
-    else if (len > 8) fontSize = '15px';
+    let fontSize = '20px';
+    if (len > 20) fontSize = '10px';
+    else if (len > 18) fontSize = '11px';
+    else if (len > 16) fontSize = '12px';
+    else if (len > 14) fontSize = '13px';
+    else if (len > 12) fontSize = '14px';
+    else if (len > 10) fontSize = '16px';
+    else if (len > 8) fontSize = '18px';
     
     return {
       fontSize,
