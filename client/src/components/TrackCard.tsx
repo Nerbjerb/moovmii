@@ -386,23 +386,27 @@ export default function TrackCard({
             style={{
               position: 'absolute',
               width: '115px',
-              height: '40px',
+              height: '60px',
               top: '0',
-              left: '0',
+              left: '-10px',
               transform: 'rotate(-90deg) translateX(-115px)',
               transformOrigin: 'top left',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(255, 0, 0, 0.3)' // DEBUG: Red = rotated wrapper (115x40)
+              backgroundColor: 'rgba(255, 0, 0, 0.3)' // DEBUG: Red = rotated wrapper (115x60)
             }}
           >
             <div 
               className="font-medium text-white text-center"
               style={{ 
                 width: '105px',
+                height: '60px',
                 lineHeight: '1.15',
-                backgroundColor: 'rgba(0, 255, 0, 0.3)', // DEBUG: Green = text area (105px wide)
+                backgroundColor: 'rgba(0, 255, 0, 0.3)', // DEBUG: Green = text area (105x60)
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 ...getDirectionStyle()
               }}
               data-testid="text-direction"
