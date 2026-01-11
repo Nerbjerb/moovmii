@@ -351,7 +351,7 @@ export default function Kiosk() {
               <div
                 className="flex items-center justify-center"
                 style={{
-                  width: '120px',
+                  width: '110px',
                   height: '157px',
                   ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
                 }}
@@ -375,7 +375,7 @@ export default function Kiosk() {
               <div
                 className="flex items-center justify-center"
                 style={{
-                  width: '120px',
+                  width: '110px',
                   height: '157px',
                   ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
                 }}
