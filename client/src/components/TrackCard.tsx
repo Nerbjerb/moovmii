@@ -140,7 +140,7 @@ export default function TrackCard({
     
     let animationId: number;
     let scrollPosition = 0;
-    const scrollSpeed = 0.25; // pixels per frame (~15px/sec at 60fps)
+    const scrollSpeed = 0.167; // pixels per frame (~10px/sec at 60fps)
     
     const animate = () => {
       if (!container) return;
