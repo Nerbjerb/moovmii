@@ -47,6 +47,7 @@ interface TrackCardProps {
   isDowntown?: boolean;
   hasAlert?: boolean;
   alertDescriptions?: string[];
+  isBus?: boolean;
 }
 
 // Map all subway lines to their icons
@@ -119,6 +120,7 @@ export default function TrackCard({
   isDowntown = false,
   hasAlert = false,
   alertDescriptions = [],
+  isBus = false,
 }: TrackCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const iconSrc = lineIcons[line];
@@ -261,6 +263,18 @@ export default function TrackCard({
   
   // Check if a line is PATH (should show text instead of logo)
   const isPathLine = (lineName: string) => lineName === 'PATH' || lineName.startsWith('PATH-');
+  
+  // Check if a line is a bus (should show route number badge)
+  const isBusLine = (lineName: string) => 
+    isBus || lineName.startsWith('MTA NYCT_') || lineName.startsWith('MTABC_') || lineName.startsWith('BUS-');
+  
+  // Extract bus route number from line ID (e.g., "MTA NYCT_M31" -> "M31")
+  const getBusRouteNumber = (lineName: string): string => {
+    if (lineName.startsWith('MTA NYCT_')) return lineName.replace('MTA NYCT_', '');
+    if (lineName.startsWith('MTABC_')) return lineName.replace('MTABC_', '');
+    if (lineName.startsWith('BUS-')) return lineName.replace('BUS-', '');
+    return lineName;
+  };
 
   // Get display direction - LIRR, MNR, 7, L, J, Z trains use Inbound/Outbound; PATH uses To NY/To NJ
   // LIRR: Inbound = towards Manhattan (Uptown), Outbound = away from Manhattan (Downtown)
@@ -269,7 +283,12 @@ export default function TrackCard({
   // L train: Inbound = towards 8 Av (Downtown), Outbound = towards Canarsie (Uptown)
   // J/Z trains: Inbound = towards Broad St (Downtown), Outbound = towards Jamaica Center (Uptown)
   // PATH: To NY (Uptown), To NJ (Downtown)
+  // Buses: Show empty direction (headsign shown in destination)
   const getDisplayDirection = () => {
+    if (isBusLine(line)) {
+      // For buses, we don't show Uptown/Downtown - the destination already shows the headsign
+      return 'Bus';
+    }
     if (isPathLine(line)) {
       if (direction === 'Uptown' || direction === 'To NY') return 'To NY';
       if (direction === 'Downtown' || direction === 'To NJ') return 'To NJ';
@@ -385,6 +404,31 @@ export default function TrackCard({
             >
               <div>Metro-</div>
               <div>North</div>
+            </div>
+          ) : isBusLine(line) ? (
+            <div 
+              className="flex items-center justify-center"
+              style={{ 
+                transform: 'translate(-35px, -10px)',
+                minWidth: '50px',
+                height: '50px',
+                backgroundColor: '#1C7ED6',
+                borderRadius: '8px',
+                padding: '4px 10px'
+              }}
+            >
+              <span 
+                style={{ 
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  fontSize: getBusRouteNumber(line).length > 3 ? '20px' : '26px',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                {getBusRouteNumber(line)}
+              </span>
             </div>
           ) : iconSrc ? (
             <img 
@@ -556,6 +600,31 @@ export default function TrackCard({
                   <div>Metro-</div>
                   <div>North</div>
                 </div>
+              ) : secondLine && isBusLine(secondLine) ? (
+                <div 
+                  className="flex items-center justify-center"
+                  style={{ 
+                    transform: 'translate(-32px, 45px)',
+                    minWidth: '30px',
+                    height: '30px',
+                    backgroundColor: '#1C7ED6',
+                    borderRadius: '5px',
+                    padding: '2px 6px'
+                  }}
+                >
+                  <span 
+                    style={{ 
+                      fontFamily: 'Helvetica, Arial, sans-serif',
+                      fontSize: getBusRouteNumber(secondLine).length > 3 ? '12px' : '14px',
+                      fontWeight: 700,
+                      color: '#FFFFFF',
+                      whiteSpace: 'nowrap',
+                      letterSpacing: '-0.02em'
+                    }}
+                  >
+                    {getBusRouteNumber(secondLine)}
+                  </span>
+                </div>
               ) : secondIconSrc ? (
                 <img
                   src={secondIconSrc}
@@ -611,6 +680,31 @@ export default function TrackCard({
                 >
                   <div>Metro-</div>
                   <div>North</div>
+                </div>
+              ) : thirdLine && isBusLine(thirdLine) ? (
+                <div 
+                  className="flex items-center justify-center"
+                  style={{ 
+                    transform: 'translate(-32px, 45px)',
+                    minWidth: '30px',
+                    height: '30px',
+                    backgroundColor: '#1C7ED6',
+                    borderRadius: '5px',
+                    padding: '2px 6px'
+                  }}
+                >
+                  <span 
+                    style={{ 
+                      fontFamily: 'Helvetica, Arial, sans-serif',
+                      fontSize: getBusRouteNumber(thirdLine).length > 3 ? '12px' : '14px',
+                      fontWeight: 700,
+                      color: '#FFFFFF',
+                      whiteSpace: 'nowrap',
+                      letterSpacing: '-0.02em'
+                    }}
+                  >
+                    {getBusRouteNumber(thirdLine)}
+                  </span>
                 </div>
               ) : thirdIconSrc ? (
                 <img

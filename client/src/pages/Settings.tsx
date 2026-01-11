@@ -1267,6 +1267,8 @@ export default function Settings() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedRegionalService, setSelectedRegionalService] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
+  const [selectedBusBorough, setSelectedBusBorough] = useState<string | null>(null);
+  const [selectedBusRoute, setSelectedBusRoute] = useState<string | null>(null);
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
   const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
@@ -1285,6 +1287,18 @@ export default function Settings() {
   // Load preferences from API
   const { data: preferences } = useQuery<KioskPreference[]>({
     queryKey: ['/api/preferences'],
+  });
+
+  // Load bus routes for selected borough
+  const { data: busRoutesData, isLoading: busRoutesLoading } = useQuery<{ routes: { id: string; shortName: string; longName: string; description: string }[] }>({
+    queryKey: ['/api/bus/routes', selectedBusBorough],
+    enabled: !!selectedBusBorough && selectedBusBorough !== 'select',
+  });
+
+  // Load bus stops for selected route
+  const { data: busStopsData, isLoading: busStopsLoading } = useQuery<{ directions: { directionId: string; directionName: string; headsign: string; stops: { id: string; name: string; code: string }[] }[] }>({
+    queryKey: ['/api/bus/stops', selectedBusRoute],
+    enabled: !!selectedBusRoute,
   });
 
   // Initialize local state from loaded preferences
@@ -1373,6 +1387,27 @@ export default function Settings() {
   };
 
   const handleBack = () => {
+    // Handle bus selection back navigation
+    if (selectedBusRoute) {
+      setSelectedBusRoute(null);
+      setSelectedStop(null);
+      setSelectedDirection(null);
+      if (!isEditMode) {
+        setSelectedRow(null);
+      }
+      return;
+    }
+    if (selectedBusBorough && selectedBusBorough !== 'select') {
+      // Go back from specific borough to borough selection
+      setSelectedBusBorough('select');
+      return;
+    }
+    if (selectedBusBorough === 'select') {
+      // Go back from borough selection to main menu
+      setSelectedBusBorough(null);
+      return;
+    }
+    
     if (selectedLine) {
       // Check if this is a single-line group - if so, go back to main menu
       const group = groups.find(g => g.id === selectedGroup);
@@ -1498,8 +1533,9 @@ export default function Settings() {
             </div>
           ) : row === 5 ? (
             <div 
-              className="rounded-[6px] flex items-center justify-center" 
+              className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" 
               style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+              onClick={() => setSelectedBusBorough('select')}
               data-testid="card-settings-10"
             >
               <div style={{ overflow: 'hidden', height: '30px' }}>
@@ -1603,6 +1639,284 @@ export default function Settings() {
       </div>
     </div>
   );
+
+  // Bus borough selection grid (2x3)
+  const busBoroughs = [
+    { id: 'manhattan', name: 'Manhattan' },
+    { id: 'brooklyn', name: 'Brooklyn' },
+    { id: 'queens', name: 'Queens' },
+    { id: 'bronx', name: 'Bronx' },
+    { id: 'staten_island', name: 'Staten Island' },
+    { id: 'new_jersey', name: 'New Jersey' },
+  ];
+
+  const renderBusBoroughView = () => (
+    <div 
+      className="flex items-center justify-center"
+      style={{ width: '760px', height: '370px', margin: 'auto' }}
+    >
+      <div className="flex flex-col gap-[8px]">
+        {[0, 1, 2].map((row) => (
+          <div key={row} className="flex gap-[10px]">
+            {[0, 1].map((col) => {
+              const borough = busBoroughs[row * 2 + col];
+              const isPlaceholder = borough.id === 'new_jersey';
+              return (
+                <div 
+                  key={borough.id}
+                  className={`rounded-[6px] flex items-center justify-center ${!isPlaceholder ? 'cursor-pointer hover:opacity-80' : 'opacity-50'} transition-opacity`}
+                  style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                  onClick={() => !isPlaceholder && setSelectedBusBorough(borough.id)}
+                  data-testid={`card-bus-borough-${borough.id}`}
+                >
+                  <span 
+                    style={{ 
+                      fontFamily: 'Helvetica, Arial, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 600,
+                      color: '#FFFFFF'
+                    }}
+                  >
+                    {borough.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Bus routes list - scrollable like train stops
+  const renderBusRoutesView = () => {
+    const routes = busRoutesData?.routes || [];
+    
+    if (busRoutesLoading) {
+      return (
+        <div 
+          className="flex items-center justify-center"
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
+        >
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', color: '#FFFFFF' }}>
+            Loading routes...
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        className="flex items-center justify-center"
+        style={{ width: '760px', height: '370px', margin: 'auto' }}
+      >
+        <div className="relative">
+          {canScrollUp && (
+            <div 
+              className="absolute z-20"
+              style={{ top: '-30px', left: '210px' }}
+            >
+              <ChevronUp className="w-5 h-5 text-white/60" />
+            </div>
+          )}
+          <div
+            ref={stopsContainerRef}
+            className="overflow-y-auto scrollbar-hide"
+            style={{ maxHeight: '350px', width: '450px' }}
+            onScroll={checkScrollPosition}
+          >
+            <div className="flex flex-col gap-[6px]">
+              {routes.map((route) => (
+                <div 
+                  key={route.id}
+                  className="rounded-[6px] flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{ 
+                    width: '450px', 
+                    height: '52px', 
+                    backgroundColor: '#2D2C31',
+                    paddingLeft: '16px',
+                    paddingRight: '16px',
+                  }}
+                  onClick={() => {
+                    if (shouldBlockClick()) return;
+                    setSelectedBusRoute(route.id);
+                  }}
+                  data-testid={`card-bus-route-${route.shortName}`}
+                >
+                  <div 
+                    className="flex items-center justify-center rounded-[4px]"
+                    style={{ 
+                      minWidth: '48px',
+                      height: '32px',
+                      backgroundColor: '#1565C0',
+                      marginRight: '12px',
+                      padding: '0 8px',
+                    }}
+                  >
+                    <span 
+                      style={{ 
+                        fontFamily: 'Helvetica, Arial, sans-serif',
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        color: '#FFFFFF'
+                      }}
+                    >
+                      {route.shortName}
+                    </span>
+                  </div>
+                  <span 
+                    style={{ 
+                      fontFamily: 'Helvetica, Arial, sans-serif',
+                      fontSize: '14px',
+                      color: '#FFFFFF',
+                      flex: 1,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {route.longName}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {canScrollDown && (
+            <div 
+              className="absolute z-20"
+              style={{ bottom: '-30px', left: '210px' }}
+            >
+              <ChevronDown className="w-5 h-5 text-white/60" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Bus stops list with direction selection
+  const renderBusStopsView = () => {
+    const directions = busStopsData?.directions || [];
+    
+    if (busStopsLoading) {
+      return (
+        <div 
+          className="flex items-center justify-center"
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
+        >
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', color: '#FFFFFF' }}>
+            Loading stops...
+          </span>
+        </div>
+      );
+    }
+
+    // Find the selected stop's direction info for headsign display
+    const selectedStopDirection = directions.find(d => 
+      d.stops.some(s => s.id === selectedStop)
+    );
+
+    // Combine all stops from all directions for display
+    const allStops = directions.flatMap(d => 
+      d.stops.map(s => ({ ...s, direction: d.directionName, headsign: d.headsign }))
+    );
+
+    return (
+      <div 
+        className="flex items-center justify-center"
+        style={{ width: '760px', height: '370px', margin: 'auto' }}
+      >
+        <div className="relative">
+          {canScrollUp && (
+            <div 
+              className="absolute z-20"
+              style={{ top: '-30px', left: '210px' }}
+            >
+              <ChevronUp className="w-5 h-5 text-white/60" />
+            </div>
+          )}
+          <div
+            ref={stopsContainerRef}
+            className="overflow-y-auto scrollbar-hide"
+            style={{ maxHeight: '350px', width: '450px' }}
+            onScroll={checkScrollPosition}
+          >
+            <div className="flex flex-col gap-[6px]">
+              {allStops.map((stop, index) => {
+                const isSelected = selectedStop === stop.id;
+                return (
+                  <div 
+                    key={`${stop.id}-${index}`}
+                    className="rounded-[6px] flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                    style={{ 
+                      width: '450px', 
+                      minHeight: isSelected ? '80px' : '52px',
+                      backgroundColor: '#2D2C31',
+                      paddingLeft: '16px',
+                      paddingRight: '16px',
+                    }}
+                    onClick={() => {
+                      if (shouldBlockClick()) return;
+                      if (isSelected) {
+                        setSelectedStop(null);
+                        setSelectedDirection(null);
+                      } else {
+                        setSelectedStop(stop.id);
+                        setSelectedDirection(null);
+                      }
+                    }}
+                    data-testid={`card-bus-stop-${stop.id}`}
+                  >
+                    <div className="flex flex-col flex-1 py-2">
+                      <span 
+                        style={{ 
+                          fontFamily: 'Helvetica, Arial, sans-serif',
+                          fontSize: '14px',
+                          color: '#FFFFFF',
+                        }}
+                      >
+                        {stop.name}
+                      </span>
+                      {isSelected && (
+                        <div className="flex gap-2 mt-2">
+                          <div
+                            className={`rounded-[4px] px-3 py-1 cursor-pointer ${selectedDirection === 'Uptown' ? 'bg-[#ffd200]' : 'bg-[#444]'}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedDirection('Uptown');
+                              // In edit mode, use editRow; otherwise default to row 1
+                              setSelectedRow(isEditMode ? (editRow || 1) : 1);
+                            }}
+                          >
+                            <span style={{ 
+                              fontFamily: 'Helvetica, Arial, sans-serif', 
+                              fontSize: '12px', 
+                              color: selectedDirection === 'Uptown' ? '#000' : '#FFF',
+                              fontWeight: 600,
+                            }}>
+                              {stop.headsign || 'Direction 1'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {canScrollDown && (
+            <div 
+              className="absolute z-20"
+              style={{ bottom: '-30px', left: '210px' }}
+            >
+              <ChevronDown className="w-5 h-5 text-white/60" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const renderSubView = () => {
     // Handle PATH route selection with colored vertical lines
@@ -2094,6 +2408,12 @@ export default function Settings() {
       return renderSubView();
     } else if (selectedGroup) {
       return renderSubView();
+    } else if (selectedBusRoute) {
+      return renderBusStopsView();
+    } else if (selectedBusBorough === 'select') {
+      return renderBusBoroughView();
+    } else if (selectedBusBorough) {
+      return renderBusRoutesView();
     } else {
       return renderMainView();
     }
@@ -2107,7 +2427,7 @@ export default function Settings() {
           style={{ width: '800px', height: '480px', padding: '15px 20px' }}
           data-testid="settings-main"
         >
-          {(selectedGroup || selectedLine || selectedRegionalService) && (
+          {(selectedGroup || selectedLine || selectedRegionalService || selectedBusBorough || selectedBusRoute) && (
             <div className="absolute top-[5px] left-[5px] z-30">
               <button 
                 onClick={handleBack}
@@ -2135,24 +2455,26 @@ export default function Settings() {
             </button>
           </div>
           <div className="absolute bottom-[-2px] right-[5px]">
-            {selectedDirection !== null && selectedRow !== null ? (
+            {selectedDirection !== null && selectedRow !== null && (selectedLine || selectedBusRoute) ? (
               <Link 
                 href="/" 
                 className="block p-4" 
                 data-testid="link-save"
                 onClick={() => {
-                  if (selectedStop && selectedDirection && selectedLine && selectedRow) {
-                    console.log(`Saving Row ${selectedRow} ${selectedDirection}:`, selectedStop);
+                  // Use selectedBusRoute as line for bus, otherwise use selectedLine
+                  const lineToSave = selectedBusRoute || selectedLine;
+                  if (selectedStop && selectedDirection && lineToSave && selectedRow) {
+                    console.log(`Saving Row ${selectedRow} ${selectedDirection}:`, selectedStop, 'Line:', lineToSave);
                     if (selectedRow === 1) {
-                      setRow1Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
+                      setRow1Station({ stop: selectedStop, direction: selectedDirection, line: lineToSave });
                     } else {
-                      setRow2Station({ stop: selectedStop, direction: selectedDirection, line: selectedLine });
+                      setRow2Station({ stop: selectedStop, direction: selectedDirection, line: lineToSave });
                     }
                     savePreferenceMutation.mutate({
                       row: selectedRow,
                       stop: selectedStop,
                       direction: selectedDirection,
-                      line: selectedLine,
+                      line: lineToSave,
                     });
                   }
                 }}

@@ -953,6 +953,249 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bus Routes API - fetches MTA bus routes filtered by borough
+  // Supports both /api/bus/routes/:borough and /api/bus/routes?borough=xxx
+  app.get("/api/bus/routes/:borough?", async (req, res) => {
+    try {
+      const apiKey = process.env.MTA_BUS_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "MTA Bus API key not configured" });
+      }
+
+      // Support both path param and query param
+      const borough = req.params.borough || (req.query.borough as string);
+      if (!borough) {
+        return res.status(400).json({ error: "Borough parameter required" });
+      }
+
+      // Borough to route prefix mapping
+      const boroughPrefixes: Record<string, string[]> = {
+        'manhattan': ['M'],
+        'brooklyn': ['B'],
+        'bronx': ['Bx'],
+        'queens': ['Q'],
+        'staten_island': ['S'],
+      };
+
+      const prefixes = boroughPrefixes[borough];
+      if (!prefixes) {
+        return res.status(400).json({ error: "Invalid borough" });
+      }
+
+      // Fetch all routes from MTA Bus Time API
+      const response = await fetch(
+        `https://bustime.mta.info/api/where/routes-for-agency/MTA%20NYCT.json?key=${apiKey}`
+      );
+
+      if (!response.ok) {
+        console.error(`MTA Bus API error (${response.status}): ${await response.text()}`);
+        return res.status(500).json({ error: "Failed to fetch bus routes" });
+      }
+
+      const data = await response.json();
+
+      // Filter routes by borough prefix
+      const routes = data.data?.list || [];
+      const filteredRoutes = routes
+        .filter((route: any) => {
+          const shortName = route.shortName || '';
+          return prefixes.some(prefix => shortName.startsWith(prefix));
+        })
+        .map((route: any) => ({
+          id: route.id,
+          shortName: route.shortName,
+          longName: route.longName || route.description || '',
+          description: route.description || '',
+        }))
+        .sort((a: any, b: any) => {
+          // Sort routes numerically, handling SBS suffix
+          const getNumber = (name: string) => {
+            const match = name.match(/\d+/);
+            return match ? parseInt(match[0]) : 999;
+          };
+          return getNumber(a.shortName) - getNumber(b.shortName);
+        });
+
+      res.json({ routes: filteredRoutes });
+    } catch (error) {
+      console.error("Error fetching bus routes:", error);
+      res.status(500).json({ error: "Failed to fetch bus routes" });
+    }
+  });
+
+  // Bus Stops API - fetches stops for a specific bus route
+  // Supports both /api/bus/stops/:routeId and /api/bus/stops?routeId=xxx
+  app.get("/api/bus/stops/:routeId?", async (req, res) => {
+    try {
+      const apiKey = process.env.MTA_BUS_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "MTA Bus API key not configured" });
+      }
+
+      // Support both path param and query param (URL decode since route IDs have spaces/special chars)
+      const routeId = req.params.routeId ? decodeURIComponent(req.params.routeId) : (req.query.routeId as string);
+      if (!routeId) {
+        return res.status(400).json({ error: "routeId parameter required" });
+      }
+
+      // Fetch stops for the route
+      const response = await fetch(
+        `https://bustime.mta.info/api/where/stops-for-route/${encodeURIComponent(routeId)}.json?key=${apiKey}&includePolylines=false&version=2`
+      );
+
+      if (!response.ok) {
+        console.error(`MTA Bus Stops API error (${response.status}): ${await response.text()}`);
+        return res.status(500).json({ error: "Failed to fetch bus stops" });
+      }
+
+      const data = await response.json();
+
+      // Extract stops from the response - organized by direction
+      const stopGroupings = data.data?.entry?.stopGroupings || [];
+      const stopsById: Record<string, any> = {};
+      
+      // Build stops lookup
+      for (const stop of data.data?.references?.stops || []) {
+        stopsById[stop.id] = stop;
+      }
+
+      // Organize stops by direction
+      const directions: any[] = [];
+      
+      for (const grouping of stopGroupings) {
+        if (grouping.type === 'direction') {
+          for (const group of grouping.stopGroups || []) {
+            const directionName = group.name?.name || group.id || 'Unknown';
+            const stopIds = group.stopIds || [];
+            const stops = stopIds
+              .map((id: string) => stopsById[id])
+              .filter((s: any) => s)
+              .map((s: any) => ({
+                id: s.id,
+                name: s.name,
+                code: s.code,
+                lat: s.lat,
+                lon: s.lon,
+              }));
+            
+            directions.push({
+              directionId: group.id,
+              directionName,
+              headsign: directionName,
+              stops,
+            });
+          }
+        }
+      }
+
+      res.json({ directions });
+    } catch (error) {
+      console.error("Error fetching bus stops:", error);
+      res.status(500).json({ error: "Failed to fetch bus stops" });
+    }
+  });
+
+  // Bus Arrivals API - fetches real-time arrivals for a stop
+  app.get("/api/bus/arrivals", async (req, res) => {
+    try {
+      const apiKey = process.env.MTA_BUS_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "MTA Bus API key not configured" });
+      }
+
+      const stopId = req.query.stopId as string;
+      const routeId = req.query.routeId as string; // Optional: filter by specific route (e.g., "MTA NYCT_M31")
+      if (!stopId) {
+        return res.status(400).json({ error: "stopId parameter required" });
+      }
+
+      // Extract short name from routeId for matching (e.g., "M31" from "MTA NYCT_M31")
+      const routeShortNameFilter = routeId ? routeId.split('_').pop() : null;
+
+      // Fetch real-time arrivals using SIRI stop monitoring
+      const response = await fetch(
+        `https://bustime.mta.info/api/siri/stop-monitoring.json?key=${apiKey}&MonitoringRef=${encodeURIComponent(stopId)}&MaximumStopVisits=10`
+      );
+
+      if (!response.ok) {
+        console.error(`MTA Bus Arrivals API error (${response.status}): ${await response.text()}`);
+        return res.status(500).json({ error: "Failed to fetch bus arrivals" });
+      }
+
+      const data = await response.json();
+
+      // Extract arrivals from SIRI response
+      const deliveries = data.Siri?.ServiceDelivery?.StopMonitoringDelivery || [];
+      const arrivals: any[] = [];
+      let stopName = '';
+
+      for (const delivery of deliveries) {
+        for (const visit of delivery.MonitoredStopVisit || []) {
+          const mvj = visit.MonitoredVehicleJourney;
+          if (!mvj) continue;
+          
+          // Get the stop name from the first visit
+          if (!stopName) {
+            stopName = mvj.MonitoredCall?.StopPointName?.[0] || '';
+          }
+
+          const routeShortName = mvj.PublishedLineName?.[0] || mvj.LineRef || '';
+          
+          // Filter by route if specified (match against short name or full LineRef)
+          if (routeShortNameFilter && routeShortName !== routeShortNameFilter) {
+            // Also check if LineRef contains the filter (e.g., "MTA NYCT_M31" contains "M31")
+            const lineRef = mvj.LineRef || '';
+            if (!lineRef.includes(routeShortNameFilter)) {
+              continue; // Skip arrivals from other routes
+            }
+          }
+          
+          const destinationName = mvj.DestinationName?.[0] || '';
+          
+          // Calculate minutes until arrival
+          let arrivalMinutes = null;
+          const expectedArrival = mvj.MonitoredCall?.ExpectedArrivalTime;
+          const expectedDeparture = mvj.MonitoredCall?.ExpectedDepartureTime;
+          const arrivalTime = expectedArrival || expectedDeparture;
+          
+          if (arrivalTime) {
+            const arrivalDate = new Date(arrivalTime);
+            const now = new Date();
+            arrivalMinutes = Math.max(0, Math.round((arrivalDate.getTime() - now.getTime()) / 60000));
+          }
+
+          // Get distance info
+          const distanceFromStop = mvj.MonitoredCall?.DistanceFromStop;
+          const stopsAway = mvj.MonitoredCall?.NumberOfStopsAway;
+          const presentableDistance = mvj.MonitoredCall?.Extensions?.Distances?.PresentableDistance;
+
+          arrivals.push({
+            routeId: mvj.LineRef,
+            routeShortName,
+            destinationName,
+            arrivalMinutes,
+            stopsAway,
+            distanceFromStop,
+            presentableDistance,
+            vehicleRef: mvj.VehicleRef,
+          });
+        }
+      }
+
+      // Sort by arrival time
+      arrivals.sort((a, b) => {
+        if (a.arrivalMinutes === null) return 1;
+        if (b.arrivalMinutes === null) return -1;
+        return a.arrivalMinutes - b.arrivalMinutes;
+      });
+
+      res.json({ arrivals: arrivals.slice(0, 6), stopName });
+    } catch (error) {
+      console.error("Error fetching bus arrivals:", error);
+      res.status(500).json({ error: "Failed to fetch bus arrivals" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

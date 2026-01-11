@@ -48,6 +48,7 @@ export type SubwayArrival = {
   subtitle: string;
   arrivalMinutes: number[];
   arrivalLines: string[];
+  isBus?: boolean;
 };
 
 export type WeatherData = {
