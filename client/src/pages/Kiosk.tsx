@@ -327,11 +327,28 @@ export default function Kiosk() {
 
         <section className="relative flex-1">
           <div className="flex flex-col justify-center items-start h-full">
-            <ClockDisplay format={settings?.clockFormat === "24hr" ? "24" : "12"} />
+            <div 
+              className="inline-block"
+              style={isEditMode ? { 
+                boxShadow: '0 0 0 3px #FFFFFF',
+                borderRadius: '12px',
+                padding: '8px 12px'
+              } : {}}
+            >
+              <ClockDisplay format={settings?.clockFormat === "24hr" ? "24" : "12"} />
+            </div>
           </div>
 
           <div data-testid="section-weather">
-            <div className="absolute" style={{ left: '490px', top: '50%', transform: 'translateY(calc(-50% - 3px))' }}>
+            <div 
+              className="absolute" 
+              style={{ 
+                left: '490px', 
+                top: '50%', 
+                transform: 'translateY(calc(-50% - 3px))',
+                ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
+              }}
+            >
               <WeatherTile
                 icon={displayWeather[0].icon}
                 temperature={displayWeather[0].temperature}
@@ -339,7 +356,15 @@ export default function Kiosk() {
                 time={displayWeather[0].time}
               />
             </div>
-            <div className="absolute" style={{ left: '606px', top: '50%', transform: 'translateY(calc(-50% - 3px))' }}>
+            <div 
+              className="absolute" 
+              style={{ 
+                left: '606px', 
+                top: '50%', 
+                transform: 'translateY(calc(-50% - 3px))',
+                ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
+              }}
+            >
               <WeatherTile
                 icon={displayWeather[1].icon}
                 temperature={displayWeather[1].temperature}
