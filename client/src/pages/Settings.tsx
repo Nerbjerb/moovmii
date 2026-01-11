@@ -33,7 +33,6 @@ import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 import lirrIcon from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
 import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
-import nycBusIcon from "@assets/moovmii/MTA Icons/mta-nyc-bus-white.svg";
 
 type LineItem = {
   id: string;
@@ -1565,9 +1564,7 @@ export default function Settings() {
               className="rounded-[6px] flex items-center justify-center" 
               style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
               data-testid="card-settings-11"
-            >
-              <img src={nycBusIcon} alt="NYC Bus" className="h-[32px] object-contain" />
-            </div>
+            />
           ) : null}
         </div>
       ))}
