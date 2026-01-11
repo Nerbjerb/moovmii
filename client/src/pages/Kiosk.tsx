@@ -348,12 +348,21 @@ export default function Kiosk() {
                 transform: 'translateY(calc(-50% - 3px))'
               }}
             >
-              <WeatherTile
-                icon={displayWeather[0].icon}
-                temperature={displayWeather[0].temperature}
-                description={displayWeather[0].description}
-                time={displayWeather[0].time}
-              />
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: '150px',
+                  height: '152px',
+                  ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
+                }}
+              >
+                <WeatherTile
+                  icon={displayWeather[0].icon}
+                  temperature={displayWeather[0].temperature}
+                  description={displayWeather[0].description}
+                  time={displayWeather[0].time}
+                />
+              </div>
             </div>
             <div 
               className="absolute" 
@@ -363,12 +372,21 @@ export default function Kiosk() {
                 transform: 'translateY(calc(-50% - 3px))'
               }}
             >
-              <WeatherTile
-                icon={displayWeather[1].icon}
-                temperature={displayWeather[1].temperature}
-                description={displayWeather[1].description}
-                time={displayWeather[1].time}
-              />
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: '150px',
+                  height: '152px',
+                  ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
+                }}
+              >
+                <WeatherTile
+                  icon={displayWeather[1].icon}
+                  temperature={displayWeather[1].temperature}
+                  description={displayWeather[1].description}
+                  time={displayWeather[1].time}
+                />
+              </div>
             </div>
           </div>
         </section>
