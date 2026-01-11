@@ -349,7 +349,7 @@ export default function TrackCard({
       // If text likely wraps to 2 lines, add extra space
       if (fullText.length > charsPerLine) {
         // Add roughly one line height worth of space
-        return `${baseTop + fontSize * 0.5}px`;
+        return `${baseTop + fontSize * 1.0}px`;
       }
     }
     
