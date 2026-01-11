@@ -1441,7 +1441,7 @@ export default function Settings() {
 
   const renderMainView = () => (
     <div className="flex flex-col gap-[8px]">
-      {[0, 1, 2, 3, 4].map((row) => (
+      {[0, 1, 2, 3, 4, 5].map((row) => (
         <div key={row} className="flex gap-[10px]">
           {row === 0 ? (
             <div 
@@ -1494,6 +1494,12 @@ export default function Settings() {
               <img src={trainJIcon} alt="J train" className="w-[38px] h-[38px]" />
               <img src={trainZIcon} alt="Z train" className="w-[38px] h-[38px]" />
             </div>
+          ) : row === 5 ? (
+            <div 
+              className="rounded-[6px] flex items-center justify-center" 
+              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+              data-testid="card-settings-10"
+            />
           ) : null}
           {row === 0 ? (
             <div 
@@ -1553,6 +1559,12 @@ export default function Settings() {
               <img src={pathIcon} alt="PATH" className="h-[26px] object-contain" />
               <img src={njTransitIcon} alt="NJ Transit" className="h-[16px] object-contain" />
             </div>
+          ) : row === 5 ? (
+            <div 
+              className="rounded-[6px] flex items-center justify-center" 
+              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+              data-testid="card-settings-11"
+            />
           ) : null}
         </div>
       ))}
