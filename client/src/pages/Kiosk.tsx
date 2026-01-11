@@ -340,7 +340,7 @@ export default function Kiosk() {
             <div 
               className="absolute" 
               style={{ 
-                left: '545px', 
+                left: '555px', 
                 top: '50%', 
                 transform: 'translateY(calc(-50% - 3px))'
               }}
@@ -366,7 +366,7 @@ export default function Kiosk() {
             <div 
               className="absolute" 
               style={{ 
-                left: '641px', 
+                left: '649px', 
                 top: '50%', 
                 transform: 'translateY(calc(-50% - 3px))'
               }}
