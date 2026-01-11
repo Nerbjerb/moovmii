@@ -239,7 +239,7 @@ export default function Kiosk() {
           data-testid="kiosk-main"
         >
         {/* Bottom left corner - Edit mode toggle */}
-        <div className="absolute bottom-[-20px] left-[-15px] z-20">
+        <div className="absolute bottom-[-5px] left-[2px] z-20">
           {isEditMode ? (
             <button 
               onClick={() => setIsEditMode(false)}
@@ -265,7 +265,7 @@ export default function Kiosk() {
           ) : (
             <button 
               onClick={() => setIsEditMode(true)}
-              className="block p-10 cursor-pointer"
+              className="block p-4 cursor-pointer"
               data-testid="button-enter-edit"
             >
               <Pencil className="w-6 h-6 text-white" data-testid="icon-pencil" />
