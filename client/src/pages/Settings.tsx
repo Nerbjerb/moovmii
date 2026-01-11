@@ -1952,28 +1952,7 @@ export default function Settings() {
                                     : selectedDirection}
                                 </span>
                               </div>
-                              {isEditMode ? (
-                                <div 
-                                  className="rounded-[6px] flex items-center justify-center"
-                                  style={{ 
-                                    width: '70px', 
-                                    height: '26px', 
-                                    backgroundColor: '#ffd200'
-                                  }}
-                                  data-testid={`edit-row-${editRow}-indicator`}
-                                >
-                                  <span 
-                                    className="font-medium"
-                                    style={{ 
-                                      fontFamily: 'Helvetica, Arial, sans-serif', 
-                                      fontSize: '11px',
-                                      color: '#000000'
-                                    }}
-                                  >
-                                    Row {editRow}
-                                  </span>
-                                </div>
-                              ) : (
+                              {isEditMode ? null : (
                                 <>
                                   <div 
                                     className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
