@@ -239,7 +239,7 @@ export default function Kiosk() {
           data-testid="kiosk-main"
         >
         {/* Settings/Edit mode toggle - bottom right corner */}
-        <div className="absolute bottom-[-5px] right-[2px] z-20">
+        <div className="absolute bottom-[-5px] right-[-1px] z-20">
           {isEditMode ? (
             <button 
               onClick={() => setIsEditMode(false)}
