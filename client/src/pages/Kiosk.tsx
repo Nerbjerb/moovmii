@@ -239,15 +239,15 @@ export default function Kiosk() {
           data-testid="kiosk-main"
         >
         {/* Bottom left corner - Edit mode toggle */}
-        <div className="absolute bottom-[-5px] left-[2px]">
+        <div className="absolute bottom-[-10px] left-[-5px]">
           {isEditMode ? (
             <button 
               onClick={() => setIsEditMode(false)}
-              className="block p-4"
+              className="block p-6 cursor-pointer"
               data-testid="button-cancel-edit"
             >
               <div 
-                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                className="rounded-[6px] flex items-center justify-center hover:opacity-80 transition-opacity"
                 style={{ 
                   width: '70px', 
                   height: '28px', 
@@ -265,7 +265,7 @@ export default function Kiosk() {
           ) : (
             <button 
               onClick={() => setIsEditMode(true)}
-              className="block p-4 cursor-pointer"
+              className="block p-6 cursor-pointer"
               data-testid="button-enter-edit"
             >
               <Pencil className="w-6 h-6 text-white" data-testid="icon-pencil" />
