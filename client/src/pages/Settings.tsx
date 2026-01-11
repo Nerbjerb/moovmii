@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useSearch } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Home, Square, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
+import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, Car } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getStopId } from "@shared/stopMetadata";
 import { usePressScroll } from "@/hooks/use-press-scroll";
@@ -1580,6 +1580,27 @@ export default function Settings() {
           ) : null}
         </div>
       ))}
+      
+      {/* Driving box - centered under the bottom row */}
+      <div className="flex justify-center mt-[8px]">
+        <div 
+          className="rounded-[6px] flex items-center justify-center gap-3"
+          style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+          data-testid="card-settings-12"
+        >
+          <span 
+            style={{ 
+              fontFamily: 'Helvetica, Arial, sans-serif',
+              fontSize: '18px',
+              fontWeight: 600,
+              color: '#FFFFFF'
+            }}
+          >
+            Driving
+          </span>
+          <Car className="w-[28px] h-[28px] text-white" />
+        </div>
+      </div>
     </div>
   );
 
