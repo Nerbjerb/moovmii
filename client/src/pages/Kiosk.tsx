@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Settings } from "lucide-react";
+import { Settings, Pencil } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
@@ -237,6 +237,13 @@ export default function Kiosk() {
           style={{ width: '800px', height: '480px' }}
           data-testid="kiosk-main"
         >
+        {/* Pencil icon - bottom left corner */}
+        <div className="absolute bottom-[-5px] left-[2px]">
+          <div className="block p-4">
+            <Pencil className="w-6 h-6 text-white" data-testid="icon-pencil" />
+          </div>
+        </div>
+
         {/* Settings icon - bottom right corner */}
         <div className="absolute bottom-[-5px] right-[2px]">
           <Link href="/settings" className="block p-4" data-testid="link-settings">
