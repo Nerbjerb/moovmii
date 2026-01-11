@@ -1505,7 +1505,7 @@ export default function Settings() {
                 <img 
                   src={mtaBusIcon} 
                   alt="MTA NYC Bus" 
-                  style={{ height: '63px', objectFit: 'contain', marginTop: '-33px' }} 
+                  style={{ height: '63px', objectFit: 'contain', marginTop: '-33px', filter: 'brightness(0) invert(1)' }} 
                 />
               </div>
             </div>
