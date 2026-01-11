@@ -391,12 +391,12 @@ export default function Kiosk() {
         <svg 
           className="absolute left-1/2 -translate-x-1/2"
           style={{ bottom: '0px' }}
-          width="100" 
+          width="85" 
           height="40" 
-          viewBox="0 0 100 40"
+          viewBox="0 0 85 40"
           fill="white"
         >
-          <path d="M0 40 L0 38 L10 38 Q20 38 20 28 L20 12 Q20 2 30 2 L70 2 Q80 2 80 12 L80 28 Q80 38 90 38 L100 38 L100 40 Z" />
+          <path d="M0 40 L0 38 L10 38 Q20 38 20 28 L20 12 Q20 2 30 2 L55 2 Q65 2 65 12 L65 28 Q65 38 75 38 L85 38 L85 40 Z" />
         </svg>
       </div>
     </div>
