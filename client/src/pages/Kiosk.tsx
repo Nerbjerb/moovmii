@@ -386,6 +386,19 @@ export default function Kiosk() {
           </div>
         </section>
         </main>
+        
+        {/* White rounded plateau at bottom center */}
+        <div 
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{ 
+            bottom: '12px',
+            width: '120px',
+            height: '6px',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '3px',
+            opacity: 0.6
+          }}
+        />
       </div>
     </div>
   );
