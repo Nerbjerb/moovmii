@@ -324,12 +324,15 @@ export default function Kiosk() {
           <div className="flex flex-col justify-center items-start h-full">
             <div 
               className={`inline-flex items-center ${isEditMode ? 'cursor-pointer' : ''}`}
-              style={isEditMode ? { 
-                boxShadow: '0 0 0 3px #FFFFFF',
-                borderRadius: '12px',
-                padding: '8px 12px',
-                height: '169px'
-              } : {}}
+              style={{
+                transform: 'translateY(-2px)',
+                ...(isEditMode ? { 
+                  boxShadow: '0 0 0 3px #FFFFFF',
+                  borderRadius: '12px',
+                  padding: '8px 12px',
+                  height: '169px'
+                } : {})
+              }}
               onClick={() => isEditMode && setLocation('/clock-settings')}
               data-testid="clock-edit-area"
             >
