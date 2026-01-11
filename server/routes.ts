@@ -1130,6 +1130,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await response.json();
 
+      // Helper to extract string from SIRI fields (can be array or string)
+      const getSiriString = (field: any): string => {
+        if (!field) return '';
+        if (Array.isArray(field)) return field[0] || '';
+        return String(field);
+      };
+
       // Extract arrivals from SIRI response
       const deliveries = data.Siri?.ServiceDelivery?.StopMonitoringDelivery || [];
       const arrivals: any[] = [];
@@ -1142,10 +1149,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Get the stop name from the first visit
           if (!stopName) {
-            stopName = mvj.MonitoredCall?.StopPointName?.[0] || '';
+            stopName = getSiriString(mvj.MonitoredCall?.StopPointName);
           }
 
-          const routeShortName = mvj.PublishedLineName?.[0] || mvj.LineRef || '';
+          const routeShortName = getSiriString(mvj.PublishedLineName) || mvj.LineRef || '';
           
           // Filter by route if specified (match against short name or full LineRef)
           if (routeShortNameFilter && routeShortName !== routeShortNameFilter) {
@@ -1156,7 +1163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
-          const destinationName = mvj.DestinationName?.[0] || '';
+          const destinationName = getSiriString(mvj.DestinationName);
           
           // Calculate minutes until arrival
           let arrivalMinutes = null;
