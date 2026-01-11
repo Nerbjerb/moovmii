@@ -9,7 +9,6 @@ import GridOverlay from "@/components/GridOverlay";
 import type { SubwayArrival, WeatherData, KioskPreference, KioskSettings } from "@shared/schema";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
-import moovmiiLogo from "@assets/image_1768104152171.png";
 
 export default function Kiosk() {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -387,23 +386,6 @@ export default function Kiosk() {
           </div>
         </section>
         </main>
-        
-        {/* moovmii logo at bottom center */}
-        <div 
-          className="absolute left-1/2 -translate-x-1/2"
-          style={{ bottom: '8px' }}
-        >
-          <img 
-            src={moovmiiLogo} 
-            alt="moovmii" 
-            style={{ 
-              height: '28px', 
-              objectFit: 'contain',
-              filter: 'brightness(0) invert(1)',
-              mixBlendMode: 'screen'
-            }} 
-          />
-        </div>
       </div>
     </div>
   );
