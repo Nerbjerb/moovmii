@@ -1,225 +1,43 @@
 # moovmii Transit Kiosk
 
 ## Overview
-
-moovmii is a real-time NYC subway transit display kiosk application designed for always-on screens. It provides glanceable information about subway arrivals, weather forecasts, and time display, optimized for readability from a distance. The application uses a reference-based design approach inspired by NYC MTA digital displays, Citymapper, and Transit app, combined with modern kiosk interface patterns.
+moovmii is a real-time NYC subway transit display kiosk application designed for always-on screens. It provides glanceable information about subway arrivals, weather forecasts, and time display. The application is optimized for readability from a distance, drawing inspiration from NYC MTA digital displays, Citymapper, and Transit app, combined with modern kiosk interface patterns. It aims to offer instant comprehension of transit information, designed for persistent display in public spaces.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
 ### Frontend Architecture
-
-**Framework & Build System**
-- **React 18** with TypeScript for component-based UI development
-- **Vite** as the build tool and development server with hot module replacement
-- **Wouter** for client-side routing (lightweight alternative to React Router)
-- **TanStack Query** for data fetching and state management (currently unused but scaffolded)
-
-**UI Component Library**
-- **Radix UI** primitives for accessible, unstyled UI components
-- **shadcn/ui** component system built on Radix UI with Tailwind CSS styling
-- Custom kiosk-specific components: `TrackCard`, `ClockDisplay`, `WeatherTile`, `KioskControls`
-
-**Styling System**
-- **Tailwind CSS** with custom configuration for kiosk-optimized design
-- Custom CSS variables for light mode theming
-- Typography system optimized for distance readability (160px clock display, 72px arrival minutes, 44px destination names)
-- High contrast dark backgrounds with light content cards
-- Spacing units: 18px card padding, consistent gap spacing throughout
-
-**Design Principles**
-- Distance readability: Critical information readable from 10+ feet away
-- High contrast: Dark background (#0b0b0b) with dark gray train cards (#2D2C31) and white text
-- Instant comprehension: Users should grasp arrival times within 1 second
-- Persistent display: Designed for always-on kiosk screens, not browsing sessions
+The frontend is built with **React 18** and **TypeScript**, using **Vite** for building and development. **Wouter** handles client-side routing. UI components leverage **Radix UI** primitives and **shadcn/ui** for accessible, styled components, with custom components for kiosk-specific displays. **Tailwind CSS** is used for styling, optimized for distance readability with high-contrast dark backgrounds and large typography. The design prioritizes distance readability, high contrast, and instant comprehension for always-on kiosk displays.
 
 ### Backend Architecture
-
-**Server Framework**
-- **Express.js** server with TypeScript
-- Vite middleware integration for development with HMR
-- Static file serving for production builds
-
-**Data Layer**
-- **Drizzle ORM** configured for PostgreSQL database interaction
-- Schema defined in `shared/schema.ts` with types for `SubwayArrival` and `WeatherData`
-- Currently using in-memory storage (`MemStorage` class) as a placeholder
-- User authentication scaffolding present but not actively used
-
-**API Structure**
-- RESTful API routes prefixed with `/api`
-- Request/response logging middleware
-- Currently minimal routes implemented (scaffolded in `server/routes.ts`)
-
-**Data Models**
-- `SubwayArrival`: direction, line, destination, subtitle, arrivalMinutes array, arrivalLines array
-- `WeatherData`: icon, temperature, description, time
-- `User`: id, username, password (scaffolded for future authentication)
-
-### External Dependencies
-
-**Third-party Assets**
-- **MTA Subway Bullets**: SVG icons for NYC subway lines (N, W trains currently used)
-  - Located in `attached_assets/moovmii/MTA Icons/`
-  - Provides optimized SVG and PNG formats for all subway lines
-  - Custom build process using SVGO for optimization
-
-- **Weather Icons**: SVG icons for weather conditions
-  - Located in `attached_assets/moovmii/Weather Icons/`
-  - Supports 222 weather-themed icons
-  - Currently using: sun, rain, showers, cloudy, snow, thunderstorm, fog, windy
-
-**Database**
-- **Neon Serverless PostgreSQL** (via `@neondatabase/serverless` package)
-- Database URL expected in `DATABASE_URL` environment variable
-- Drizzle migrations stored in `./migrations` directory
-
-**Development Tools**
-- **Replit-specific plugins**: cartographer, dev-banner, runtime-error-modal for enhanced development experience
-- **ESBuild** for server-side code bundling in production
-
-**External APIs**
-- **OpenWeatherMap API**: Live weather data for NYC (Broadway, Astoria coordinates: 40.7614, -73.9176)
-  - 5-day/3-hour forecast endpoint with imperial units
-  - Automatic 10-minute refresh interval on frontend
-  - Weather icon mapping system supporting 50+ conditions with day/night variants
-  - Comprehensive condition code mapping in `shared/weatherIconMapper.ts`
-- **MTA GTFS Real-time Feed**: Live subway arrival data for N/W trains at Broadway-Astoria
-  - GTFS-realtime Protocol Buffer format from `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw`
-  - No API key required (publicly accessible as of 2025)
-  - Stop IDs: R05N (Northbound/Uptown), R05S (Southbound/Downtown)
-  - Chronological arrival display: N and W train arrivals merged and sorted by time for each direction
-  - Mixed line sequence: 2nd and 3rd cards show next consecutive trains regardless of line (e.g., N, W, N)
-  - Headsign extraction: Uses actual trip headsigns from GTFS feed with fallback to defaults
-  - Zero-minute arrivals: Trains arriving now (0 minutes) display "1 Min" instead of "0 Min"
-  - Automatic 30-second refresh interval on frontend
-  - Uses `gtfs-realtime-bindings` package to decode Protocol Buffer data
-- **LIRR Real-time Feed**: Live LIRR train arrivals
-  - Feed URL: `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/lirr%2Fgtfs-lirr`
-  - No API key required
-  - 10 branches supported: Babylon, Hempstead, Oyster Bay, Ronkonkoma, Montauk, Long Beach, Far Rockaway, West Hempstead, Port Washington, Port Jefferson
-  - Each branch is treated separately (no merging between branches)
-  - Stop IDs are numeric (no N/S suffix like subway)
-  - Branch IDs mapped: LIRR-1 through LIRR-10
-- **Metro-North Real-time Feed**: Live Metro-North train arrivals
-  - Feed URL: `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/mnr%2Fgtfs-mnr`
-  - No API key required
-  - 6 lines supported: Hudson, Harlem, New Haven, New Canaan, Danbury, Waterbury
-  - Each line treated separately (no merging between lines)
-  - Stop IDs are numeric (no N/S suffix like subway)
-  - Line IDs mapped: MNR-1 through MNR-6
-- **PATH Real-time API**: Live PATH train arrivals
-  - API URL: `https://www.panynj.gov/bin/portauthority/ridepath.json` (official PANYNJ API)
-  - Same data source as official RidePATH website for accurate times
-  - No API key required
-  - All 13 PATH stations supported: Newark, Harrison, JSQ, Grove St, Newport, Exchange Place, Hoboken, WTC, Christopher St, 9th St, 14th St, 23rd St, 33rd St
-  - Station codes mapped from GTFS IDs to PANYNJ codes (e.g., 26728→GRV for Grove St)
-  - Direction terminology: "To NY" (Manhattan-bound) / "To NJ" (New Jersey-bound)
-  - API returns arrival times in seconds, headsigns, and line colors
-  - Automatic 30-second refresh interval on frontend
-- **MTA Service Alerts API**: Service disruption alerts for subway lines
-  - Feed URL: `https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Fsubway-alerts`
-  - No API key required (uses URL-encoded path format)
-  - Returns GTFS-realtime Protocol Buffer data with active alerts by route
-  - Automatic 60-second refresh interval on frontend
-  - Alert indicator: Yellow triangle with exclamation mark (25×25px) appears on train logo when line has active alerts
-  - Expandable alert view: Click on train logo/alert icon to expand card to 752px width (full container width with equal margins)
-  - When expanded: 2nd/3rd arrival cards hidden, destination/subtitle/minutes hidden, alert text displayed
-  - Alert text: 20px Helvetica font, scrollable container (95px max-height) for long descriptions
-  - Click-to-dismiss: Click anywhere on expanded card to close
-  - Graceful fallback: No alerts shown if API is unavailable
-- All external APIs accessed server-side via `/api` endpoints
+The backend uses an **Express.js** server with **TypeScript**. It integrates with Vite for development and serves static files in production. The data layer utilizes **Drizzle ORM** for PostgreSQL interaction, with in-memory storage used as a placeholder. The API is RESTful, with routes prefixed by `/api`. Data models include `SubwayArrival`, `WeatherData`, and a scaffolded `User` model.
 
 ### Key Architectural Decisions
+- **Monorepo Structure**: Shared types and schemas are organized in a `shared/` directory, accessible to both client and server, with path aliases for clean imports.
+- **Static Asset Management**: Assets are stored in `attached_assets/` and integrated via Vite aliases.
+- **Kiosk Display Mode**: Designed for an 800x480 pixel display, with a fixed 12-hour clock format and no navigation controls.
+- **Real-time Updates**: Data is continuously refreshed: clock (always 12-hour), weather every 10 minutes, and subway arrivals every 30 seconds.
+- **NYC Timezone Handling**: All times are displayed in NYC Eastern Time, using `Intl.DateTimeFormat` for DST-safe conversion.
+- **Fixed Element Positioning**: UI elements within `TrackCard` use fixed absolute positioning to prevent shifting during content updates.
+- **Performance Optimizations**: React Query is configured with disabled refetching (`staleTime: Infinity`) and minimal re-renders.
+- **Settings Page - Station Selection**: A dedicated `/settings` route allows users to hierarchically select and assign transit stations and directions to display rows. The UI dynamically adjusts direction terminology (e.g., Uptown/Downtown, Inbound/Outbound) and uses MTA-style flag indicators.
+- **Edit Mode**: A dedicated edit mode allows modification of displayed routes, saving selections to the database, and redirecting back to the kiosk view.
+- **Dynamic Arrivals Integration**: Kiosk loads user preferences to fetch dynamic arrival data. Arrivals from same-color lines are merged and displayed chronologically. Default preferences are used if none are set.
 
-**Monorepo Structure**
-- Shared types and schemas in `shared/` directory accessible to both client and server
-- Path aliases configured (`@/`, `@shared/`, `@assets/`) for clean imports
-- TypeScript configuration enables type safety across the entire stack
+## External Dependencies
 
-**Static Asset Management**
-- Assets stored in `attached_assets/` directory
-- Vite alias configuration (`@assets`) for clean asset imports
-- SVG icons imported directly into React components for better bundling
-
-**Kiosk Display Mode**
-- Clean 800x480 pixel kiosk display without navigation or controls
-- Removed moovmii logo, grid rulers, and time format toggle
-- Clock fixed to 12-hour format for consistent kiosk display
-
-**Real-time Updates**
-- Clock always displays in 12-hour format (AM/PM)
-- Weather data fetched every 10 minutes from OpenWeatherMap API
-- Weather forecast shows next round hour in NYC time + 3 hours ahead
-- Subway arrival data fetched every 30 seconds from MTA GTFS real-time feed
-- Live N/W train arrivals at Broadway-Astoria station (R05) displayed with up to 3 upcoming trains per direction
-- Mixed chronological sequence: All three arrival cards (main, 2nd, 3rd) show the next trains in time order regardless of line (e.g., N, W, N)
-- Each card displays the appropriate train line icon (N or W) based on which train is arriving
-- Zero-minute arrivals display "1 Min" to indicate trains arriving imminently
-
-**NYC Timezone Handling**
-- All weather times displayed in NYC Eastern Time (America/New_York)
-- Uses `Intl.DateTimeFormat` with `formatToParts` for DST-safe timezone conversion
-- Finds first future forecast at a round NYC hour (minute = 0)
-- Works correctly on any server timezone (not dependent on UTC environment)
-- Automatically handles DST transitions (EST ↔ EDT)
-- Day/night icon selection based on NYC hour (6 AM - 6 PM = day)
-
-**Fixed Element Positioning**
-- TrackCard uses fixed absolute positioning for all elements (icon, destination, subtitle, arrival minutes)
-- Card dimensions: 570px width × 115px height
-- Icon positioned at left: 24px, top: 18px with transform: translate(-35px, -10px)
-- Destination text positioned at left: 120px with transform: translate(-30px, -90px)
-- Subtitle text positioned at left: 120px with transform: translate(-30px/-29px, -165px)
-- Arrival minutes positioned at right: 24px with transform: translate(-30px, -10px)
-- Static positioning ensures elements don't shift when content changes
-- Both cards (Uptown/Downtown) use identical fixed positioning for visual consistency
-
-**Performance Optimizations**
-- React Query configured with disabled refetching (staleTime: Infinity)
-- Component examples isolated in `client/src/components/examples/` for development
-- Minimal re-renders through proper React patterns
-- Fixed positioning eliminates dynamic layout recalculations
-
-**Settings Page - Station Selection**
-- Located at `/settings` route
-- Hierarchical navigation: Line groups → Individual lines → Station stops
-- Selection workflow: Click station → Choose direction → Assign to Row 1 or Row 2
-- Selection state stores `{stop, direction, line}` for each row assignment
-- Direction terminology varies by service:
-  - Most subway lines: Uptown/Downtown
-  - 7 train: Inbound (towards 34 St-Hudson Yards) / Outbound (towards Flushing-Main St)
-  - L train: Inbound (towards 8 Av) / Outbound (towards Canarsie-Rockaway Pkwy)
-  - J/Z trains: Inbound (towards Broad St) / Outbound (towards Jamaica Center)
-  - LIRR: Inbound (towards Manhattan) / Outbound (away from Manhattan)
-  - Metro-North: Inbound (towards Grand Central) / Outbound (away from Grand Central)
-  - PATH: To NY (towards Manhattan) / To NJ (towards New Jersey)
-- Internal state always uses Uptown/Downtown, UI displays appropriate terminology
-- Universal favorite selection: Selecting a station on one line automatically shows flag on same-color lines
-  - Color groups: NQRW (yellow), ACE (blue), 123 (red), 456 (green), BDFM (orange), JZ (brown), 7 (purple), L (gray), G (light green)
-  - Regional services (SIR, LIRR, MetroNorth, PATH, NJT) are isolated and don't cross-propagate
-  - Example: Selecting Broadway on N train shows flag when viewing W train (both yellow)
-- MTA-style flag indicators with CSS clip-path polygon shapes
-- Station list includes all NYC subway lines with scrollable interface
-
-**Edit Mode (Kiosk Screen)**
-- Pencil icon in bottom-left corner enters edit mode
-- In edit mode: Pencil replaced with Cancel button (70px×28px, #2D2C31), fullscreen icon hidden
-- Track rows display yellow box-shadow highlight and "Edit Row 1" / "Edit Row 2" overlays
-- Clicking a row navigates to `/settings?editRow={rowNumber}` with pre-selected row context
-- Edit mode preserves selectedRow throughout the selection flow (handlers guarded with `!isEditMode`)
-- After selecting station/direction, Save button appears and saves directly to the specified row
-- Saving redirects back to kiosk with updated preferences
-
-**Dynamic Arrivals Integration**
-- Settings selections are saved to database via `/api/preferences` endpoint
-- Kiosk loads preferences on mount and fetches arrivals for each row dynamically
-- Same-color line merging: Selecting a station shows arrivals from ALL same-color lines chronologically
-  - Example: 59 St-Columbus Circle Downtown on A train shows both A and C train arrivals merged
-  - Arrivals sorted by time, so 2nd and 3rd cards may show different lines (A, C, A)
-- Fallback: If no preferences set, defaults to Broadway-Astoria N/W trains
-- Stop metadata in `shared/stopMetadata.ts` maps station names to GTFS stop IDs
-- Feed URL mapping fetches correct MTA GTFS feeds for each line group
+- **Database**: **Neon Serverless PostgreSQL** via `@neondatabase/serverless`.
+- **Third-party Assets**:
+  - **MTA Subway Bullets**: SVG icons for NYC subway lines from `attached_assets/moovmii/MTA Icons/`.
+  - **Weather Icons**: SVG icons for various weather conditions from `attached_assets/moovmii/Weather Icons/`.
+- **External APIs**:
+  - **OpenWeatherMap API**: Live weather data for NYC, refreshed every 10 minutes.
+  - **MTA GTFS Real-time Feed**: Live subway arrival data for N/W trains at Broadway-Astoria, refreshed every 30 seconds. Uses `gtfs-realtime-bindings`.
+  - **LIRR Real-time Feed**: Live LIRR train arrivals.
+  - **Metro-North Real-time Feed**: Live Metro-North train arrivals.
+  - **PATH Real-time API**: Live PATH train arrivals from `www.panynj.gov`, refreshed every 30 seconds.
+  - **MTA Service Alerts API**: Service disruption alerts for subway lines, refreshed every 60 seconds, with an expandable alert view.
+  - **MTA Bus Time API**: Live bus arrival data for NYC bus routes, requiring an API key, refreshed every 30 seconds.
+- **Development Tools**: Replit-specific plugins, **ESBuild** for server-side bundling.
