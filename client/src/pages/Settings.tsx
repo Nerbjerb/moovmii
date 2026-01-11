@@ -2076,24 +2076,6 @@ export default function Settings() {
 
           {renderCurrentView()}
 
-          {!selectedGroup && !selectedLine && !selectedRegionalService && (
-            <>
-              <div 
-                style={{ width: '760px', height: '1px', backgroundColor: '#4a4a4a', marginTop: '20px' }}
-                data-testid="separator-line"
-              />
-
-              <Link href="/advanced-settings" data-testid="link-advanced-settings">
-                <div 
-                  className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" 
-                  style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31', marginTop: '17px' }}
-                  data-testid="card-settings-bottom"
-                >
-                  <span className="text-white text-xl font-bold" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Advanced Settings</span>
-                </div>
-              </Link>
-            </>
-          )}
 
           <div className="absolute bottom-[-2px] left-[5px]">
             <button 
