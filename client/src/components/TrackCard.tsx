@@ -283,8 +283,8 @@ export default function TrackCard({
   // Buses: Show empty direction (headsign shown in destination)
   const getDisplayDirection = () => {
     if (isBusLine(line)) {
-      // For buses, we don't show Uptown/Downtown - the destination already shows the headsign
-      return 'Bus';
+      // For buses, show the destination (e.g., "Astoria", "Sunnyside")
+      return displayDestination || 'Bus';
     }
     if (isPathLine(line)) {
       if (direction === 'Uptown' || direction === 'To NY') return 'To NY';
@@ -489,7 +489,7 @@ export default function TrackCard({
               transform: 'translate(-30px, -80px)'
             }}
           >
-            {displayDestination}
+            {isBusLine(line) ? `Towards: ${displayDestination}` : displayDestination}
           </div>
         )}
 
@@ -504,7 +504,7 @@ export default function TrackCard({
               transform: isDowntown ? 'translate(-30px, -110px)' : 'translate(-29px, -110px)'
             }}
           >
-            {subtitle}
+            {isBusLine(line) ? `Stop: ${subtitle}` : subtitle}
           </div>
         )}
 
