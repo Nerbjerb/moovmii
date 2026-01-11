@@ -28,15 +28,20 @@ export default function GridOverlay({
   }
 
   return (
-    <>
+    <div 
+      className="absolute pointer-events-none"
+      style={{ 
+        zIndex: 9999,
+        width: `${width}px`,
+        height: `${height}px`,
+        left: 0,
+        top: 0
+      }}
+    >
+      {/* Grid lines */}
       <div 
-        className="fixed pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{ 
-          zIndex: 9999,
-          width: `${width}px`,
-          height: `${height}px`,
-          left: 0,
-          top: 0,
           backgroundImage: `
             linear-gradient(to right, ${color} 1px, transparent 1px),
             linear-gradient(to bottom, ${color} 1px, transparent 1px)
@@ -51,15 +56,12 @@ export default function GridOverlay({
         <>
           {/* Top edge markers */}
           <div 
-            className="fixed pointer-events-none"
+            className="absolute pointer-events-none"
             style={{ 
-              zIndex: 10000,
               left: 0,
               top: '-25px',
               width: `${width}px`,
-              height: '25px',
-              display: 'flex',
-              position: 'relative'
+              height: '25px'
             }}
           >
             {horizontalMarkers.map(x => (
@@ -92,15 +94,12 @@ export default function GridOverlay({
           
           {/* Bottom edge markers */}
           <div 
-            className="fixed pointer-events-none"
+            className="absolute pointer-events-none"
             style={{ 
-              zIndex: 10000,
               left: 0,
               top: `${height}px`,
               width: `${width}px`,
-              height: '25px',
-              display: 'flex',
-              position: 'relative'
+              height: '25px'
             }}
           >
             {horizontalMarkers.map(x => (
@@ -133,14 +132,12 @@ export default function GridOverlay({
           
           {/* Left edge markers */}
           <div 
-            className="fixed pointer-events-none"
+            className="absolute pointer-events-none"
             style={{ 
-              zIndex: 10000,
               left: '-35px',
               top: 0,
               width: '35px',
-              height: `${height}px`,
-              position: 'relative'
+              height: `${height}px`
             }}
           >
             {verticalMarkers.map(y => (
@@ -173,14 +170,12 @@ export default function GridOverlay({
           
           {/* Right edge markers */}
           <div 
-            className="fixed pointer-events-none"
+            className="absolute pointer-events-none"
             style={{ 
-              zIndex: 10000,
               left: `${width}px`,
               top: 0,
               width: '35px',
-              height: `${height}px`,
-              position: 'relative'
+              height: `${height}px`
             }}
           >
             {verticalMarkers.map(y => (
@@ -213,9 +208,8 @@ export default function GridOverlay({
           
           {/* Border outline */}
           <div 
-            className="fixed pointer-events-none"
+            className="absolute pointer-events-none"
             style={{
-              zIndex: 9998,
               left: 0,
               top: 0,
               width: `${width}px`,
@@ -226,6 +220,6 @@ export default function GridOverlay({
           />
         </>
       )}
-    </>
+    </div>
   );
 }
