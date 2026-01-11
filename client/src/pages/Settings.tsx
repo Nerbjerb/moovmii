@@ -1585,7 +1585,7 @@ export default function Settings() {
       <div className="flex justify-center">
         <div 
           className="rounded-[6px] flex items-center justify-center gap-3"
-          style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+          style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31', paddingRight: '8px' }}
           data-testid="card-settings-12"
         >
           <Car className="w-[28px] h-[28px] text-white" />
