@@ -1588,6 +1588,7 @@ export default function Settings() {
           style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
           data-testid="card-settings-12"
         >
+          <Car className="w-[28px] h-[28px] text-white" />
           <span 
             style={{ 
               fontFamily: 'Helvetica, Arial, sans-serif',
@@ -1598,7 +1599,6 @@ export default function Settings() {
           >
             Driving
           </span>
-          <Car className="w-[28px] h-[28px] text-white" />
         </div>
       </div>
     </div>
