@@ -265,7 +265,7 @@ export default function Kiosk() {
           ) : (
             <button 
               onClick={() => setIsEditMode(true)}
-              className="block p-10 cursor-pointer"
+              className="block p-10 cursor-pointer bg-red-500/30"
               data-testid="button-enter-edit"
             >
               <Pencil className="w-6 h-6 text-white" data-testid="icon-pencil" />
