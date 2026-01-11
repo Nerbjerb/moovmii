@@ -335,17 +335,40 @@ export default function TrackCard({
     return { fontSize: `${baseSize}px` };
   };
   
-  // Calculate direction text style - shrink for long text to fit in strip
-  const getDirectionStyle = () => {
+  // Canonical direction labels that should never wrap - show on single line
+  const CANONICAL_DIRECTIONS = ['Downtown', 'Uptown', 'Inbound', 'Outbound', 'To NY', 'To NJ'];
+  
+  // Calculate direction text style - different behavior for canonical vs other directions
+  const getDirectionStyle = (): React.CSSProperties => {
     const dirText = getDisplayDirection();
+    
+    // For canonical directions: single line, no wrap, shrink to fit
+    if (CANONICAL_DIRECTIONS.includes(dirText)) {
+      return {
+        fontSize: '13px',
+        letterSpacing: '0.08em',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden'
+      };
+    }
+    
+    // For other directions (bus destinations, etc.): allow 2-line wrap
     const len = dirText.length;
-    // Card height is 115px, so max text height is ~100px
     // Shrink text more aggressively for longer strings
-    if (len > 14) return { fontSize: '10px' };
-    if (len > 12) return { fontSize: '11px' };
-    if (len > 10) return { fontSize: '13px' };
-    if (len > 8) return { fontSize: '15px' };
-    return { fontSize: '17px' };
+    let fontSize = '17px';
+    if (len > 14) fontSize = '10px';
+    else if (len > 12) fontSize = '11px';
+    else if (len > 10) fontSize = '13px';
+    else if (len > 8) fontSize = '15px';
+    
+    return {
+      fontSize,
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical',
+      overflow: 'hidden',
+      wordBreak: 'break-word'
+    };
   };
 
   return (
@@ -374,16 +397,11 @@ export default function TrackCard({
             }}
           >
             <div 
-              className="font-medium tracking-[0.10em] text-white text-center"
+              className="font-medium text-white text-center"
               style={{ 
-                fontSize: getDirectionStyle().fontSize,
                 width: '105px',
                 lineHeight: '1.15',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                wordBreak: 'break-word'
+                ...getDirectionStyle()
               }}
               data-testid="text-direction"
             >
