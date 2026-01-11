@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Settings, Pencil } from "lucide-react";
+import { Settings, Pencil, X } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
@@ -249,17 +249,12 @@ export default function Kiosk() {
               <div 
                 className="rounded-[6px] flex items-center justify-center hover:opacity-80 transition-opacity"
                 style={{ 
-                  width: '70px', 
+                  width: '28px', 
                   height: '28px', 
                   backgroundColor: '#2D2C31'
                 }}
               >
-                <span 
-                  className="font-bold"
-                  style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', color: '#FFFFFF' }}
-                >
-                  Cancel
-                </span>
+                <X className="w-5 h-5 text-white" />
               </div>
             </button>
           ) : (
