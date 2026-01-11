@@ -401,9 +401,9 @@ export default function TrackCard({
               className="font-medium text-white text-center"
               style={{ 
                 width: '105px',
-                height: '41px',
+                height: '31px',
                 lineHeight: '1.15',
-                backgroundColor: 'rgba(0, 255, 0, 0.3)', // DEBUG: Green = text area (105x41)
+                backgroundColor: 'rgba(0, 255, 0, 0.3)', // DEBUG: Green = text area (105x31)
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
