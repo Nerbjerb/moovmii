@@ -1707,7 +1707,7 @@ export default function Settings() {
               return (
                 <div 
                   key={borough.id}
-                  className={`rounded-[6px] flex items-center justify-center ${!isPlaceholder ? 'cursor-pointer hover:opacity-80' : 'opacity-50'} transition-opacity`}
+                  className={`rounded-[6px] flex items-center justify-center gap-3 ${!isPlaceholder ? 'cursor-pointer hover:opacity-80' : ''} transition-opacity`}
                   style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
                   onClick={() => !isPlaceholder && setSelectedBusBorough(borough.id)}
                   data-testid={`card-bus-borough-${borough.id}`}
@@ -1722,6 +1722,21 @@ export default function Settings() {
                   >
                     {borough.name}
                   </span>
+                  {isPlaceholder && (
+                    <span 
+                      className="rounded-full px-2 py-0.5"
+                      style={{ 
+                        backgroundColor: '#FFD200',
+                        fontFamily: 'Helvetica, Arial, sans-serif',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        color: '#000000',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      Coming Soon
+                    </span>
+                  )}
                 </div>
               );
             })}
