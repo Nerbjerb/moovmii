@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useSearch } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, CarFront } from "lucide-react";
+import resolutionIcon from "@assets/image_1772664658561.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getStopId } from "@shared/stopMetadata";
 import { usePressScroll } from "@/hooks/use-press-scroll";
@@ -2618,7 +2619,7 @@ export default function Settings() {
           {renderCurrentView()}
 
 
-          <div className="absolute bottom-[-2px] left-[5px]">
+          <div className="absolute bottom-[-2px] left-[5px] flex flex-row items-center">
             <button 
               onClick={toggleFullscreen}
               className="cursor-pointer p-4"
@@ -2629,6 +2630,9 @@ export default function Settings() {
                 fill={isFullscreen ? '#ffd200' : 'none'}
               />
             </button>
+            <div className="p-4" data-testid="icon-resolution">
+              <img src={resolutionIcon} alt="Resolution" className="w-6 h-6" style={{ filter: 'invert(1)' }} />
+            </div>
           </div>
           <div className="absolute bottom-[-2px] right-[5px]">
             {selectedDirection !== null && selectedRow !== null && (selectedLine || selectedBusRoute) ? (

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { ArrowLeft, Square } from "lucide-react";
+import resolutionIcon from "@assets/image_1772664658561.png";
 import { queryClient } from "@/lib/queryClient";
 import type { KioskSettings } from "@shared/schema";
 
@@ -138,7 +139,7 @@ export default function ClockSettings() {
             </div>
           </div>
 
-          <div className="absolute bottom-[-2px] left-[5px]">
+          <div className="absolute bottom-[-2px] left-[5px] flex flex-row items-center">
             <button 
               onClick={toggleFullscreen}
               className="cursor-pointer p-4"
@@ -149,6 +150,9 @@ export default function ClockSettings() {
                 fill={isFullscreen ? '#ffd200' : 'none'}
               />
             </button>
+            <div className="p-4" data-testid="icon-resolution">
+              <img src={resolutionIcon} alt="Resolution" className="w-6 h-6" style={{ filter: 'invert(1)' }} />
+            </div>
           </div>
         </main>
       </div>
