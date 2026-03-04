@@ -1267,6 +1267,8 @@ export default function Settings() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showResolutionPanel, setShowResolutionPanel] = useState(false);
   const [selectedResolution, setSelectedResolution] = useState(() => localStorage.getItem('kioskResolution') || '800x480');
+  const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6 };
+  const kioskScale = scaleMap[selectedResolution] || 1;
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedRegionalService, setSelectedRegionalService] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
@@ -2600,7 +2602,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
-      <div className="relative fullscreen-container">
+      <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: 'center center' }}>
         <main 
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative min-h-0"
           style={{ width: '800px', height: '480px', padding: '15px 20px' }}

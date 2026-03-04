@@ -14,6 +14,9 @@ export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [, setLocation] = useLocation();
 
+  const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6 };
+  const [kioskScale] = useState(() => scaleMap[localStorage.getItem('kioskResolution') || '800x480'] || 1);
+
   // Fetch preferences
   const { data: preferences } = useQuery<KioskPreference[]>({
     queryKey: ['/api/preferences'],
@@ -272,7 +275,7 @@ export default function Kiosk() {
 
   return (
     <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
-      <div className="relative fullscreen-container">
+      <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: 'center center' }}>
         <main 
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative"
           style={{ width: '800px', height: '480px', overflow: 'visible' }}
