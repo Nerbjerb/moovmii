@@ -1265,6 +1265,8 @@ export default function Settings() {
   const isEditMode = editRow !== null;
 
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showResolutionPanel, setShowResolutionPanel] = useState(false);
+  const [selectedResolution, setSelectedResolution] = useState(() => localStorage.getItem('kioskResolution') || '800x480');
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedRegionalService, setSelectedRegionalService] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState<string | null>(null);
@@ -2618,6 +2620,37 @@ export default function Settings() {
 
           {renderCurrentView()}
 
+          {showResolutionPanel && (
+            <div className="absolute inset-0 z-50 bg-[#0b0b0b] flex flex-col justify-center items-center gap-[8px]" style={{ padding: '15px 20px' }}>
+              <p style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '13px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Display Resolution</p>
+              {(['800x480', '1024x600', '1280x800'] as const).map((res) => {
+                const [w, h] = res.split('x');
+                const isSelected = selectedResolution === res;
+                return (
+                  <div
+                    key={res}
+                    className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                    style={{
+                      width: '760px',
+                      height: '58px',
+                      backgroundColor: '#2D2C31',
+                      border: isSelected ? '2px solid #ffd200' : '2px solid transparent',
+                    }}
+                    onClick={() => {
+                      localStorage.setItem('kioskResolution', res);
+                      setSelectedResolution(res);
+                      setShowResolutionPanel(false);
+                    }}
+                    data-testid={`button-resolution-${res}`}
+                  >
+                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '20px', fontWeight: 700, color: isSelected ? '#ffd200' : '#ffffff' }}>
+                      {w} × {h}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="absolute bottom-[-2px] left-[5px] flex flex-row items-center">
             <button 
@@ -2630,9 +2663,13 @@ export default function Settings() {
                 fill={isFullscreen ? '#ffd200' : 'none'}
               />
             </button>
-            <div className="p-4" data-testid="icon-resolution">
-              <img src={resolutionIcon} alt="Resolution" className="w-6 h-6" style={{ filter: 'invert(1)' }} />
-            </div>
+            <button
+              className="cursor-pointer p-4"
+              onClick={() => setShowResolutionPanel(prev => !prev)}
+              data-testid="button-resolution-toggle"
+            >
+              <img src={resolutionIcon} alt="Resolution" className="w-6 h-6" style={{ filter: showResolutionPanel ? 'invert(1) sepia(1) saturate(10) hue-rotate(3deg)' : 'invert(1)' }} />
+            </button>
           </div>
           <div className="absolute bottom-[-2px] right-[5px]">
             {selectedDirection !== null && selectedRow !== null && (selectedLine || selectedBusRoute) ? (
