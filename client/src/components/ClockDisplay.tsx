@@ -37,7 +37,7 @@ export default function ClockDisplay({ format }: ClockDisplayProps) {
   };
 
   return (
-    <div className="text-white text-[160px] font-bold leading-[0.85] tracking-tight" data-testid="text-clock">
+    <div className="text-red-500 text-[160px] font-bold leading-[0.85] tracking-tight" data-testid="text-clock">
       {formatTime()}
     </div>
   );
