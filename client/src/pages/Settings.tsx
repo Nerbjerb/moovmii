@@ -1267,7 +1267,7 @@ export default function Settings() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showResolutionPanel, setShowResolutionPanel] = useState(false);
   const [selectedResolution, setSelectedResolution] = useState(() => localStorage.getItem('kioskResolution') || '800x480');
-  const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6 };
+  const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
   const kioskScale = scaleMap[selectedResolution] || 1;
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedRegionalService, setSelectedRegionalService] = useState<string | null>(null);
@@ -2625,7 +2625,7 @@ export default function Settings() {
           {showResolutionPanel && (
             <div className="absolute inset-0 z-50 bg-[#0b0b0b] flex flex-col justify-center items-center gap-[8px]" style={{ padding: '15px 20px' }}>
               <p style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '13px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Display Resolution</p>
-              {(['800x480', '1024x600', '1280x800'] as const).map((res) => {
+              {(['800x480', '1024x600', '1280x800', '1920x1080'] as const).map((res) => {
                 const [w, h] = res.split('x');
                 const isSelected = selectedResolution === res;
                 return (
