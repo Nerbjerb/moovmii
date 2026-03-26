@@ -1,17 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface ClockDisplayProps {
   format: "12" | "24";
+  hideAmPm?: boolean;
 }
 
-export default function ClockDisplay({ format }: ClockDisplayProps) {
+export default function ClockDisplay({ format, hideAmPm }: ClockDisplayProps) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-
+    const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -24,11 +22,11 @@ export default function ClockDisplay({ format }: ClockDisplayProps) {
       let h12 = hours % 12;
       if (h12 === 0) h12 = 12;
       const timeStr = `${String(h12).padStart(2, " ")}:${String(minutes).padStart(2, "0")}`;
-      
+
       return (
         <span>
           {timeStr}
-          <span className="text-[70px] ml-4 align-top">{ampm}</span>
+          {!hideAmPm && <span className="text-[70px] ml-4 align-top">{ampm}</span>}
         </span>
       );
     } else {

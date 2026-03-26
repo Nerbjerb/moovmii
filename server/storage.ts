@@ -81,6 +81,7 @@ export class MemStorage implements IStorage {
       kioskId,
       temperatureUnit: "fahrenheit",
       clockFormat: "12hr",
+      transportRows: 2,
     };
   }
 
@@ -93,6 +94,7 @@ export class MemStorage implements IStorage {
       kioskId,
       temperatureUnit: settings.temperatureUnit || "fahrenheit",
       clockFormat: settings.clockFormat || "12hr",
+      transportRows: settings.transportRows ?? 2,
     };
     this.settings.set(kioskId, newSettings);
     return newSettings;

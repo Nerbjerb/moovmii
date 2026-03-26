@@ -7,6 +7,9 @@ import Kiosk from "@/pages/Kiosk";
 import Settings from "@/pages/Settings";
 import ClockSettings from "@/pages/ClockSettings";
 import WeatherSettings from "@/pages/WeatherSettings";
+import OtherSettings from "@/pages/OtherSettings";
+import SettingsMenu from "@/pages/SettingsMenu";
+import WiFiSetup from "@/pages/WiFiSetup";
 
 function Router() {
   return (
@@ -15,6 +18,9 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/clock-settings" component={ClockSettings} />
       <Route path="/weather-settings" component={WeatherSettings} />
+      <Route path="/other-settings" component={OtherSettings} />
+      <Route path="/settings-menu" component={SettingsMenu} />
+      <Route path="/wifi" component={WiFiSetup} />
     </Switch>
   );
 }

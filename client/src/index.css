@@ -172,6 +172,7 @@
 
   body {
     @apply antialiased bg-background text-foreground;
+    overflow: hidden;
   }
 }
 

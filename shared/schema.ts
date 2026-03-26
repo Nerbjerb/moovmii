@@ -64,6 +64,7 @@ export const kioskSettings = pgTable("kiosk_settings", {
   kioskId: varchar("kiosk_id").notNull().default("default").unique(),
   temperatureUnit: text("temperature_unit").notNull().default("fahrenheit"), // "fahrenheit" or "celsius"
   clockFormat: text("clock_format").notNull().default("12hr"), // "12hr" or "24hr"
+  transportRows: integer("transport_rows").notNull().default(2), // 2, 3, or 4
 });
 
 export const insertKioskSettingsSchema = createInsertSchema(kioskSettings).omit({

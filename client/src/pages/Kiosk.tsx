@@ -1,18 +1,23 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Settings, X } from "lucide-react";
+import { Settings } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
-import type { SubwayArrival, WeatherData, KioskPreference, KioskSettings } from "@shared/schema";
+import type { SubwayArrival, KioskPreference, KioskSettings } from "@shared/schema";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
+import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 
 export default function Kiosk() {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [isEditMode, setIsEditMode] = useState(false);
   const [, setLocation] = useLocation();
+  useEffect(() => {
+    if (!localStorage.getItem("wifi_connected")) {
+      setLocation("/wifi");
+    }
+  }, []);
 
   const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
   const [kioskScale] = useState(() => scaleMap[localStorage.getItem('kioskResolution') || '800x480'] || 1);
@@ -33,9 +38,13 @@ export default function Kiosk() {
     queryKey: ['/api/settings'],
   });
 
+  const transportRows = settings?.transportRows ?? 2;
+
   // Get preferences for each row
   const row1Pref = preferences?.find(p => p.row === 1);
   const row2Pref = preferences?.find(p => p.row === 2);
+  const row3Pref = preferences?.find(p => p.row === 3);
+  const row4Pref = preferences?.find(p => p.row === 4);
 
   // Build query parameters for dynamic arrivals (subway, PATH, or bus)
   const getArrivalsQueryKey = (pref: KioskPreference | undefined, rowNum: number) => {
@@ -79,7 +88,7 @@ export default function Kiosk() {
   };
 
   // Fetch real weather data from OpenWeatherMap
-  const { data: weatherData, isLoading: isWeatherLoading } = useQuery<Array<{
+  const { data: weatherData } = useQuery<Array<{
     icon: WeatherIconName;
     temperature: string;
     description: string;
@@ -118,7 +127,7 @@ export default function Kiosk() {
 
   // Fetch real-time arrivals for row 1 (subway, PATH, or bus)
   const row1QueryKey = getArrivalsQueryKey(row1Pref, 1);
-  const { data: row1Arrivals, isLoading: isRow1Loading } = useQuery<SubwayArrival>({
+  const { data: row1Arrivals } = useQuery<SubwayArrival>({
     queryKey: row1QueryKey,
     queryFn: async () => {
       const params = row1QueryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean };
@@ -141,25 +150,56 @@ export default function Kiosk() {
 
   // Fetch real-time arrivals for row 2 (subway, PATH, or bus)
   const row2QueryKey = getArrivalsQueryKey(row2Pref, 2);
-  const { data: row2Arrivals, isLoading: isRow2Loading } = useQuery<SubwayArrival>({
+  const { data: row2Arrivals } = useQuery<SubwayArrival>({
     queryKey: row2QueryKey,
     queryFn: async () => {
       const params = row2QueryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean };
-      if (params.isBus) {
-        return transformBusArrivals(params);
-      }
-      let url: string;
-      if (params.isPATH) {
-        url = `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`;
-      } else {
-        url = `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
-      }
+      if (params.isBus) return transformBusArrivals(params);
+      const url = params.isPATH
+        ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
+        : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch arrivals');
       return res.json();
     },
-    refetchInterval: 30 * 1000, // Refresh every 30 seconds
+    refetchInterval: 30 * 1000,
     enabled: true,
+  });
+
+  // Fetch real-time arrivals for row 3
+  const row3QueryKey = getArrivalsQueryKey(row3Pref, 3);
+  const { data: row3Arrivals } = useQuery<SubwayArrival>({
+    queryKey: row3QueryKey,
+    queryFn: async () => {
+      const params = row3QueryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean };
+      if (params.isBus) return transformBusArrivals(params);
+      const url = params.isPATH
+        ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
+        : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch arrivals');
+      return res.json();
+    },
+    refetchInterval: 30 * 1000,
+    enabled: transportRows >= 3,
+  });
+
+  // Fetch real-time arrivals for row 4
+  const row4QueryKey = getArrivalsQueryKey(row4Pref, 4);
+  const { data: row4Arrivals } = useQuery<SubwayArrival>({
+    queryKey: row4QueryKey,
+    queryFn: async () => {
+      const params = row4QueryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean };
+      if (params.isBus) return transformBusArrivals(params);
+      const url = params.isPATH
+        ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
+        : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch arrivals');
+      return res.json();
+    },
+    refetchInterval: 30 * 1000,
+    enabled: transportRows >= 4,
   });
 
   // Check if any line in the same-color group has an alert
@@ -205,24 +245,18 @@ export default function Kiosk() {
   };
 
   // Combine arrivals for display
+  const fallback = (direction: string, line: string): SubwayArrival => ({
+    direction, line, destination: "Loading...", subtitle: "", arrivalMinutes: [], arrivalLines: [],
+  });
   const subwayData: SubwayArrival[] = [
-    row1Arrivals || {
-      direction: "Uptown",
-      line: "N",
-      destination: "Loading...",
-      subtitle: "",
-      arrivalMinutes: [],
-      arrivalLines: [],
-    },
-    row2Arrivals || {
-      direction: "Downtown",
-      line: "W",
-      destination: "Loading...",
-      subtitle: "",
-      arrivalMinutes: [],
-      arrivalLines: [],
-    },
+    row1Arrivals || fallback("Uptown", "N"),
+    row2Arrivals || fallback("Downtown", "W"),
+    ...(transportRows >= 3 ? [row3Arrivals || fallback("Uptown", "N")] : []),
+    ...(transportRows >= 4 ? [row4Arrivals || fallback("Downtown", "W")] : []),
   ];
+
+  // Row height: 4-row mode uses shorter rows to fit above the settings gear
+  const rowHeight = transportRows === 4 ? 97 : undefined;
 
   // Fallback weather data while loading
   const defaultWeather: Array<{
@@ -255,14 +289,6 @@ export default function Kiosk() {
     temperature: convertTemperature(w.temperature),
   }));
 
-  useEffect(() => {
-    // Update current time every minute
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-
-    return () => clearInterval(timeInterval);
-  }, []);
 
   const handleRowClick = (rowIndex: number) => {
     if (isEditMode) {
@@ -284,24 +310,20 @@ export default function Kiosk() {
         {/* Settings/Edit mode toggle - bottom right corner */}
         <div className="absolute bottom-[-5px] right-[-1px] z-20">
           {isEditMode ? (
-            <button 
+            <button
               onClick={() => setIsEditMode(false)}
               className="block p-4 cursor-pointer"
               data-testid="button-cancel-edit"
             >
-              <div 
+              <div
                 className="rounded-[6px] flex items-center justify-center hover:opacity-80 transition-opacity"
-                style={{ 
-                  width: '28px', 
-                  height: '28px', 
-                  backgroundColor: '#2D2C31'
-                }}
+                style={{ width: '28px', height: '28px', backgroundColor: '#2D2C31' }}
               >
-                <X className="w-5 h-5 text-white" />
+                <Settings className="w-5 h-5 text-white" />
               </div>
             </button>
           ) : (
-            <button 
+            <button
               onClick={() => setIsEditMode(true)}
               className="block p-4 cursor-pointer"
               data-testid="button-enter-edit"
@@ -311,66 +333,127 @@ export default function Kiosk() {
           )}
         </div>
 
-        <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
-          {subwayData.map((track, idx) => (
-            <div
-              key={idx}
-              onClick={() => handleRowClick(idx)}
-              className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
-              data-testid={`track-row-${idx}`}
-            >
-              <TrackCard
-                direction={track.direction}
-                line={track.line}
-                destination={track.destination}
-                subtitle={track.subtitle}
-                arrivalMinutes={track.arrivalMinutes}
-                arrivalLines={track.arrivalLines}
-                isDowntown={idx === 1}
-                hasAlert={hasAlertForLine(track.line)}
-                alertDescriptions={getAlertDescriptions(track.line)}
-                isBus={track.isBus}
-              />
-              {isEditMode && (
-                <div 
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                  style={{ 
-                    backgroundColor: 'rgba(255, 210, 0, 0.1)',
-                    borderRadius: '12px'
-                  }}
-                >
-                  <div 
-                    className="rounded-[6px] px-4 py-2"
-                    style={{ backgroundColor: '#ffd200' }}
+        {transportRows >= 3 ? (
+          /* 3 or 4 row mode: fill entire content area, no clock/weather */
+          <section
+            className="flex flex-col items-start justify-center"
+            style={{ gap: '9px', height: '400px' }}
+            data-testid="section-tracks"
+          >
+            {subwayData.map((track, idx) => (
+              <div
+                key={idx}
+                onClick={() => handleRowClick(idx)}
+                className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
+                data-testid={`track-row-${idx}`}
+              >
+                <TrackCard
+                  direction={track.direction}
+                  line={track.line}
+                  destination={track.destination}
+                  subtitle={track.subtitle}
+                  arrivalMinutes={track.arrivalMinutes}
+                  arrivalLines={track.arrivalLines}
+                  isDowntown={idx % 2 === 1}
+                  hasAlert={hasAlertForLine(track.line)}
+                  alertDescriptions={getAlertDescriptions(track.line)}
+                  isBus={track.isBus}
+                  rowHeight={rowHeight}
+                />
+                {isEditMode && (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
                   >
-                    <span 
-                      className="font-bold text-black"
-                      style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}
-                    >
-                      Edit Row {idx + 1}
-                    </span>
+                    <div className="rounded-[6px] px-4 py-2" style={{ backgroundColor: '#ffd200' }}>
+                      <span className="font-bold text-black" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}>
+                        Edit Row {idx + 1}
+                      </span>
+                    </div>
                   </div>
+                )}
+              </div>
+            ))}
+          </section>
+        ) : (
+          /* 2 row mode: original layout with clock and weather */
+          <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
+            {subwayData.map((track, idx) => (
+              <div
+                key={idx}
+                onClick={() => handleRowClick(idx)}
+                className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
+                data-testid={`track-row-${idx}`}
+              >
+                <TrackCard
+                  direction={track.direction}
+                  line={track.line}
+                  destination={track.destination}
+                  subtitle={track.subtitle}
+                  arrivalMinutes={track.arrivalMinutes}
+                  arrivalLines={track.arrivalLines}
+                  isDowntown={idx === 1}
+                  hasAlert={hasAlertForLine(track.line)}
+                  alertDescriptions={getAlertDescriptions(track.line)}
+                  isBus={track.isBus}
+                />
+                {isEditMode && (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
+                  >
+                    <div className="rounded-[6px] px-4 py-2" style={{ backgroundColor: '#ffd200' }}>
+                      <span className="font-bold text-black" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}>
+                        Edit Row {idx + 1}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+
+        {transportRows < 3 && <section className="relative flex-1">
+          <div className="flex flex-col justify-center items-start h-full">
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '25px', ...(isEditMode ? { width: '527px' } : {}) }}>
+              <div
+                className={`inline-flex items-center flex-shrink-0 ${isEditMode ? 'cursor-pointer' : ''}`}
+                style={{
+                  transform: 'translateY(-2px)',
+                  padding: '8px 12px',
+                  height: '169px',
+                  borderRadius: '12px',
+                  ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF' } : {})
+                }}
+                onClick={() => isEditMode && setLocation('/clock-settings')}
+                data-testid="clock-edit-area"
+              >
+                <ClockDisplay
+                  format={settings?.clockFormat === "24hr" ? "24" : "12"}
+                  hideAmPm={isEditMode}
+                />
+              </div>
+              {isEditMode && (
+                <div
+                  className="cursor-pointer"
+                  style={{
+                    flex: 1,
+                    height: '85px',
+                    borderRadius: '8px',
+                    boxShadow: '0 0 0 3px #FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onClick={() => setLocation('/other-settings')}
+                  data-testid="other-settings-edit-area"
+                >
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '19px', fontWeight: 600, color: '#FFFFFF', textAlign: 'center' }}>
+                    Other Settings
+                  </span>
                 </div>
               )}
-            </div>
-          ))}
-        </section>
-
-        <section className="relative flex-1">
-          <div className="flex flex-col justify-center items-start h-full">
-            <div 
-              className={`inline-flex items-center ${isEditMode ? 'cursor-pointer' : ''}`}
-              style={{
-                transform: 'translateY(-2px)',
-                padding: '8px 12px',
-                height: '169px',
-                borderRadius: '12px',
-                ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF' } : {})
-              }}
-              onClick={() => isEditMode && setLocation('/clock-settings')}
-              data-testid="clock-edit-area"
-            >
-              <ClockDisplay format={settings?.clockFormat === "24hr" ? "24" : "12"} />
             </div>
           </div>
 
@@ -428,7 +511,12 @@ export default function Kiosk() {
               </div>
             </div>
           </div>
-        </section>
+        </section>}
+        {!isEditMode && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none">
+            <img src={moovmiiLogoV2} alt="moovmii" style={{ height: 18 }} />
+          </div>
+        )}
         </main>
       </div>
     </div>

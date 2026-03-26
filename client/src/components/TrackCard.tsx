@@ -48,6 +48,7 @@ interface TrackCardProps {
   hasAlert?: boolean;
   alertDescriptions?: string[];
   isBus?: boolean;
+  rowHeight?: number;
 }
 
 // Map all subway lines to their icons
@@ -121,9 +122,13 @@ export default function TrackCard({
   hasAlert = false,
   alertDescriptions = [],
   isBus = false,
+  rowHeight,
 }: TrackCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const iconSrc = lineIcons[line];
+  const cardHeight = rowHeight ?? 115;
+  const iconSize = Math.round(cardHeight * 96 / 115);
+  const iconTop = Math.round(cardHeight * 18 / 115);
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
   const [firstLine, secondLine, thirdLine] = arrivalLines || [];
   
@@ -399,10 +404,11 @@ export default function TrackCard({
   return (
     <div className="relative flex items-center gap-[9px]" onClick={handleCardClick}>
       {/* Main card - front layer with fixed positioning */}
-      <Card 
-        className={`relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 h-[115px] transition-all duration-300 ${
+      <Card
+        className={`relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 transition-all duration-300 ${
           isExpanded ? 'w-[752px]' : 'w-[510px]'
         }`}
+        style={{ height: rowHeight ? `${rowHeight}px` : '115px' }}
       >
         {/* Direction label - left strip */}
         <div className="absolute left-0 top-0 w-10 h-full bg-[#2D2C31] rounded-l-[9px] overflow-hidden">
@@ -410,11 +416,11 @@ export default function TrackCard({
           <div
             style={{
               position: 'absolute',
-              width: '115px',
+              width: `${cardHeight}px`,
               height: '41px',
               top: '0',
               left: '-0.5px',
-              transform: 'rotate(-90deg) translateX(-115px)',
+              transform: `rotate(-90deg) translateX(-${cardHeight}px)`,
               transformOrigin: 'top left',
               display: 'flex',
               alignItems: 'center',
@@ -441,10 +447,10 @@ export default function TrackCard({
 
         {/* Train icon - absolute positioned, clickable when alert exists */}
         <div 
-          className={`absolute w-24 h-24 rounded-full flex items-center justify-center ${
+          className={`absolute rounded-full flex items-center justify-center ${
             hasAlert && alertDescriptions.length > 0 ? 'cursor-pointer' : ''
           }`}
-          style={{ left: '67px', top: '18px' }}
+          style={{ left: '67px', top: `${iconTop}px`, width: `${iconSize}px`, height: `${iconSize}px` }}
           onClick={(e) => {
             if (hasAlert && alertDescriptions.length > 0) {
               e.stopPropagation();
@@ -555,9 +561,9 @@ export default function TrackCard({
           {hasAlert && (
             <div 
               className="absolute"
-              style={{ 
-                right: '45px', 
-                bottom: '17px',
+              style={{
+                right: '45px',
+                bottom: rowHeight ? '8px' : '17px',
                 width: '25px',
                 height: '25px',
               }}
@@ -632,7 +638,7 @@ export default function TrackCard({
             className="absolute w-[140px] text-center flex flex-col" 
             style={{ right: '4px', top: '18px', transform: 'translateY(-10px)' }}
           >
-            <div className="text-[85px] font-bold leading-[0.8] text-white">
+            <div className="font-bold leading-[0.8] text-white" style={{ fontSize: rowHeight ? '64px' : '85px' }}>
               {firstArrivalData.value}
             </div>
             <div className="text-xl mt-1 text-white">{firstArrivalData.unit}</div>
@@ -678,7 +684,7 @@ export default function TrackCard({
       {!isExpanded && (
         <div className="flex gap-[9px] items-center z-40">
           {secondArrival !== undefined && (
-          <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
+          <div className="bg-[#2D2C31] rounded-[6px] w-[113px] flex flex-col items-center justify-center gap-1 z-40" style={{ height: rowHeight ? `${rowHeight}px` : '115px' }}>
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {secondLine && isPathLine(secondLine) ? (
                 <img 
@@ -759,7 +765,7 @@ export default function TrackCard({
         )}
 
         {thirdArrival !== undefined && (
-          <div className="bg-[#2D2C31] rounded-[6px] h-[115px] w-[113px] flex flex-col items-center justify-center gap-1 z-40">
+          <div className="bg-[#2D2C31] rounded-[6px] w-[113px] flex flex-col items-center justify-center gap-1 z-40" style={{ height: rowHeight ? `${rowHeight}px` : '115px' }}>
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               {thirdLine && isPathLine(thirdLine) ? (
                 <img 

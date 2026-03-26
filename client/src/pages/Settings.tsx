@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useSearch } from "wouter";
+import { Link, useSearch, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, CarFront } from "lucide-react";
+import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, CarFront, Settings as SettingsIcon } from "lucide-react";
 import resolutionIcon from "@assets/image_1772664658561.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getStopId } from "@shared/stopMetadata";
 import { usePressScroll } from "@/hooks/use-press-scroll";
-import type { KioskPreference } from "@shared/schema";
+import type { KioskPreference, KioskSettings } from "@shared/schema";
 import train1Icon from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2Icon from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3Icon from "@assets/moovmii/MTA Icons/src/svg/3.svg";
@@ -36,6 +36,7 @@ import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_w
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
 import mtaBusIcon from "@assets/MTA_Regional_Bus_logo.svg_1768100704004.png";
 import nycFerryIcon from "@assets/NYC_Ferry_Horizontal_White_1768103579529.png";
+import citibikeIcon from "@assets/citibike logo.png";
 
 type LineItem = {
   id: string;
@@ -1257,11 +1258,12 @@ const groups: GroupItem[] = [
 ];
 
 export default function Settings() {
+  const [, navigate] = useLocation();
   // Parse query params for edit mode
   const searchString = useSearch();
   const searchParams = new URLSearchParams(searchString);
   const editRowParam = searchParams.get('editRow');
-  const editRow = editRowParam ? (parseInt(editRowParam) as 1 | 2) : null;
+  const editRow = editRowParam ? (parseInt(editRowParam) as 1 | 2 | 3 | 4) : null;
   const isEditMode = editRow !== null;
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -1278,9 +1280,11 @@ export default function Settings() {
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
   const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
+  const [row3Station, setRow3Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
+  const [row4Station, setRow4Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'Uptown' | 'Downtown' | null>(null);
   // In edit mode, pre-set the row; otherwise null until user selects
-  const [selectedRow, setSelectedRow] = useState<1 | 2 | null>(editRow);
+  const [selectedRow, setSelectedRow] = useState<1 | 2 | 3 | 4 | null>(editRow);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const stopsContainerRef = useRef<HTMLDivElement>(null);
@@ -1293,6 +1297,10 @@ export default function Settings() {
   // Load preferences from API
   const { data: preferences } = useQuery<KioskPreference[]>({
     queryKey: ['/api/preferences'],
+  });
+
+  const { data: settings } = useQuery<KioskSettings>({
+    queryKey: ['/api/settings'],
   });
 
   // Load bus routes for selected borough
@@ -1312,18 +1320,34 @@ export default function Settings() {
     if (preferences) {
       const row1Pref = preferences.find(p => p.row === 1);
       const row2Pref = preferences.find(p => p.row === 2);
+      const row3Pref = preferences.find(p => p.row === 3);
+      const row4Pref = preferences.find(p => p.row === 4);
       if (row1Pref) {
-        setRow1Station({ 
-          stop: row1Pref.stop, 
-          direction: row1Pref.direction as 'Uptown' | 'Downtown', 
-          line: row1Pref.line 
+        setRow1Station({
+          stop: row1Pref.stop,
+          direction: row1Pref.direction as 'Uptown' | 'Downtown',
+          line: row1Pref.line
         });
       }
       if (row2Pref) {
-        setRow2Station({ 
-          stop: row2Pref.stop, 
-          direction: row2Pref.direction as 'Uptown' | 'Downtown', 
-          line: row2Pref.line 
+        setRow2Station({
+          stop: row2Pref.stop,
+          direction: row2Pref.direction as 'Uptown' | 'Downtown',
+          line: row2Pref.line
+        });
+      }
+      if (row3Pref) {
+        setRow3Station({
+          stop: row3Pref.stop,
+          direction: row3Pref.direction as 'Uptown' | 'Downtown',
+          line: row3Pref.line
+        });
+      }
+      if (row4Pref) {
+        setRow4Station({
+          stop: row4Pref.stop,
+          direction: row4Pref.direction as 'Uptown' | 'Downtown',
+          line: row4Pref.line
         });
       }
     }
@@ -1500,190 +1524,93 @@ export default function Settings() {
 
   const renderMainView = () => (
     <div className="flex flex-col gap-[8px]">
-      {[0, 1, 2, 3, 4, 5].map((row) => (
-        <div key={row} className="flex gap-[10px]">
-          {row === 0 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("123")}
-              data-testid="card-settings-0"
-            >
-              <img src={train1Icon} alt="1 train" className="w-[38px] h-[38px]" />
-              <img src={train2Icon} alt="2 train" className="w-[38px] h-[38px]" />
-              <img src={train3Icon} alt="3 train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 1 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("7")}
-              data-testid="card-settings-2"
-            >
-              <img src={train7Icon} alt="7 train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 2 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("bdfm")}
-              data-testid="card-settings-4"
-            >
-              <img src={trainBIcon} alt="B train" className="w-[38px] h-[38px]" />
-              <img src={trainDIcon} alt="D train" className="w-[38px] h-[38px]" />
-              <img src={trainFIcon} alt="F train" className="w-[38px] h-[38px]" />
-              <img src={trainMIcon} alt="M train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 3 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("l")}
-              data-testid="card-settings-6"
-            >
-              <img src={trainLIcon} alt="L train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 4 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("jz")}
-              data-testid="card-settings-8"
-            >
-              <img src={trainJIcon} alt="J train" className="w-[38px] h-[38px]" />
-              <img src={trainZIcon} alt="Z train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 5 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => setSelectedBusBorough('select')}
-              data-testid="card-settings-10"
-            >
-              <div style={{ overflow: 'hidden', height: '30px' }}>
-                <img 
-                  src={mtaBusIcon} 
-                  alt="MTA NYC Bus" 
-                  style={{ height: '63px', objectFit: 'contain', marginTop: '-33px', filter: 'brightness(0) invert(1)' }} 
-                />
-              </div>
-            </div>
-          ) : null}
-          {row === 0 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("456")}
-              data-testid="card-settings-1"
-            >
-              <img src={train4Icon} alt="4 train" className="w-[38px] h-[38px]" />
-              <img src={train5Icon} alt="5 train" className="w-[38px] h-[38px]" />
-              <img src={train6Icon} alt="6 train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 1 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("ace")}
-              data-testid="card-settings-3"
-            >
-              <img src={trainAIcon} alt="A train" className="w-[38px] h-[38px]" />
-              <img src={trainCIcon} alt="C train" className="w-[38px] h-[38px]" />
-              <img src={trainEIcon} alt="E train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 2 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("nqrw")}
-              data-testid="card-settings-5"
-            >
-              <img src={trainNIcon} alt="N train" className="w-[38px] h-[38px]" />
-              <img src={trainQIcon} alt="Q train" className="w-[38px] h-[38px]" />
-              <img src={trainRIcon} alt="R train" className="w-[38px] h-[38px]" />
-              <img src={trainWIcon} alt="W train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 3 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("g")}
-              data-testid="card-settings-7"
-            >
-              <img src={trainGIcon} alt="G train" className="w-[38px] h-[38px]" />
-            </div>
-          ) : row === 4 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-[16px] cursor-pointer hover:opacity-80 transition-opacity" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              onClick={() => handleGroupClick("regional")}
-              data-testid="card-settings-9"
-            >
-              <img src={sirIcon} alt="SIR" className="h-[30px] object-contain" />
-              <div className="flex flex-col items-center justify-center gap-[2px]">
-                <img src={lirrIcon} alt="LIRR" className="h-[21px] object-contain" />
-                <img src={metroNorthIcon} alt="Metro-North" className="h-[21px] object-contain" />
-              </div>
-              <img src={pathIcon} alt="PATH" className="h-[26px] object-contain" />
-              <img src={njTransitIcon} alt="NJ Transit" className="h-[16px] object-contain" />
-            </div>
-          ) : row === 5 ? (
-            <div 
-              className="rounded-[6px] flex items-center justify-center gap-3" 
-              style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-              data-testid="card-settings-11"
-            >
-              <img src={nycFerryIcon} alt="NYC Ferry" className="h-[32px] object-contain" />
-              <span 
-                className="rounded-full px-2 py-0.5"
-                style={{ 
-                  backgroundColor: '#FFD200',
-                  fontFamily: 'Helvetica, Arial, sans-serif',
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  color: '#000000',
-                  textTransform: 'uppercase'
-                }}
-              >
-                Coming Soon
-              </span>
-            </div>
-          ) : null}
+      {/* Row 0: 1,2,3 | 4,5,6 | 7 */}
+      <div className="flex gap-[11px]">
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("123")} data-testid="card-settings-0">
+          <img src={train1Icon} alt="1 train" className="w-[28px] h-[28px]" />
+          <img src={train2Icon} alt="2 train" className="w-[28px] h-[28px]" />
+          <img src={train3Icon} alt="3 train" className="w-[28px] h-[28px]" />
         </div>
-      ))}
-      
-      {/* Driving box - centered under the bottom row */}
-      <div className="flex justify-center">
-        <div 
-          className="rounded-[6px] flex items-center justify-center gap-3"
-          style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31', paddingRight: '8px' }}
-          data-testid="card-settings-12"
-        >
-          <CarFront className="w-[28px] h-[28px] text-white" />
-          <span 
-            style={{ 
-              fontFamily: 'Helvetica, Arial, sans-serif',
-              fontSize: '18px',
-              fontWeight: 600,
-              color: '#FFFFFF'
-            }}
-          >
-            Driving
-          </span>
-          <span 
-            className="rounded-full px-2 py-0.5"
-            style={{ 
-              backgroundColor: '#FFD200',
-              fontFamily: 'Helvetica, Arial, sans-serif',
-              fontSize: '10px',
-              fontWeight: 600,
-              color: '#000000',
-              textTransform: 'uppercase'
-            }}
-          >
-            Coming Soon
-          </span>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("456")} data-testid="card-settings-1">
+          <img src={train4Icon} alt="4 train" className="w-[28px] h-[28px]" />
+          <img src={train5Icon} alt="5 train" className="w-[28px] h-[28px]" />
+          <img src={train6Icon} alt="6 train" className="w-[28px] h-[28px]" />
         </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("7")} data-testid="card-settings-2">
+          <img src={train7Icon} alt="7 train" className="w-[28px] h-[28px]" />
+        </div>
+      </div>
+      {/* Row 1: ACE | BDFM | NQRW */}
+      <div className="flex gap-[11px]">
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("ace")} data-testid="card-settings-3">
+          <img src={trainAIcon} alt="A train" className="w-[28px] h-[28px]" />
+          <img src={trainCIcon} alt="C train" className="w-[28px] h-[28px]" />
+          <img src={trainEIcon} alt="E train" className="w-[28px] h-[28px]" />
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("bdfm")} data-testid="card-settings-4">
+          <img src={trainBIcon} alt="B train" className="w-[28px] h-[28px]" />
+          <img src={trainDIcon} alt="D train" className="w-[28px] h-[28px]" />
+          <img src={trainFIcon} alt="F train" className="w-[28px] h-[28px]" />
+          <img src={trainMIcon} alt="M train" className="w-[28px] h-[28px]" />
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("nqrw")} data-testid="card-settings-5">
+          <img src={trainNIcon} alt="N train" className="w-[28px] h-[28px]" />
+          <img src={trainQIcon} alt="Q train" className="w-[28px] h-[28px]" />
+          <img src={trainRIcon} alt="R train" className="w-[28px] h-[28px]" />
+          <img src={trainWIcon} alt="W train" className="w-[28px] h-[28px]" />
+        </div>
+      </div>
+      {/* Row 2: L | G | JZ */}
+      <div className="flex gap-[11px]">
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("l")} data-testid="card-settings-6">
+          <img src={trainLIcon} alt="L train" className="w-[28px] h-[28px]" />
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("g")} data-testid="card-settings-7">
+          <img src={trainGIcon} alt="G train" className="w-[28px] h-[28px]" />
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("jz")} data-testid="card-settings-8">
+          <img src={trainJIcon} alt="J train" className="w-[28px] h-[28px]" />
+          <img src={trainZIcon} alt="Z train" className="w-[28px] h-[28px]" />
+        </div>
+      </div>
+      {/* Row 3: Regional | NYC Bus | NJ Transit Bus */}
+      <div className="flex gap-[11px]">
+        <div className="rounded-[6px] flex items-center justify-center gap-[8px] cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("regional")} data-testid="card-settings-9">
+          <img src={sirIcon} alt="SIR" className="h-[20px] object-contain" style={{ marginLeft: '-5px' }} />
+          <div className="flex flex-col items-center justify-center gap-[2px]">
+            <img src={lirrIcon} alt="LIRR" className="h-[14px] object-contain" />
+            <img src={metroNorthIcon} alt="Metro-North" className="h-[14px] object-contain" />
+          </div>
+          <img src={pathIcon} alt="PATH" className="h-[17px] object-contain" />
+          <img src={njTransitIcon} alt="NJ Transit" className="h-[11px] object-contain" />
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => setSelectedBusBorough('select')} data-testid="card-settings-10">
+          <div style={{ overflow: 'hidden', height: '24px' }}>
+            <img src={mtaBusIcon} alt="MTA NYC Bus" style={{ height: '50px', objectFit: 'contain', marginTop: '-26px', filter: 'brightness(0) invert(1)' }} />
+          </div>
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-13">
+          <img src={njTransitIcon} alt="NJ Transit" style={{ height: '14px', objectFit: 'contain' }} />
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#ffffff' }}>Bus</span>
+        </div>
+      </div>
+      {/* Row 4: NYC Ferry | Driving | Citibike */}
+      <div className="flex gap-[11px]">
+        <div className="rounded-[6px] flex items-center justify-center gap-2" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-11">
+          <img src={nycFerryIcon} alt="NYC Ferry" className="h-[25px] object-contain" />
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-12">
+          <CarFront className="w-[22px] h-[22px] text-white" />
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>Driving</span>
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-14">
+          <img src={citibikeIcon} alt="Citibike" className="h-[23px] object-contain" />
+        </div>
+      </div>
+      {/* Settings bar - full width */}
+      <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '760px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => navigate('/settings-menu')}>
+        <SettingsIcon className="w-5 h-5 text-white" />
+        <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px', fontWeight: 600, color: '#ffffff' }}>Settings</span>
       </div>
     </div>
   );
@@ -2515,11 +2442,11 @@ export default function Settings() {
                                       Row 1
                                     </span>
                                   </div>
-                                  <div 
+                                  <div
                                     className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                                    style={{ 
-                                      width: '70px', 
-                                      height: '26px', 
+                                    style={{
+                                      width: '70px',
+                                      height: '26px',
                                       backgroundColor: selectedRow === 2 ? '#FFFFFF' : '#2D2C31'
                                     }}
                                     onClick={(e) => {
@@ -2529,10 +2456,10 @@ export default function Settings() {
                                     }}
                                     data-testid="button-select-row-2"
                                   >
-                                    <span 
+                                    <span
                                       className="font-medium"
-                                      style={{ 
-                                        fontFamily: 'Helvetica, Arial, sans-serif', 
+                                      style={{
+                                        fontFamily: 'Helvetica, Arial, sans-serif',
                                         fontSize: '11px',
                                         color: selectedRow === 2 ? '#000000' : '#FFFFFF'
                                       }}
@@ -2540,6 +2467,48 @@ export default function Settings() {
                                       Row 2
                                     </span>
                                   </div>
+                                  {(settings?.transportRows ?? 2) >= 3 && (
+                                    <button
+                                      onClick={() => setSelectedRow(3)}
+                                      className="flex-1 rounded-[6px] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
+                                      style={{
+                                        height: '44px',
+                                        backgroundColor: selectedRow === 3 ? '#FFFFFF' : '#2D2C31'
+                                      }}
+                                    >
+                                      <span
+                                        className="font-medium"
+                                        style={{
+                                          fontFamily: 'Helvetica, Arial, sans-serif',
+                                          fontSize: '16px',
+                                          color: selectedRow === 3 ? '#000000' : '#FFFFFF'
+                                        }}
+                                      >
+                                        Row 3
+                                      </span>
+                                    </button>
+                                  )}
+                                  {(settings?.transportRows ?? 2) >= 4 && (
+                                    <button
+                                      onClick={() => setSelectedRow(4)}
+                                      className="flex-1 rounded-[6px] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
+                                      style={{
+                                        height: '44px',
+                                        backgroundColor: selectedRow === 4 ? '#FFFFFF' : '#2D2C31'
+                                      }}
+                                    >
+                                      <span
+                                        className="font-medium"
+                                        style={{
+                                          fontFamily: 'Helvetica, Arial, sans-serif',
+                                          fontSize: '16px',
+                                          color: selectedRow === 4 ? '#000000' : '#FFFFFF'
+                                        }}
+                                      >
+                                        Row 4
+                                      </span>
+                                    </button>
+                                  )}
                                 </>
                               )}
                             </>
@@ -2601,7 +2570,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-[#E5E5E5] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
+    <div className="min-h-screen bg-[#0b0b0b] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
       <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: 'center center' }}>
         <main 
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative min-h-0"
@@ -2686,8 +2655,12 @@ export default function Settings() {
                     console.log(`Saving Row ${selectedRow} ${selectedDirection}:`, selectedStop, 'Line:', lineToSave);
                     if (selectedRow === 1) {
                       setRow1Station({ stop: selectedStop, direction: selectedDirection, line: lineToSave });
-                    } else {
+                    } else if (selectedRow === 2) {
                       setRow2Station({ stop: selectedStop, direction: selectedDirection, line: lineToSave });
+                    } else if (selectedRow === 3) {
+                      setRow3Station({ stop: selectedStop, direction: selectedDirection, line: lineToSave });
+                    } else {
+                      setRow4Station({ stop: selectedStop, direction: selectedDirection, line: lineToSave });
                     }
                     savePreferenceMutation.mutate({
                       row: selectedRow,
