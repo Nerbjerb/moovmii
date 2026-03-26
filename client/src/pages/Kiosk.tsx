@@ -13,11 +13,6 @@ import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [, setLocation] = useLocation();
-  useEffect(() => {
-    if (!localStorage.getItem("wifi_connected")) {
-      setLocation("/wifi");
-    }
-  }, []);
 
   const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
   const [kioskScale] = useState(() => scaleMap[localStorage.getItem('kioskResolution') || '800x480'] || 1);
