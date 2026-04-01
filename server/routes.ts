@@ -92,34 +92,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Find forecast 3 hours after the current forecast (using UTC timestamps directly)
-      const threeHoursLater = currentForecast.dt + (3 * 60 * 60);
-      let futureForecast = data.list[1];
-      let minFutureDiff = Math.abs(data.list[1].dt - threeHoursLater);
-
-      for (const item of data.list) {
-        const diff = Math.abs(item.dt - threeHoursLater);
-        if (diff < minFutureDiff) {
-          minFutureDiff = diff;
-          futureForecast = item;
-        }
-      }
+      // Check if any remaining forecast today has rain/drizzle/thunderstorm
+      const todayNYC = getNYCParts(nowUTC);
+      const rainToday = data.list.some((item: any) => {
+        try {
+          const forecastNYC = getNYCParts(item.dt * 1000);
+          const isToday = forecastNYC.day === todayNYC.day && forecastNYC.month === todayNYC.month;
+          const isFuture = item.dt * 1000 >= nowUTC;
+          const weatherId = item.weather?.[0]?.id;
+          const isRainy = weatherId != null && weatherId < 600; // 2xx thunderstorm, 3xx drizzle, 5xx rain
+          return isToday && isFuture && isRainy;
+        } catch (_e) { return false; }
+      });
 
       // Format weather data for frontend
-      const weatherData = [
-        {
-          icon: mapOWMCodeToIcon(currentForecast.weather[0].id, isDayTime(currentForecast.dt)),
-          temperature: `${Math.round(currentForecast.main.temp)}°`,
-          description: currentForecast.weather[0].main,
-          time: formatNYCTime(currentForecast.dt),
-        },
-        {
-          icon: mapOWMCodeToIcon(futureForecast.weather[0].id, isDayTime(futureForecast.dt)),
-          temperature: `${Math.round(futureForecast.main.temp)}°`,
-          description: futureForecast.weather[0].main,
-          time: formatNYCTime(futureForecast.dt),
-        },
-      ];
+      const weatherData = {
+        icon: mapOWMCodeToIcon(currentForecast.weather[0].id, isDayTime(currentForecast.dt)),
+        temperature: `${Math.round(currentForecast.main.temp)}°`,
+        description: currentForecast.weather[0].main,
+        rainToday,
+      };
 
       res.json(weatherData);
     } catch (error) {
@@ -1206,6 +1198,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching bus arrivals:", error);
       res.status(500).json({ error: "Failed to fetch bus arrivals" });
+    }
+  });
+
+  // Citibike GBFS routes - no API key required
+  let citibikeCacheTime = 0;
+  let citibikeStationsCache: any[] = [];
+
+  app.get("/api/citibike/stations", async (req, res) => {
+    try {
+      const now = Date.now();
+      // Cache for 60 seconds
+      if (now - citibikeCacheTime < 60_000 && citibikeStationsCache.length > 0) {
+        return res.json(citibikeStationsCache);
+      }
+
+      const [infoRes, statusRes] = await Promise.all([
+        fetch("https://gbfs.citibikenyc.com/gbfs/en/station_information.json"),
+        fetch("https://gbfs.citibikenyc.com/gbfs/en/station_status.json"),
+      ]);
+
+      if (!infoRes.ok || !statusRes.ok) {
+        throw new Error("Failed to fetch Citibike GBFS feeds");
+      }
+
+      const [infoData, statusData] = await Promise.all([
+        infoRes.json(),
+        statusRes.json(),
+      ]);
+
+      const statusMap: Record<string, any> = {};
+      for (const s of statusData.data.stations) {
+        statusMap[s.station_id] = s;
+      }
+
+      const stations = infoData.data.stations.map((station: any) => {
+        const status = statusMap[station.station_id] || {};
+        return {
+          station_id: station.station_id,
+          name: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          capacity: station.capacity,
+          bikes_available: status.num_bikes_available ?? 0,
+          ebikes_available: status.num_ebikes_available ?? 0,
+          docks_available: status.num_docks_available ?? 0,
+          is_installed: status.is_installed ?? 0,
+          is_renting: status.is_renting ?? 0,
+        };
+      });
+
+      citibikeStationsCache = stations;
+      citibikeCacheTime = now;
+      res.json(stations);
+    } catch (error) {
+      console.error("Error fetching Citibike data:", error);
+      res.status(500).json({ error: "Failed to fetch Citibike data" });
+    }
+  });
+
+  // NYC Ferry GTFS-Realtime routes - no API key required
+  let ferryCacheTime = 0;
+  let ferryTripsCache: any[] = [];
+  let ferryAlertsCacheTime = 0;
+  let ferryAlertsCache: any[] = [];
+
+  app.get("/api/ferry/trips", async (req, res) => {
+    try {
+      const now = Date.now();
+      if (now - ferryCacheTime < 30_000 && ferryTripsCache.length > 0) {
+        return res.json(ferryTripsCache);
+      }
+
+      const response = await fetch(
+        "https://nycferry.connexionz.net/rtt/public/utility/gtfsrealtime.aspx/tripupdate"
+      );
+      if (!response.ok) throw new Error(`Ferry API error: ${response.statusText}`);
+
+      const buffer = await response.arrayBuffer();
+      const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+        new Uint8Array(buffer)
+      );
+
+      const trips = feed.entity
+        .filter((e: any) => e.tripUpdate)
+        .map((e: any) => {
+          const tu = e.tripUpdate;
+          return {
+            tripId: tu.trip?.tripId,
+            routeId: tu.trip?.routeId,
+            stopTimeUpdates: (tu.stopTimeUpdate || []).map((stu: any) => ({
+              stopId: stu.stopId,
+              arrivalTime: stu.arrival?.time?.toNumber?.() ?? stu.arrival?.time ?? null,
+              departureTime: stu.departure?.time?.toNumber?.() ?? stu.departure?.time ?? null,
+            })),
+          };
+        });
+
+      ferryTripsCache = trips;
+      ferryCacheTime = now;
+      res.json(trips);
+    } catch (error) {
+      console.error("Error fetching NYC Ferry trips:", error);
+      res.status(500).json({ error: "Failed to fetch NYC Ferry trips" });
+    }
+  });
+
+  app.get("/api/ferry/alerts", async (req, res) => {
+    try {
+      const now = Date.now();
+      if (now - ferryAlertsCacheTime < 60_000 && ferryAlertsCache.length > 0) {
+        return res.json(ferryAlertsCache);
+      }
+
+      const response = await fetch(
+        "https://nycferry.connexionz.net/rtt/public/utility/gtfsrealtime.aspx/alert"
+      );
+      if (!response.ok) throw new Error(`Ferry alerts API error: ${response.statusText}`);
+
+      const buffer = await response.arrayBuffer();
+      const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
+        new Uint8Array(buffer)
+      );
+
+      const alerts = feed.entity
+        .filter((e: any) => e.alert)
+        .map((e: any) => ({
+          id: e.id,
+          headerText: e.alert?.headerText?.translation?.[0]?.text ?? "",
+          descriptionText: e.alert?.descriptionText?.translation?.[0]?.text ?? "",
+          affectedRoutes: (e.alert?.informedEntity || [])
+            .map((ie: any) => ie.routeId)
+            .filter(Boolean),
+        }));
+
+      ferryAlertsCache = alerts;
+      ferryAlertsCacheTime = now;
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching NYC Ferry alerts:", error);
+      res.status(500).json({ error: "Failed to fetch NYC Ferry alerts" });
     }
   });
 

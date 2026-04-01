@@ -34,6 +34,7 @@ import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 import lirrIcon from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
 import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
+import njTransitBusIcon from "@assets/njt vertical logo.png";
 import mtaBusIcon from "@assets/MTA_Regional_Bus_logo.svg_1768100704004.png";
 import nycFerryIcon from "@assets/NYC_Ferry_Horizontal_White_1768103579529.png";
 import citibikeIcon from "@assets/citibike logo.png";
@@ -1216,7 +1217,6 @@ const groups: GroupItem[] = [
       { id: "SIR", icon: sirIcon, alt: "SIR", size: "29px", isRegional: true, branchName: "Staten Island Rwy" },
       { id: "LIRR", icon: lirrIcon, alt: "LIRR", size: "26px", isRegional: true, branchName: "Long Island Rail Road", isParent: true },
       { id: "MetroNorth", icon: metroNorthIcon, alt: "Metro-North", size: "26px", isRegional: true, branchName: "Metro-North Railroad", isParent: true },
-      { id: "PATH", icon: pathIcon, alt: "PATH", size: "28px", isRegional: true, branchName: "PATH Train" },
       { id: "NJT", icon: njTransitIcon, alt: "NJ Transit", size: "22px", isRegional: true, branchName: "NJ Transit Rail" },
     ]
   },
@@ -1573,25 +1573,25 @@ export default function Settings() {
           <img src={trainZIcon} alt="Z train" className="w-[28px] h-[28px]" />
         </div>
       </div>
-      {/* Row 3: Regional | NYC Bus | NJ Transit Bus */}
+      {/* Row 3: PATH | Regional Rails | NJ Transit Bus + NYC Bus */}
       <div className="flex gap-[11px]">
-        <div className="rounded-[6px] flex items-center justify-center gap-[8px] cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("regional")} data-testid="card-settings-9">
+        <div className="rounded-[6px] flex items-center justify-center gap-[8px] cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("path")} data-testid="card-settings-9">
+          <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
+        </div>
+        <div className="rounded-[6px] flex items-center justify-center gap-[8px] cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("regional")} data-testid="card-settings-10">
           <img src={sirIcon} alt="SIR" className="h-[20px] object-contain" style={{ marginLeft: '-5px' }} />
           <div className="flex flex-col items-center justify-center gap-[2px]">
             <img src={lirrIcon} alt="LIRR" className="h-[14px] object-contain" />
             <img src={metroNorthIcon} alt="Metro-North" className="h-[14px] object-contain" />
           </div>
-          <img src={pathIcon} alt="PATH" className="h-[17px] object-contain" />
           <img src={njTransitIcon} alt="NJ Transit" className="h-[11px] object-contain" />
         </div>
-        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => setSelectedBusBorough('select')} data-testid="card-settings-10">
-          <div style={{ overflow: 'hidden', height: '24px' }}>
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => setSelectedBusBorough('select')} data-testid="card-settings-13">
+          <img src={njTransitBusIcon} alt="NJ Transit" style={{ height: '40px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '13.5px', fontWeight: 600, color: '#ffffff', marginLeft: '-8px' }}>Bus</span>
+          <div style={{ overflow: 'hidden', height: '24px', marginLeft: '13px' }}>
             <img src={mtaBusIcon} alt="MTA NYC Bus" style={{ height: '50px', objectFit: 'contain', marginTop: '-26px', filter: 'brightness(0) invert(1)' }} />
           </div>
-        </div>
-        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-13">
-          <img src={njTransitIcon} alt="NJ Transit" style={{ height: '14px', objectFit: 'contain' }} />
-          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#ffffff' }}>Bus</span>
         </div>
       </div>
       {/* Row 4: NYC Ferry | Driving | Citibike */}

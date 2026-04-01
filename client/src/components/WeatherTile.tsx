@@ -56,7 +56,8 @@ interface WeatherTileProps {
   icon: WeatherIconName;
   temperature: string;
   description: string;
-  time: string;
+  rainToday?: boolean;
+  isEditMode?: boolean;
 }
 
 const weatherIcons: Record<WeatherIconName, string> = {
@@ -112,22 +113,41 @@ const weatherIcons: Record<WeatherIconName, string> = {
   'cloud': cloudIcon,
 };
 
-export default function WeatherTile({ icon, temperature, description, time }: WeatherTileProps) {
+export default function WeatherTile({ icon, temperature, description, rainToday, isEditMode }: WeatherTileProps) {
   const iconSrc = weatherIcons[icon];
 
   return (
-    <div className="w-[180px] h-[132px] text-white flex flex-col items-center justify-center gap-1" data-testid="weather-tile">
-      <div className="text-lg font-medium" data-testid="text-weather-time">{time}</div>
-      {iconSrc && (
-        <img 
-          src={iconSrc} 
-          alt={description} 
-          className="w-[72px] h-[72px] object-contain"
-          style={{ filter: 'brightness(0) invert(1)' }}
-        />
+    <div className="text-white flex flex-col items-center justify-center gap-3" style={{ width: '169px', height: '169px' }} data-testid="weather-tile">
+      <div className="flex items-center gap-3" style={{ transform: 'translateX(-30px) translateY(-5px)' }}>
+        {iconSrc && (
+          <img
+            src={iconSrc}
+            alt={description}
+            className="object-contain"
+            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)' }}
+          />
+        )}
+        <div className="flex flex-col items-center" style={{ ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}>
+          <div className="font-bold" style={{ fontSize: '42px', lineHeight: 1 }} data-testid="text-temperature">{temperature}</div>
+          <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px' }} data-testid="text-description">{description}</div>
+        </div>
+      </div>
+      {rainToday && (
+        <div
+          className="flex items-center gap-[6px]"
+          style={{
+            backgroundColor: '#C0392B',
+            borderRadius: '9px',
+            padding: '4px 47px',
+            transform: 'translateY(-30px)',
+          }}
+        >
+          <img src={rainIcon} alt="rain" style={{ width: '31px', height: '31px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap' }}>
+            Rain today
+          </span>
+        </div>
       )}
-      <div className="text-[27px] font-bold -mt-1" data-testid="text-temperature">{temperature}</div>
-      <div className="text-lg -mt-1" data-testid="text-description">{description}</div>
     </div>
   );
 }

@@ -83,12 +83,12 @@ export default function Kiosk() {
   };
 
   // Fetch real weather data from OpenWeatherMap
-  const { data: weatherData } = useQuery<Array<{
+  const { data: weatherData } = useQuery<{
     icon: WeatherIconName;
     temperature: string;
     description: string;
-    time: string;
-  }>>({
+    rainToday: boolean;
+  }>({
     queryKey: ['/api/weather'],
     refetchInterval: 10 * 60 * 1000, // Refresh every 10 minutes
   });
@@ -254,22 +254,13 @@ export default function Kiosk() {
   const rowHeight = transportRows === 4 ? 97 : undefined;
 
   // Fallback weather data while loading
-  const defaultWeather: Array<{
-    icon: WeatherIconName;
-    temperature: string;
-    description: string;
-    time: string;
-  }> = [
-    { icon: "day-sunny", temperature: "--°", description: "Loading", time: "..." },
-    { icon: "day-cloudy", temperature: "--°", description: "Loading", time: "..." },
-  ];
+  const defaultWeather = { icon: "day-sunny" as WeatherIconName, temperature: "--°", description: "Loading", rainToday: false };
 
   // Convert temperature based on settings
   const convertTemperature = (tempStr: string): string => {
     if (!settings || settings.temperatureUnit === "fahrenheit") {
-      return tempStr; // Already in Fahrenheit from API
+      return tempStr;
     }
-    // Convert from Fahrenheit to Celsius
     const match = tempStr.match(/(-?\d+)/);
     if (match) {
       const fahrenheit = parseInt(match[1], 10);
@@ -279,10 +270,8 @@ export default function Kiosk() {
     return tempStr;
   };
 
-  const displayWeather = (weatherData || defaultWeather).map(w => ({
-    ...w,
-    temperature: convertTemperature(w.temperature),
-  }));
+  const w = weatherData || defaultWeather;
+  const displayWeather = { ...w, temperature: convertTemperature(w.temperature) };
 
 
   const handleRowClick = (rowIndex: number) => {
@@ -440,68 +429,42 @@ export default function Kiosk() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    marginLeft: '25px',
+                    marginRight: '25px',
                   }}
                   onClick={() => setLocation('/other-settings')}
                   data-testid="other-settings-edit-area"
                 >
-                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '19px', fontWeight: 600, color: '#FFFFFF', textAlign: 'center' }}>
-                    Other Settings
-                  </span>
+                  <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '19px', fontWeight: 600, color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3 }}>
+                    <div>Other</div>
+                    <div>Settings</div>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
           <div data-testid="section-weather">
-            <div 
-              className="absolute" 
-              style={{ 
-                left: '552px', 
-                top: '50%', 
+            <div
+              className="absolute"
+              style={{
+                left: '552px',
+                top: '50%',
                 transform: 'translateY(calc(-50% - 3px))'
               }}
             >
               <div
                 className={`flex items-center justify-center ${isEditMode ? 'cursor-pointer' : ''}`}
-                style={{
-                  width: '72px',
-                  height: '169px',
-                  ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
-                }}
+                style={{ width: '169px', height: '169px' }}
                 onClick={() => isEditMode && setLocation('/weather-settings')}
-                data-testid="weather-edit-area-1"
+                data-testid="weather-edit-area"
               >
                 <WeatherTile
-                  icon={displayWeather[0].icon}
-                  temperature={displayWeather[0].temperature}
-                  description={displayWeather[0].description}
-                  time={displayWeather[0].time}
-                />
-              </div>
-            </div>
-            <div 
-              className="absolute" 
-              style={{ 
-                left: '649px', 
-                top: '50%', 
-                transform: 'translateY(calc(-50% - 3px))'
-              }}
-            >
-              <div
-                className={`flex items-center justify-center ${isEditMode ? 'cursor-pointer' : ''}`}
-                style={{
-                  width: '72px',
-                  height: '169px',
-                  ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px' } : {})
-                }}
-                onClick={() => isEditMode && setLocation('/weather-settings')}
-                data-testid="weather-edit-area-2"
-              >
-                <WeatherTile
-                  icon={displayWeather[1].icon}
-                  temperature={displayWeather[1].temperature}
-                  description={displayWeather[1].description}
-                  time={displayWeather[1].time}
+                  icon={displayWeather.icon}
+                  temperature={displayWeather.temperature}
+                  description={displayWeather.description}
+                  rainToday={displayWeather.rainToday}
+                  isEditMode={isEditMode}
                 />
               </div>
             </div>
