@@ -124,30 +124,33 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
             src={iconSrc}
             alt={description}
             className="object-contain"
-            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)' }}
+            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)', transform: 'translateY(-20px)' }}
           />
         )}
-        <div className="flex flex-col items-center" style={{ ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}>
-          <div className="font-bold" style={{ fontSize: '42px', lineHeight: 1 }} data-testid="text-temperature">{temperature}</div>
-          <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px' }} data-testid="text-description">{description}</div>
+        <div className="flex flex-col items-center">
+          <div style={{ ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}>
+            <div className="font-bold" style={{ fontSize: '42px', lineHeight: 1 }} data-testid="text-temperature">{temperature}</div>
+            <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px' }} data-testid="text-description">{description}</div>
+          </div>
+          {rainToday && (
+            <div
+              className="flex items-center gap-[6px]"
+              style={{
+                backgroundColor: '#C0392B',
+                borderRadius: '9px',
+                padding: '2px 9px 2px 3px',
+                marginTop: '6px',
+              }}
+            >
+              <img src={rainIcon} alt="rain" style={{ width: '40px', height: '40px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
+              <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                <span>Rain</span>
+                <span>today</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-      {rainToday && (
-        <div
-          className="flex items-center gap-[6px]"
-          style={{
-            backgroundColor: '#C0392B',
-            borderRadius: '9px',
-            padding: '4px 47px',
-            transform: 'translateY(-30px)',
-          }}
-        >
-          <img src={rainIcon} alt="rain" style={{ width: '31px', height: '31px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
-          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap' }}>
-            Rain today
-          </span>
-        </div>
-      )}
     </div>
   );
 }
