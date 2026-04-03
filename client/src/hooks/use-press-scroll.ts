@@ -23,10 +23,18 @@ export function usePressScroll(
   const wasScrollingRef = useRef(false);
   const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clickBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Single-pointer state
   const startYRef = useRef(0);
   const startScrollTopRef = useRef(0);
   const startXRef = useRef(0);
   const pointerIdRef = useRef<number | null>(null);
+
+  // Two-finger state
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const twoFingerScrollActiveRef = useRef(false);
+  const twoFingerStartScrollTopRef = useRef(0);
+  const twoFingerStartMidYRef = useRef(0);
 
   const clearPressTimer = useCallback(() => {
     if (pressTimerRef.current) {
@@ -38,7 +46,7 @@ export function usePressScroll(
   const activateScrollMode = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-    
+
     isScrollingRef.current = true;
     wasScrollingRef.current = true;
     setIsScrolling(true);
@@ -49,14 +57,14 @@ export function usePressScroll(
   const deactivateScrollMode = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-    
+
     const wasActive = isScrollingRef.current;
     isScrollingRef.current = false;
     setIsScrolling(false);
     container.style.cursor = "";
     delete container.dataset.scrollActive;
     pointerIdRef.current = null;
-    
+
     if (wasActive) {
       if (clickBlockTimerRef.current) {
         clearTimeout(clickBlockTimerRef.current);
@@ -78,6 +86,26 @@ export function usePressScroll(
     if (!container) return;
 
     const handlePointerDown = (e: PointerEvent) => {
+      activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      // Two-finger: activate immediately when second finger touches
+      if (activePointersRef.current.size === 2) {
+        clearPressTimer();
+        // Cancel any single-finger scroll in progress
+        if (isScrollingRef.current) {
+          deactivateScrollMode();
+        }
+
+        const points = Array.from(activePointersRef.current.values());
+        const midY = (points[0].y + points[1].y) / 2;
+        twoFingerStartMidYRef.current = midY;
+        twoFingerStartScrollTopRef.current = container.scrollTop;
+        twoFingerScrollActiveRef.current = true;
+        wasScrollingRef.current = true;
+        return;
+      }
+
+      // Single-finger press-and-hold
       startYRef.current = e.clientY;
       startXRef.current = e.clientX;
       startScrollTopRef.current = container.scrollTop;
@@ -95,6 +123,29 @@ export function usePressScroll(
     };
 
     const handlePointerMove = (e: PointerEvent) => {
+      // Update tracked position for this pointer
+      if (activePointersRef.current.has(e.pointerId)) {
+        activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+
+      // Two-finger scroll
+      if (twoFingerScrollActiveRef.current && activePointersRef.current.size === 2) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const points = Array.from(activePointersRef.current.values());
+        const midY = (points[0].y + points[1].y) / 2;
+        const deltaY = midY - twoFingerStartMidYRef.current;
+        const newScrollTop = twoFingerStartScrollTopRef.current - deltaY * scrollMultiplier;
+
+        container.scrollTop = Math.max(
+          0,
+          Math.min(newScrollTop, container.scrollHeight - container.clientHeight)
+        );
+        return;
+      }
+
+      // Single-finger scroll
       const deltaY = e.clientY - startYRef.current;
       const deltaX = e.clientX - startXRef.current;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -107,10 +158,10 @@ export function usePressScroll(
       if (isScrollingRef.current) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const scrollDelta = deltaY * scrollMultiplier;
         const newScrollTop = startScrollTopRef.current - scrollDelta;
-        
+
         container.scrollTop = Math.max(
           0,
           Math.min(newScrollTop, container.scrollHeight - container.clientHeight)
@@ -119,22 +170,36 @@ export function usePressScroll(
     };
 
     const handlePointerUp = (e: PointerEvent) => {
+      activePointersRef.current.delete(e.pointerId);
+
+      // End two-finger scroll when any finger lifts
+      if (twoFingerScrollActiveRef.current) {
+        twoFingerScrollActiveRef.current = false;
+        if (clickBlockTimerRef.current) clearTimeout(clickBlockTimerRef.current);
+        clickBlockTimerRef.current = setTimeout(() => {
+          wasScrollingRef.current = false;
+        }, clickBlockDuration);
+        return;
+      }
+
       clearPressTimer();
-      
+
       if (isScrollingRef.current) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         try {
           container.releasePointerCapture(e.pointerId);
         } catch {
         }
       }
-      
+
       deactivateScrollMode();
     };
 
     const handlePointerCancel = (e: PointerEvent) => {
+      activePointersRef.current.delete(e.pointerId);
+      twoFingerScrollActiveRef.current = false;
       handlePointerUp(e);
     };
 
@@ -145,7 +210,7 @@ export function usePressScroll(
     };
 
     container.addEventListener("pointerdown", handlePointerDown);
-    container.addEventListener("pointermove", handlePointerMove);
+    container.addEventListener("pointermove", handlePointerMove, { passive: false });
     container.addEventListener("pointerup", handlePointerUp);
     container.addEventListener("pointercancel", handlePointerCancel);
     container.addEventListener("contextmenu", handleContextMenu);
@@ -161,7 +226,7 @@ export function usePressScroll(
       container.removeEventListener("pointercancel", handlePointerCancel);
       container.removeEventListener("contextmenu", handleContextMenu);
     };
-  }, [containerRef, activationDelay, moveThreshold, scrollMultiplier, clearPressTimer, activateScrollMode, deactivateScrollMode]);
+  }, [containerRef, activationDelay, moveThreshold, scrollMultiplier, clickBlockDuration, clearPressTimer, activateScrollMode, deactivateScrollMode]);
 
   return { isScrolling, shouldBlockClick };
 }

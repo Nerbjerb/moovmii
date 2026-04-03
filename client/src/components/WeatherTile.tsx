@@ -139,7 +139,7 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
                 backgroundColor: '#C0392B',
                 borderRadius: '9px',
                 padding: '2px 9px 2px 3px',
-                marginTop: '6px',
+                marginTop: '1px',
               }}
             >
               <img src={rainIcon} alt="rain" style={{ width: '40px', height: '40px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
