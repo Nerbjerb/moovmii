@@ -9,6 +9,7 @@ import type { SubwayArrival, KioskPreference, KioskSettings } from "@shared/sche
 import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
+import { getDeviceId } from "@/lib/deviceId";
 
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -16,10 +17,11 @@ export default function Kiosk() {
 
   const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
   const [kioskScale] = useState(() => scaleMap[localStorage.getItem('kioskResolution') || '800x480'] || 1);
+  const deviceId = getDeviceId();
 
   // Fetch preferences
   const { data: preferences } = useQuery<KioskPreference[]>({
-    queryKey: ['/api/preferences'],
+    queryKey: ['/api/preferences', deviceId],
   });
 
   // Fetch service alerts with descriptions
@@ -30,10 +32,29 @@ export default function Kiosk() {
 
   // Fetch settings
   const { data: settings } = useQuery<KioskSettings>({
-    queryKey: ['/api/settings'],
+    queryKey: ['/api/settings', deviceId],
   });
 
   const transportRows = settings?.transportRows ?? 2;
+
+  // Read commute time to station — 0 means N/A (no filtering)
+  const [commuteMinutes] = useState(() => {
+    const stored = localStorage.getItem("commuteTimeToStation");
+    return stored !== null ? parseInt(stored, 10) : 0;
+  });
+
+  // Filter out arrivals that depart sooner than the user's commute time
+  const applyCommuteFilter = (arrival: SubwayArrival): SubwayArrival => {
+    if (commuteMinutes === 0) return arrival;
+    const filtered = arrival.arrivalMinutes
+      .map((mins, i) => ({ mins, line: arrival.arrivalLines[i] }))
+      .filter(({ mins }) => mins >= commuteMinutes);
+    return {
+      ...arrival,
+      arrivalMinutes: filtered.map(f => f.mins),
+      arrivalLines: filtered.map(f => f.line),
+    };
+  };
 
   // Get preferences for each row
   const row1Pref = preferences?.find(p => p.row === 1);
@@ -244,10 +265,10 @@ export default function Kiosk() {
     direction, line, destination: "Loading...", subtitle: "", arrivalMinutes: [], arrivalLines: [],
   });
   const subwayData: SubwayArrival[] = [
-    row1Arrivals || fallback("Uptown", "N"),
-    row2Arrivals || fallback("Downtown", "W"),
-    ...(transportRows >= 3 ? [row3Arrivals || fallback("Uptown", "N")] : []),
-    ...(transportRows >= 4 ? [row4Arrivals || fallback("Downtown", "W")] : []),
+    applyCommuteFilter(row1Arrivals || fallback("Uptown", "N")),
+    applyCommuteFilter(row2Arrivals || fallback("Downtown", "W")),
+    ...(transportRows >= 3 ? [applyCommuteFilter(row3Arrivals || fallback("Uptown", "N"))] : []),
+    ...(transportRows >= 4 ? [applyCommuteFilter(row4Arrivals || fallback("Downtown", "W"))] : []),
   ];
 
   // Row height: 4-row mode uses shorter rows to fit above the settings gear

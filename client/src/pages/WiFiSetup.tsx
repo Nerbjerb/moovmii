@@ -40,6 +40,8 @@ function SignalBars({ strength }: { strength: 1 | 2 | 3 | 4 }) {
 
 export default function WiFiSetup() {
   const [, navigate] = useLocation();
+  const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
+  const [kioskScale] = useState(() => scaleMap[localStorage.getItem('kioskResolution') || '800x480'] || 1);
   const [screen, setScreen] = useState<Screen>("list");
   const [selected, setSelected] = useState<Network | null>(null);
   const [password, setPassword] = useState("");
@@ -72,6 +74,7 @@ export default function WiFiSetup() {
 
   return (
     <div className="min-h-screen bg-[#0b0b0b] flex flex-col items-center justify-center fullscreen-wrapper">
+      <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: 'center center' }}>
       <div style={{ width: 800, height: 480, display: "flex", flexDirection: "column", padding: "24px 28px", position: "relative" }}>
 
         {/* SCREEN: Network List */}
@@ -211,6 +214,7 @@ export default function WiFiSetup() {
           </div>
         )}
 
+      </div>
       </div>
     </div>
   );

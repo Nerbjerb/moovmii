@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, CarFront, Settings as SettingsIcon } from "lucide-react";
 import resolutionIcon from "@assets/image_1772664658561.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getDeviceId } from "@/lib/deviceId";
 import { getStopId } from "@shared/stopMetadata";
 import { usePressScroll } from "@/hooks/use-press-scroll";
 import type { KioskPreference, KioskSettings } from "@shared/schema";
@@ -1294,13 +1295,15 @@ export default function Settings() {
     scrollMultiplier: 1.5,
   });
 
+  const deviceId = getDeviceId();
+
   // Load preferences from API
   const { data: preferences } = useQuery<KioskPreference[]>({
-    queryKey: ['/api/preferences'],
+    queryKey: ['/api/preferences', deviceId],
   });
 
   const { data: settings } = useQuery<KioskSettings>({
-    queryKey: ['/api/settings'],
+    queryKey: ['/api/settings', deviceId],
   });
 
   // Load bus routes for selected borough
@@ -1357,7 +1360,7 @@ export default function Settings() {
   const savePreferenceMutation = useMutation({
     mutationFn: async (data: { row: number; stop: string; direction: string; line: string }) => {
       return apiRequest('POST', '/api/preferences', {
-        kioskId: 'default',
+        kioskId: deviceId,
         row: data.row,
         stop: data.stop,
         direction: data.direction,
@@ -1365,7 +1368,7 @@ export default function Settings() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/preferences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/preferences', deviceId] });
     },
   });
 

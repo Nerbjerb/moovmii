@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { ArrowLeft, Square } from "lucide-react";
 import resolutionIcon from "@assets/image_1772664658561.png";
 import { queryClient } from "@/lib/queryClient";
+import { getDeviceId } from "@/lib/deviceId";
 import type { KioskSettings } from "@shared/schema";
 
 export default function WeatherSettings() {
@@ -11,11 +12,12 @@ export default function WeatherSettings() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showResolutionPanel, setShowResolutionPanel] = useState(false);
   const [selectedResolution, setSelectedResolution] = useState(() => localStorage.getItem('kioskResolution') || '800x480');
-  const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6 };
+  const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
   const kioskScale = scaleMap[selectedResolution] || 1;
+  const deviceId = getDeviceId();
 
   const { data: settings } = useQuery<KioskSettings>({
-    queryKey: ['/api/settings'],
+    queryKey: ['/api/settings', deviceId],
   });
 
   useEffect(() => {
@@ -29,16 +31,17 @@ export default function WeatherSettings() {
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
+          kioskId: deviceId,
           temperatureUnit: newSettings.temperatureUnit,
-          clockFormat: settings?.clockFormat || '12hr'
+          clockFormat: settings?.clockFormat || '12hr',
         }),
       });
       if (!response.ok) throw new Error('Failed to save settings');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings', deviceId] });
     },
   });
 

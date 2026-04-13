@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { getDeviceId } from "./deviceId";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -29,7 +30,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const baseUrl = queryKey[0] as string;
+    const needsKioskId = baseUrl === '/api/preferences' || baseUrl === '/api/settings';
+    const url = needsKioskId ? `${baseUrl}?kioskId=${getDeviceId()}` : baseUrl;
+    const res = await fetch(url, {
       credentials: "include",
     });
 

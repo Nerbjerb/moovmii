@@ -129,7 +129,7 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
         )}
         <div className="flex flex-col items-center">
           <div style={{ ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}>
-            <div className="font-bold" style={{ fontSize: '42px', lineHeight: 1 }} data-testid="text-temperature">{temperature}</div>
+            <div className="font-bold" style={{ fontSize: '42px', lineHeight: 1, marginLeft: '6px' }} data-testid="text-temperature">{temperature}</div>
             <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px' }} data-testid="text-description">{description}</div>
           </div>
           {rainToday && (
