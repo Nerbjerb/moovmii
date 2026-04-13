@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { ArrowLeft, Square } from "lucide-react";
 import resolutionIcon from "@assets/image_1772664658561.png";
 import { queryClient } from "@/lib/queryClient";
 import { getDeviceId } from "@/lib/deviceId";
+import { saveSettings } from "@/lib/localStorageDB";
 import type { KioskSettings } from "@shared/schema";
 
 export default function WeatherSettings() {
@@ -26,28 +27,10 @@ export default function WeatherSettings() {
     }
   }, [settings]);
 
-  const saveSettingsMutation = useMutation({
-    mutationFn: async (newSettings: { temperatureUnit: string }) => {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kioskId: deviceId,
-          temperatureUnit: newSettings.temperatureUnit,
-          clockFormat: settings?.clockFormat || '12hr',
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to save settings');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings', deviceId] });
-    },
-  });
-
   const handleTemperatureToggle = (unit: "fahrenheit" | "celsius") => {
     setTemperatureUnit(unit);
-    saveSettingsMutation.mutate({ temperatureUnit: unit });
+    const updated = saveSettings({ temperatureUnit: unit }, deviceId);
+    queryClient.setQueryData(['/api/settings', deviceId], updated);
   };
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { getDeviceId } from "./deviceId";
+import { getSettings, getPreferences } from "./localStorageDB";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -31,9 +32,16 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const baseUrl = queryKey[0] as string;
-    const needsKioskId = baseUrl === '/api/preferences' || baseUrl === '/api/settings';
-    const url = needsKioskId ? `${baseUrl}?kioskId=${getDeviceId()}` : baseUrl;
-    const res = await fetch(url, {
+
+    // Serve preferences and settings from localStorage — no network needed
+    if (baseUrl === '/api/preferences') {
+      return getPreferences(getDeviceId()) as unknown;
+    }
+    if (baseUrl === '/api/settings') {
+      return getSettings(getDeviceId()) as unknown;
+    }
+
+    const res = await fetch(baseUrl, {
       credentials: "include",
     });
 

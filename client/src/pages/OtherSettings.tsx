@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { getDeviceId } from "@/lib/deviceId";
+import { saveSettings } from "@/lib/localStorageDB";
 import type { KioskSettings } from "@shared/schema";
 
 export default function OtherSettings() {
@@ -23,29 +24,10 @@ export default function OtherSettings() {
     }
   }, [settings]);
 
-  const saveSettingsMutation = useMutation({
-    mutationFn: async (transportRows: number) => {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kioskId: deviceId,
-          temperatureUnit: settings?.temperatureUnit || 'fahrenheit',
-          clockFormat: settings?.clockFormat || '12hr',
-          transportRows,
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to save settings');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings', deviceId] });
-    },
-  });
-
   const handleRowsChange = (n: 2 | 3 | 4) => {
     setTransportRows(n);
-    saveSettingsMutation.mutate(n);
+    const updated = saveSettings({ transportRows: n }, deviceId);
+    queryClient.setQueryData(['/api/settings', deviceId], updated);
   };
 
   return (

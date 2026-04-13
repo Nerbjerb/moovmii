@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { ArrowLeft, Square } from "lucide-react";
 import resolutionIcon from "@assets/image_1772664658561.png";
 import { queryClient } from "@/lib/queryClient";
 import { getDeviceId } from "@/lib/deviceId";
+import { saveSettings } from "@/lib/localStorageDB";
 import type { KioskSettings } from "@shared/schema";
 
 export default function ClockSettings() {
@@ -26,28 +27,10 @@ export default function ClockSettings() {
     }
   }, [settings]);
 
-  const saveSettingsMutation = useMutation({
-    mutationFn: async (newSettings: { clockFormat: string }) => {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kioskId: deviceId,
-          temperatureUnit: settings?.temperatureUnit || 'fahrenheit',
-          clockFormat: newSettings.clockFormat,
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to save settings');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings', deviceId] });
-    },
-  });
-
   const handleClockToggle = (format: "12hr" | "24hr") => {
     setClockFormat(format);
-    saveSettingsMutation.mutate({ clockFormat: format });
+    const updated = saveSettings({ clockFormat: format }, deviceId);
+    queryClient.setQueryData(['/api/settings', deviceId], updated);
   };
 
   useEffect(() => {

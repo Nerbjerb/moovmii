@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useSearch, useLocation } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, CarFront, Settings as SettingsIcon } from "lucide-react";
 import resolutionIcon from "@assets/image_1772664658561.png";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { savePreference } from "@/lib/localStorageDB";
 import { getDeviceId } from "@/lib/deviceId";
 import { getStopId } from "@shared/stopMetadata";
 import { usePressScroll } from "@/hooks/use-press-scroll";
@@ -1356,21 +1357,14 @@ export default function Settings() {
     }
   }, [preferences]);
 
-  // Mutation to save preferences
-  const savePreferenceMutation = useMutation({
-    mutationFn: async (data: { row: number; stop: string; direction: string; line: string }) => {
-      return apiRequest('POST', '/api/preferences', {
-        kioskId: deviceId,
-        row: data.row,
-        stop: data.stop,
-        direction: data.direction,
-        line: data.line,
-      });
+  const savePreferenceMutation = {
+    mutate: (data: { row: number; stop: string; direction: string; line: string }) => {
+      const updated = savePreference(data, deviceId);
+      const current = (queryClient.getQueryData(['/api/preferences', deviceId]) as KioskPreference[]) || [];
+      const next = [...current.filter(p => p.row !== data.row), updated];
+      queryClient.setQueryData(['/api/preferences', deviceId], next);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/preferences', deviceId] });
-    },
-  });
+  };
 
   const checkScrollPosition = useCallback(() => {
     const container = stopsContainerRef.current;
