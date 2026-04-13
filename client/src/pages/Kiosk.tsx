@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Settings } from "lucide-react";
@@ -439,29 +439,6 @@ export default function Kiosk() {
                   hideAmPm={isEditMode}
                 />
               </div>
-              {isEditMode && (
-                <div
-                  className="cursor-pointer"
-                  style={{
-                    flex: 1,
-                    height: '85px',
-                    borderRadius: '8px',
-                    boxShadow: '0 0 0 3px #FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: '25px',
-                    marginRight: '25px',
-                  }}
-                  onClick={() => setLocation('/other-settings')}
-                  data-testid="other-settings-edit-area"
-                >
-                  <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '19px', fontWeight: 600, color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3 }}>
-                    <div>Other</div>
-                    <div>Settings</div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -484,7 +461,7 @@ export default function Kiosk() {
                   icon={displayWeather.icon}
                   temperature={displayWeather.temperature}
                   description={displayWeather.description}
-                  rainToday={displayWeather.rainToday}
+                  rainToday={isEditMode ? false : displayWeather.rainToday}
                   isEditMode={isEditMode}
                 />
               </div>

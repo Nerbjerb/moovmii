@@ -2626,25 +2626,6 @@ export default function Settings() {
             </div>
           )}
 
-          <div className="absolute bottom-[-2px] left-[5px] flex flex-row items-center">
-            <button 
-              onClick={toggleFullscreen}
-              className="cursor-pointer p-4"
-              data-testid="button-fullscreen-toggle"
-            >
-              <Square 
-                className={`w-6 h-6 ${isFullscreen ? 'text-[#ffd200]' : 'text-white'}`} 
-                fill={isFullscreen ? '#ffd200' : 'none'}
-              />
-            </button>
-            <button
-              className="cursor-pointer p-4"
-              onClick={() => setShowResolutionPanel(prev => !prev)}
-              data-testid="button-resolution-toggle"
-            >
-              <img src={resolutionIcon} alt="Resolution" className="w-6 h-6" style={{ filter: showResolutionPanel ? 'invert(1) sepia(1) saturate(10) hue-rotate(3deg)' : 'invert(1)' }} />
-            </button>
-          </div>
           <div className="absolute bottom-[-2px] right-[5px]">
             {selectedDirection !== null && selectedRow !== null && (selectedLine || selectedBusRoute) ? (
               <Link 

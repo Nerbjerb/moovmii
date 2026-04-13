@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { ArrowLeft, Wifi, Monitor, Train, Bus, Ship, Car, Bike, Square } from "lucide-react";
@@ -18,8 +18,6 @@ const transportModes = [
   { label: "Citibike", icon: Bike,  path: "/citibike-settings"},
 ];
 
-const resolutions = ["800x480", "1024x600", "1280x800", "1920x1080"];
-
 export default function SettingsMenu() {
   const [, setLocation] = useLocation();
   const scaleMap: Record<string, number> = { "800x480": 1, "1024x600": 1.25, "1280x800": 1.6, "1920x1080": 2.25 };
@@ -27,9 +25,9 @@ export default function SettingsMenu() {
   const deviceId = getDeviceId();
 
   const [view, setView] = useState<View>("home");
+  const [transportRows, setTransportRows] = useState<2 | 3 | 4>(2);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedResolution, setSelectedResolution] = useState(() => localStorage.getItem("kioskResolution") || "800x480");
-  const [transportRows, setTransportRows] = useState<2 | 3 | 4>(2);
 
   const { data: settings } = useQuery<KioskSettings>({
     queryKey: ["/api/settings", deviceId],
@@ -48,12 +46,17 @@ export default function SettingsMenu() {
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(console.error);
     } else {
       document.exitFullscreen().catch(console.error);
     }
+  }, []);
+
+  const handleResolutionSelect = (res: string) => {
+    localStorage.setItem("kioskResolution", res);
+    setSelectedResolution(res);
   };
 
   const saveSettingsMutation = useMutation({
@@ -75,11 +78,6 @@ export default function SettingsMenu() {
       queryClient.invalidateQueries({ queryKey: ["/api/settings", deviceId] });
     },
   });
-
-  const handleResolutionSelect = (res: string) => {
-    localStorage.setItem("kioskResolution", res);
-    setSelectedResolution(res);
-  };
 
   const handleRowsChange = (n: 2 | 3 | 4) => {
     setTransportRows(n);
@@ -207,7 +205,7 @@ export default function SettingsMenu() {
               <div className="flex flex-col gap-2">
                 <span style={{ ...font, fontSize: "15px", fontWeight: 600, color: "#ffffff" }}>Screen Resolution</span>
                 <div className="flex gap-[8px]">
-                  {resolutions.map((res) => {
+                  {(["800x480", "1024x600", "1280x800", "1920x1080"] as const).map((res) => {
                     const [w, h] = res.split("x");
                     const isSelected = selectedResolution === res;
                     return (
