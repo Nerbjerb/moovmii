@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { ArrowLeft, Square } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { ArrowLeft, Square, Home } from "lucide-react";
 import resolutionIcon from "@assets/image_1772664658561.png";
 import { queryClient } from "@/lib/queryClient";
 import { getDeviceId } from "@/lib/deviceId";
@@ -9,6 +9,7 @@ import { saveSettings } from "@/lib/localStorageDB";
 import type { KioskSettings } from "@shared/schema";
 
 export default function WeatherSettings() {
+  const [, setLocation] = useLocation();
   const [temperatureUnit, setTemperatureUnit] = useState<"fahrenheit" | "celsius">("fahrenheit");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showResolutionPanel, setShowResolutionPanel] = useState(false);
@@ -178,6 +179,11 @@ export default function WeatherSettings() {
               data-testid="button-resolution-toggle"
             >
               <img src={resolutionIcon} alt="Resolution" className="w-6 h-6" style={{ filter: showResolutionPanel ? 'invert(1) sepia(1) saturate(10) hue-rotate(3deg)' : 'invert(1)' }} />
+            </button>
+          </div>
+          <div className="absolute bottom-[5px] right-[5px]">
+            <button className="block p-4" onClick={() => setLocation('/')}>
+              <Home className="w-6 h-6 text-white cursor-pointer" />
             </button>
           </div>
         </main>

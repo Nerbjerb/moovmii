@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { usePressScroll } from "@/hooks/use-press-scroll";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ArrowLeft, Wifi, Monitor, Train, Bus, Ship, Car, Bike, Square } from "lucide-react";
+import { ArrowLeft, Wifi, Monitor, Train, Bus, Ship, Car, Bike, Square, Home } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { getDeviceId } from "@/lib/deviceId";
 import { saveSettings } from "@/lib/localStorageDB";
@@ -21,6 +22,8 @@ const transportModes = [
 
 export default function SettingsMenu() {
   const [, setLocation] = useLocation();
+  const mainRef = useRef<HTMLDivElement>(null);
+  usePressScroll(mainRef);
   const scaleMap: Record<string, number> = { "800x480": 1, "1024x600": 1.25, "1280x800": 1.6, "1920x1080": 2.25 };
   const [kioskScale] = useState(() => scaleMap[localStorage.getItem("kioskResolution") || "800x480"] || 1);
   const deviceId = getDeviceId();
@@ -82,8 +85,9 @@ export default function SettingsMenu() {
     <div className="min-h-screen bg-[#0b0b0b] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
       <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: "center center" }}>
         <main
+          ref={mainRef}
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative"
-          style={{ width: "800px", height: "480px", padding: "15px 20px" }}
+          style={{ width: "800px", height: "480px", padding: "15px 20px", overflow: "auto" }}
         >
           {/* Back button */}
           <div className="absolute top-[5px] left-[5px]">
@@ -105,10 +109,10 @@ export default function SettingsMenu() {
           {/* HOME: 2×2 grid */}
           {view === "home" && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: "11px", flex: 1 }}>
-              {/* WiFi */}
-              <div style={boxStyle} className="hover:opacity-80" onClick={() => setLocation("/wifi")}>
-                <Wifi className="w-8 h-8 text-white" />
-                <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: "#ffffff" }}>WiFi</span>
+              {/* General */}
+              <div style={boxStyle} className="hover:opacity-80" onClick={() => setView("general")}>
+                <Square className="w-8 h-8 text-white" />
+                <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: "#ffffff" }}>General</span>
               </div>
 
               {/* Display & Brightness */}
@@ -117,10 +121,10 @@ export default function SettingsMenu() {
                 <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: "#ffffff" }}>Display & Brightness</span>
               </div>
 
-              {/* General */}
-              <div style={boxStyle} className="hover:opacity-80" onClick={() => setView("general")}>
-                <Square className="w-8 h-8 text-white" />
-                <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: "#ffffff" }}>General</span>
+              {/* WiFi */}
+              <div style={boxStyle} className="hover:opacity-80" onClick={() => setLocation("/wifi")}>
+                <Wifi className="w-8 h-8 text-white" />
+                <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: "#ffffff" }}>WiFi</span>
               </div>
 
               {/* Transportation */}
@@ -243,6 +247,11 @@ export default function SettingsMenu() {
               ))}
             </div>
           )}
+          <div className="absolute bottom-[5px] right-[5px]">
+            <button className="block p-4" onClick={() => setLocation('/')}>
+              <Home className="w-6 h-6 text-white cursor-pointer" />
+            </button>
+          </div>
         </main>
       </div>
     </div>

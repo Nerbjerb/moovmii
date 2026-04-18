@@ -124,11 +124,11 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
             src={iconSrc}
             alt={description}
             className="object-contain"
-            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)', transform: 'translateY(-20px)' }}
+            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)', transform: 'translateX(10px) translateY(-20px)' }}
           />
         )}
         <div className="flex flex-col items-center">
-          <div style={{ ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}>
+          <div style={{ transform: 'translateY(-20px)', ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}>
             <div className="font-bold" style={{ fontSize: '42px', lineHeight: 1, marginLeft: '6px' }} data-testid="text-temperature">{temperature}</div>
             <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px' }} data-testid="text-description">{description}</div>
           </div>

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { usePressScroll } from "@/hooks/use-press-scroll";
 import { Settings } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import ClockDisplay from "@/components/ClockDisplay";
@@ -14,6 +15,8 @@ import { getDeviceId } from "@/lib/deviceId";
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [, setLocation] = useLocation();
+  const mainRef = useRef<HTMLDivElement>(null);
+  usePressScroll(mainRef);
 
   const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
   const [kioskScale] = useState(() => scaleMap[localStorage.getItem('kioskResolution') || '800x480'] || 1);
@@ -307,9 +310,10 @@ export default function Kiosk() {
   return (
     <div className="min-h-screen bg-[#0b0b0b] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
       <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: 'center center' }}>
-        <main 
+        <main
+          ref={mainRef}
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] p-6 flex flex-col -z-11 relative"
-          style={{ width: '800px', height: '480px', overflow: 'visible' }}
+          style={{ width: '800px', height: '480px', overflow: 'auto' }}
           data-testid="kiosk-main"
         >
         {/* Settings/Edit mode toggle - bottom right corner */}
@@ -421,7 +425,7 @@ export default function Kiosk() {
 
         {transportRows < 3 && <section className="relative flex-1">
           <div className="flex flex-col justify-center items-start h-full">
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '25px', ...(isEditMode ? { width: '527px' } : {}) }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '25px', ...(isEditMode ? { width: '537px' } : {}) }}>
               <div
                 className={`inline-flex items-center flex-shrink-0 ${isEditMode ? 'cursor-pointer' : ''}`}
                 style={{
@@ -439,6 +443,28 @@ export default function Kiosk() {
                   hideAmPm={isEditMode}
                 />
               </div>
+              {isEditMode && (
+                <div
+                  className="cursor-pointer"
+                  style={{
+                    flex: 1,
+                    height: '30px',
+                    borderRadius: '8px',
+                    boxShadow: '0 0 0 3px #FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 20px',
+                    transform: 'translateX(20px) translateY(-2px)',
+                  }}
+                  onClick={() => setLocation('/settings-menu')}
+                  data-testid="other-settings-edit-area"
+                >
+                  <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '19px', fontWeight: 600, color: '#FFFFFF', whiteSpace: 'nowrap' }}>
+                    Other Settings
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

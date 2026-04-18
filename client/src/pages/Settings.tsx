@@ -1576,12 +1576,12 @@ export default function Settings() {
           <img src={pathIcon} alt="PATH" className="h-[21px] object-contain" />
         </div>
         <div className="rounded-[6px] flex items-center justify-center gap-[8px] cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("regional")} data-testid="card-settings-10">
-          <img src={sirIcon} alt="SIR" className="h-[20px] object-contain" style={{ marginLeft: '-5px' }} />
+          <img src={sirIcon} alt="SIR" className="h-[20px] object-contain" style={{ transform: 'translateX(-10px)' }} />
           <div className="flex flex-col items-center justify-center gap-[2px]">
             <img src={lirrIcon} alt="LIRR" className="h-[14px] object-contain" />
             <img src={metroNorthIcon} alt="Metro-North" className="h-[14px] object-contain" />
           </div>
-          <img src={njTransitIcon} alt="NJ Transit" className="h-[11px] object-contain" />
+          <img src={njTransitIcon} alt="NJ Transit" className="h-[11px] object-contain" style={{ transform: 'translateX(10px)' }} />
         </div>
         <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => setSelectedBusBorough('select')} data-testid="card-settings-13">
           <img src={njTransitBusIcon} alt="NJ Transit" style={{ height: '40px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
@@ -2619,6 +2619,12 @@ export default function Settings() {
               })}
             </div>
           )}
+
+          <div className="absolute bottom-[5px] left-[5px]">
+            <Link href="/" className="block p-4">
+              <Home className="w-6 h-6 text-white cursor-pointer" />
+            </Link>
+          </div>
 
           <div className="absolute bottom-[-2px] right-[5px]">
             {selectedDirection !== null && selectedRow !== null && (selectedLine || selectedBusRoute) ? (

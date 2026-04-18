@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { ArrowLeft, Home } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { getDeviceId } from "@/lib/deviceId";
 import { saveSettings } from "@/lib/localStorageDB";
 import type { KioskSettings } from "@shared/schema";
 
 export default function OtherSettings() {
+  const [, setLocation] = useLocation();
   const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
   const [kioskScale] = useState(() => scaleMap[localStorage.getItem('kioskResolution') || '800x480'] || 1);
   const deviceId = getDeviceId();
@@ -87,6 +88,11 @@ export default function OtherSettings() {
                 </div>
               </div>
             </div>
+          </div>
+          <div className="absolute bottom-[5px] right-[5px]">
+            <button className="block p-4" onClick={() => setLocation('/')}>
+              <Home className="w-6 h-6 text-white cursor-pointer" />
+            </button>
           </div>
         </main>
       </div>

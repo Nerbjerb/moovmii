@@ -21,7 +21,7 @@ export default function TrainAlertSettings() {
               <ArrowLeft className="w-6 h-6 text-white cursor-pointer" />
             </button>
           </div>
-          <div className="absolute top-[5px] right-[5px]">
+          <div className="absolute bottom-[5px] right-[5px]">
             <button className="block p-4" onClick={() => setLocation("/")}>
               <Home className="w-6 h-6 text-white cursor-pointer" />
             </button>
