@@ -57,6 +57,7 @@ interface WeatherTileProps {
   temperature: string;
   description: string;
   rainToday?: boolean;
+  snowToday?: boolean;
   isEditMode?: boolean;
 }
 
@@ -113,7 +114,7 @@ const weatherIcons: Record<WeatherIconName, string> = {
   'cloud': cloudIcon,
 };
 
-export default function WeatherTile({ icon, temperature, description, rainToday, isEditMode }: WeatherTileProps) {
+export default function WeatherTile({ icon, temperature, description, rainToday, snowToday, isEditMode }: WeatherTileProps) {
   const iconSrc = weatherIcons[icon];
 
   return (
@@ -124,13 +125,13 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
             src={iconSrc}
             alt={description}
             className="object-contain"
-            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)', transform: 'translateX(10px) translateY(-20px)' }}
+            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)', transform: 'translateX(10px) translateY(-40px)' }}
           />
         )}
         <div className="flex flex-col items-center">
           <div style={{ transform: 'translateY(-20px)', ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}>
             <div className="font-bold" style={{ fontSize: '42px', lineHeight: 1, marginLeft: '6px' }} data-testid="text-temperature">{temperature}</div>
-            <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px' }} data-testid="text-description">{description}</div>
+            <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px', marginLeft: '6px' }} data-testid="text-description">{description}</div>
           </div>
           {rainToday && (
             <div
@@ -140,11 +141,30 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
                 borderRadius: '9px',
                 padding: '2px 9px 2px 3px',
                 marginTop: '1px',
+                transform: 'translateY(-15px)',
               }}
             >
               <img src={rainIcon} alt="rain" style={{ width: '40px', height: '40px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
               <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
                 <span>Rain</span>
+                <span>today</span>
+              </div>
+            </div>
+          )}
+          {snowToday && (
+            <div
+              className="flex items-center gap-[6px]"
+              style={{
+                backgroundColor: '#C0392B',
+                borderRadius: '9px',
+                padding: '2px 9px 2px 3px',
+                marginTop: '1px',
+                transform: 'translateY(-15px)',
+              }}
+            >
+              <img src={snowIcon} alt="snow" style={{ width: '40px', height: '40px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
+              <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                <span>Snow</span>
                 <span>today</span>
               </div>
             </div>

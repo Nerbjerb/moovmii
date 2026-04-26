@@ -26,7 +26,7 @@ export default function ClockDisplay({ format, hideAmPm }: ClockDisplayProps) {
       return (
         <span>
           {timeStr}
-          {!hideAmPm && <span className="text-[70px] ml-4 align-top">{ampm}</span>}
+          {!hideAmPm && <span className="text-[56px] ml-4 align-top">{ampm}</span>}
         </span>
       );
     } else {

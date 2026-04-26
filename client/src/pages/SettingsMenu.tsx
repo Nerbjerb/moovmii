@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { usePressScroll } from "@/hooks/use-press-scroll";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { ArrowLeft, Wifi, Monitor, Train, Bus, Ship, Car, Bike, Square, Home } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
+import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
 import { saveSettings } from "@/lib/localStorageDB";
 import type { KioskSettings } from "@shared/schema";
@@ -22,8 +22,6 @@ const transportModes = [
 
 export default function SettingsMenu() {
   const [, setLocation] = useLocation();
-  const mainRef = useRef<HTMLDivElement>(null);
-  usePressScroll(mainRef);
   const scaleMap: Record<string, number> = { "800x480": 1, "1024x600": 1.25, "1280x800": 1.6, "1920x1080": 2.25 };
   const [kioskScale] = useState(() => scaleMap[localStorage.getItem("kioskResolution") || "800x480"] || 1);
   const deviceId = getDeviceId();
@@ -85,9 +83,8 @@ export default function SettingsMenu() {
     <div className="min-h-screen bg-[#0b0b0b] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
       <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: "center center" }}>
         <main
-          ref={mainRef}
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] flex flex-col relative"
-          style={{ width: "800px", height: "480px", padding: "15px 20px", overflow: "auto" }}
+          style={{ width: "800px", height: "480px", padding: "15px 20px 55px 20px", overflow: "hidden" }}
         >
           {/* Back button */}
           <div className="absolute top-[5px] left-[5px]">

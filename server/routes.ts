@@ -105,12 +105,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (_e) { return false; }
       });
 
+      const snowToday = data.list.some((item: any) => {
+        try {
+          const forecastNYC = getNYCParts(item.dt * 1000);
+          const isToday = forecastNYC.day === todayNYC.day && forecastNYC.month === todayNYC.month;
+          const isFuture = item.dt * 1000 >= nowUTC;
+          const weatherId = item.weather?.[0]?.id;
+          const isSnowy = weatherId != null && weatherId >= 600 && weatherId < 700; // 6xx snow
+          return isToday && isFuture && isSnowy;
+        } catch (_e) { return false; }
+      });
+
       // Format weather data for frontend
       const weatherData = {
         icon: mapOWMCodeToIcon(currentForecast.weather[0].id, isDayTime(currentForecast.dt)),
         temperature: `${Math.round(currentForecast.main.temp)}°`,
         description: currentForecast.weather[0].main,
         rainToday,
+        snowToday,
       };
 
       res.json(weatherData);

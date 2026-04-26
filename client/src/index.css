@@ -11,6 +11,19 @@
   display: none; /* Chrome/Safari/WebKit */
 }
 
+.search-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 15px;
+  background: #FFD200;
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: cursor-blink 1s step-end infinite;
+}
+@keyframes cursor-blink {
+  50% { opacity: 0; }
+}
+
 /* LIGHT MODE */
 :root {
   --button-outline: rgba(0,0,0, .10);

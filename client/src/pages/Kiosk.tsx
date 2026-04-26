@@ -4,6 +4,8 @@ import { useLocation } from "wouter";
 import { usePressScroll } from "@/hooks/use-press-scroll";
 import { Settings } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
+import CitibikeDockRow from "@/components/CitibikeDockRow";
+import type { CitibikeStation } from "@/components/CitibikeDockRow";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
 import type { SubwayArrival, KioskPreference, KioskSettings } from "@shared/schema";
@@ -64,6 +66,15 @@ export default function Kiosk() {
   const row2Pref = preferences?.find(p => p.row === 2);
   const row3Pref = preferences?.find(p => p.row === 3);
   const row4Pref = preferences?.find(p => p.row === 4);
+  const rowPrefs = [row1Pref, row2Pref, row3Pref, row4Pref];
+
+  // Fetch citibike station data when any row is configured as citibike
+  const hasCitibikeRow = rowPrefs.some(p => p?.line === 'CITIBIKE');
+  const { data: citibikeStations = [] } = useQuery<CitibikeStation[]>({
+    queryKey: ['/api/citibike/stations'],
+    refetchInterval: 30 * 1000,
+    enabled: hasCitibikeRow,
+  });
 
   // Build query parameters for dynamic arrivals (subway, PATH, or bus)
   const getArrivalsQueryKey = (pref: KioskPreference | undefined, rowNum: number) => {
@@ -75,7 +86,11 @@ export default function Kiosk() {
     if (!pref) {
       return ['/api/subway/arrivals', { stopId: defaultStopId, direction: defaultDirection, lines: defaultLines, isPATH: false, isBus: false }];
     }
-    
+
+    if (pref.line === 'CITIBIKE') {
+      return ['/api/citibike/noop', { isCitibike: true }];
+    }
+
     // Check if this is a PATH line
     const isPATH = pref.line.startsWith('PATH-');
     
@@ -112,6 +127,7 @@ export default function Kiosk() {
     temperature: string;
     description: string;
     rainToday: boolean;
+    snowToday: boolean;
   }>({
     queryKey: ['/api/weather'],
     refetchInterval: 10 * 60 * 1000, // Refresh every 10 minutes
@@ -144,81 +160,52 @@ export default function Kiosk() {
     };
   };
 
+  const makeArrivalQueryFn = (queryKey: any[]) => async () => {
+    const params = queryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean };
+    if (params.isCitibike) return null as unknown as SubwayArrival;
+    if (params.isBus) return transformBusArrivals(params);
+    const url = params.isPATH
+      ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
+      : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch arrivals');
+    return res.json();
+  };
+
   // Fetch real-time arrivals for row 1 (subway, PATH, or bus)
   const row1QueryKey = getArrivalsQueryKey(row1Pref, 1);
   const { data: row1Arrivals } = useQuery<SubwayArrival>({
     queryKey: row1QueryKey,
-    queryFn: async () => {
-      const params = row1QueryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean };
-      if (params.isBus) {
-        return transformBusArrivals(params);
-      } 
-      let url: string;
-      if (params.isPATH) {
-        url = `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`;
-      } else {
-        url = `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
-      }
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch arrivals');
-      return res.json();
-    },
-    refetchInterval: 30 * 1000, // Refresh every 30 seconds
-    enabled: true,
+    queryFn: makeArrivalQueryFn(row1QueryKey),
+    refetchInterval: 30 * 1000,
+    enabled: row1Pref?.line !== 'CITIBIKE',
   });
 
   // Fetch real-time arrivals for row 2 (subway, PATH, or bus)
   const row2QueryKey = getArrivalsQueryKey(row2Pref, 2);
   const { data: row2Arrivals } = useQuery<SubwayArrival>({
     queryKey: row2QueryKey,
-    queryFn: async () => {
-      const params = row2QueryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean };
-      if (params.isBus) return transformBusArrivals(params);
-      const url = params.isPATH
-        ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
-        : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch arrivals');
-      return res.json();
-    },
+    queryFn: makeArrivalQueryFn(row2QueryKey),
     refetchInterval: 30 * 1000,
-    enabled: true,
+    enabled: row2Pref?.line !== 'CITIBIKE',
   });
 
   // Fetch real-time arrivals for row 3
   const row3QueryKey = getArrivalsQueryKey(row3Pref, 3);
   const { data: row3Arrivals } = useQuery<SubwayArrival>({
     queryKey: row3QueryKey,
-    queryFn: async () => {
-      const params = row3QueryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean };
-      if (params.isBus) return transformBusArrivals(params);
-      const url = params.isPATH
-        ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
-        : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch arrivals');
-      return res.json();
-    },
+    queryFn: makeArrivalQueryFn(row3QueryKey),
     refetchInterval: 30 * 1000,
-    enabled: transportRows >= 3,
+    enabled: transportRows >= 3 && row3Pref?.line !== 'CITIBIKE',
   });
 
   // Fetch real-time arrivals for row 4
   const row4QueryKey = getArrivalsQueryKey(row4Pref, 4);
   const { data: row4Arrivals } = useQuery<SubwayArrival>({
     queryKey: row4QueryKey,
-    queryFn: async () => {
-      const params = row4QueryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean };
-      if (params.isBus) return transformBusArrivals(params);
-      const url = params.isPATH
-        ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
-        : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch arrivals');
-      return res.json();
-    },
+    queryFn: makeArrivalQueryFn(row4QueryKey),
     refetchInterval: 30 * 1000,
-    enabled: transportRows >= 4,
+    enabled: transportRows >= 4 && row4Pref?.line !== 'CITIBIKE',
   });
 
   // Check if any line in the same-color group has an alert
@@ -278,7 +265,7 @@ export default function Kiosk() {
   const rowHeight = transportRows === 4 ? 97 : undefined;
 
   // Fallback weather data while loading
-  const defaultWeather = { icon: "day-sunny" as WeatherIconName, temperature: "--°", description: "Loading", rainToday: false };
+  const defaultWeather = { icon: "day-sunny" as WeatherIconName, temperature: "--°", description: "Loading", rainToday: false, snowToday: false };
 
   // Convert temperature based on settings
   const convertTemperature = (tempStr: string): string => {
@@ -349,26 +336,34 @@ export default function Kiosk() {
             style={{ gap: '9px', height: '400px' }}
             data-testid="section-tracks"
           >
-            {subwayData.map((track, idx) => (
+            {subwayData.map((track, idx) => {
+              const pref = rowPrefs[idx];
+              const isCitibikeRow = pref?.line === 'CITIBIKE';
+              const citibikeSlots = isCitibikeRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : null;
+              return (
               <div
                 key={idx}
                 onClick={() => handleRowClick(idx)}
                 className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
                 data-testid={`track-row-${idx}`}
               >
-                <TrackCard
-                  direction={track.direction}
-                  line={track.line}
-                  destination={track.destination}
-                  subtitle={track.subtitle}
-                  arrivalMinutes={track.arrivalMinutes}
-                  arrivalLines={track.arrivalLines}
-                  isDowntown={idx % 2 === 1}
-                  hasAlert={hasAlertForLine(track.line)}
-                  alertDescriptions={getAlertDescriptions(track.line)}
-                  isBus={track.isBus}
-                  rowHeight={rowHeight}
-                />
+                {isCitibikeRow ? (
+                  <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} />
+                ) : (
+                  <TrackCard
+                    direction={track.direction}
+                    line={track.line}
+                    destination={track.destination}
+                    subtitle={track.subtitle}
+                    arrivalMinutes={track.arrivalMinutes}
+                    arrivalLines={track.arrivalLines}
+                    isDowntown={idx % 2 === 1}
+                    hasAlert={hasAlertForLine(track.line)}
+                    alertDescriptions={getAlertDescriptions(track.line)}
+                    isBus={track.isBus}
+                    rowHeight={rowHeight}
+                  />
+                )}
                 {isEditMode && (
                   <div
                     className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -382,30 +377,39 @@ export default function Kiosk() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </section>
         ) : (
           /* 2 row mode: original layout with clock and weather */
           <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
-            {subwayData.map((track, idx) => (
+            {subwayData.map((track, idx) => {
+              const pref = rowPrefs[idx];
+              const isCitibikeRow = pref?.line === 'CITIBIKE';
+              const citibikeSlots = isCitibikeRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : null;
+              return (
               <div
                 key={idx}
                 onClick={() => handleRowClick(idx)}
                 className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
                 data-testid={`track-row-${idx}`}
               >
-                <TrackCard
-                  direction={track.direction}
-                  line={track.line}
-                  destination={track.destination}
-                  subtitle={track.subtitle}
-                  arrivalMinutes={track.arrivalMinutes}
-                  arrivalLines={track.arrivalLines}
-                  isDowntown={idx === 1}
-                  hasAlert={hasAlertForLine(track.line)}
-                  alertDescriptions={getAlertDescriptions(track.line)}
-                  isBus={track.isBus}
-                />
+                {isCitibikeRow ? (
+                  <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} />
+                ) : (
+                  <TrackCard
+                    direction={track.direction}
+                    line={track.line}
+                    destination={track.destination}
+                    subtitle={track.subtitle}
+                    arrivalMinutes={track.arrivalMinutes}
+                    arrivalLines={track.arrivalLines}
+                    isDowntown={idx === 1}
+                    hasAlert={hasAlertForLine(track.line)}
+                    alertDescriptions={getAlertDescriptions(track.line)}
+                    isBus={track.isBus}
+                  />
+                )}
                 {isEditMode && (
                   <div
                     className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -419,7 +423,8 @@ export default function Kiosk() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </section>
         )}
 
@@ -488,6 +493,7 @@ export default function Kiosk() {
                   temperature={displayWeather.temperature}
                   description={displayWeather.description}
                   rainToday={isEditMode ? false : displayWeather.rainToday}
+                  snowToday={isEditMode ? false : displayWeather.snowToday}
                   isEditMode={isEditMode}
                 />
               </div>

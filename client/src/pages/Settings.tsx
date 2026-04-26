@@ -3,6 +3,7 @@ import { Link, useSearch, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Home, Square, ArrowLeft, ChevronUp, ChevronDown, CarFront, Settings as SettingsIcon } from "lucide-react";
 import resolutionIcon from "@assets/image_1772664658561.png";
+import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { queryClient } from "@/lib/queryClient";
 import { savePreference } from "@/lib/localStorageDB";
 import { getDeviceId } from "@/lib/deviceId";
@@ -1600,7 +1601,7 @@ export default function Settings() {
           <CarFront className="w-[22px] h-[22px] text-white" />
           <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>Driving</span>
         </div>
-        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-14">
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => navigate(`/citibike-settings${selectedRow ? `?editRow=${selectedRow}` : ''}`)} data-testid="card-settings-14">
           <img src={citibikeIcon} alt="Citibike" className="h-[23px] object-contain" />
         </div>
       </div>
@@ -2620,10 +2621,8 @@ export default function Settings() {
             </div>
           )}
 
-          <div className="absolute bottom-[5px] left-[5px]">
-            <Link href="/" className="block p-4">
-              <Home className="w-6 h-6 text-white cursor-pointer" />
-            </Link>
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none">
+            <img src={moovmiiLogoV2} alt="moovmii" style={{ height: 18 }} />
           </div>
 
           <div className="absolute bottom-[-2px] right-[5px]">
