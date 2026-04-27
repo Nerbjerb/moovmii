@@ -17,6 +17,12 @@ import { getDeviceId } from "@/lib/deviceId";
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [, setLocation] = useLocation();
+
+  // ?reset escape hatch — clears stored resolution and reloads at default scale
+  if (typeof window !== "undefined" && window.location.search.includes("reset")) {
+    localStorage.removeItem("kioskResolution");
+    window.location.replace("/");
+  }
   const mainRef = useRef<HTMLDivElement>(null);
   usePressScroll(mainRef);
 

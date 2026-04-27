@@ -48,9 +48,31 @@ export default function SettingsMenu() {
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
+  const detectBestResolution = (): string => {
+    const sw = window.screen.width;
+    const sh = window.screen.height;
+    const options = [
+      { res: "800x480",   w: 800,  h: 480  },
+      { res: "1024x600",  w: 1024, h: 600  },
+      { res: "1280x800",  w: 1280, h: 800  },
+      { res: "1920x1080", w: 1920, h: 1080 },
+    ];
+    return options.reduce((best, opt) => {
+      const d = Math.abs(opt.w - sw) + Math.abs(opt.h - sh);
+      const bd = Math.abs(best.w - sw) + Math.abs(best.h - sh);
+      return d < bd ? opt : best;
+    }).res;
+  };
+
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(console.error);
+      const bestRes = detectBestResolution();
+      const current = localStorage.getItem("kioskResolution") || "800x480";
+      if (bestRes !== current) {
+        localStorage.setItem("kioskResolution", bestRes);
+        setTimeout(() => window.location.reload(), 200);
+      }
     } else {
       document.exitFullscreen().catch(console.error);
     }
