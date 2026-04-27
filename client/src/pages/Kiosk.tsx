@@ -267,8 +267,18 @@ export default function Kiosk() {
     ...(transportRows >= 4 ? [applyCommuteFilter(row4Arrivals || fallback("Downtown", "W"))] : []),
   ];
 
-  // Row height: 4-row mode uses shorter rows to fit above the settings gear
-  const rowHeight = transportRows === 4 ? 97 : undefined;
+  // Heights account for the station label rendered above each card
+  const labelHeight = transportRows === 4 ? 16 : 20;
+  const labelOverhead = labelHeight + 3; // font height + gap below label
+  const rowHeight = transportRows >= 3
+    ? Math.floor((400 - (transportRows - 1) * 9 - transportRows * labelOverhead) / transportRows)
+    : 115 - labelOverhead;
+
+  const getStationLabel = (pref: typeof rowPrefs[0], track: SubwayArrival): string | null => {
+    if (!pref || pref.line === 'CITIBIKE') return null;
+    if (track.isBus) return track.subtitle || null;
+    return pref.stop || null;
+  };
 
   // Fallback weather data while loading
   const defaultWeather = { icon: "day-sunny" as WeatherIconName, temperature: "--°", description: "Loading", rainToday: false, snowToday: false };
@@ -346,42 +356,49 @@ export default function Kiosk() {
               const pref = rowPrefs[idx];
               const isCitibikeRow = pref?.line === 'CITIBIKE';
               const citibikeSlots = isCitibikeRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : null;
+              const stationLabel = getStationLabel(pref, track);
               return (
-              <div
-                key={idx}
-                onClick={() => handleRowClick(idx)}
-                className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
-                data-testid={`track-row-${idx}`}
-              >
-                {isCitibikeRow ? (
-                  <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} />
-                ) : (
-                  <TrackCard
-                    direction={track.direction}
-                    line={track.line}
-                    destination={track.destination}
-                    subtitle={track.subtitle}
-                    arrivalMinutes={track.arrivalMinutes}
-                    arrivalLines={track.arrivalLines}
-                    isDowntown={idx % 2 === 1}
-                    hasAlert={hasAlertForLine(track.line)}
-                    alertDescriptions={getAlertDescriptions(track.line)}
-                    isBus={track.isBus}
-                    rowHeight={rowHeight}
-                  />
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {stationLabel && (
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
+                    {stationLabel}
+                  </span>
                 )}
-                {isEditMode && (
-                  <div
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                    style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
-                  >
-                    <div className="rounded-[6px] px-4 py-2" style={{ backgroundColor: '#ffd200' }}>
-                      <span className="font-bold text-black" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}>
-                        Edit Row {idx + 1}
-                      </span>
+                <div
+                  onClick={() => handleRowClick(idx)}
+                  className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
+                  data-testid={`track-row-${idx}`}
+                >
+                  {isCitibikeRow ? (
+                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} />
+                  ) : (
+                    <TrackCard
+                      direction={track.direction}
+                      line={track.line}
+                      destination={track.destination}
+                      subtitle={track.subtitle}
+                      arrivalMinutes={track.arrivalMinutes}
+                      arrivalLines={track.arrivalLines}
+                      isDowntown={idx % 2 === 1}
+                      hasAlert={hasAlertForLine(track.line)}
+                      alertDescriptions={getAlertDescriptions(track.line)}
+                      isBus={track.isBus}
+                      rowHeight={rowHeight}
+                    />
+                  )}
+                  {isEditMode && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                      style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
+                    >
+                      <div className="rounded-[6px] px-4 py-2" style={{ backgroundColor: '#ffd200' }}>
+                        <span className="font-bold text-black" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}>
+                          Edit Row {idx + 1}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               );
             })}
@@ -393,41 +410,49 @@ export default function Kiosk() {
               const pref = rowPrefs[idx];
               const isCitibikeRow = pref?.line === 'CITIBIKE';
               const citibikeSlots = isCitibikeRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : null;
+              const stationLabel = getStationLabel(pref, track);
               return (
-              <div
-                key={idx}
-                onClick={() => handleRowClick(idx)}
-                className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
-                data-testid={`track-row-${idx}`}
-              >
-                {isCitibikeRow ? (
-                  <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} />
-                ) : (
-                  <TrackCard
-                    direction={track.direction}
-                    line={track.line}
-                    destination={track.destination}
-                    subtitle={track.subtitle}
-                    arrivalMinutes={track.arrivalMinutes}
-                    arrivalLines={track.arrivalLines}
-                    isDowntown={idx === 1}
-                    hasAlert={hasAlertForLine(track.line)}
-                    alertDescriptions={getAlertDescriptions(track.line)}
-                    isBus={track.isBus}
-                  />
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {stationLabel && (
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
+                    {stationLabel}
+                  </span>
                 )}
-                {isEditMode && (
-                  <div
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                    style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
-                  >
-                    <div className="rounded-[6px] px-4 py-2" style={{ backgroundColor: '#ffd200' }}>
-                      <span className="font-bold text-black" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}>
-                        Edit Row {idx + 1}
-                      </span>
+                <div
+                  onClick={() => handleRowClick(idx)}
+                  className={`relative ${isEditMode ? 'cursor-pointer edit-mode-outline' : ''}`}
+                  data-testid={`track-row-${idx}`}
+                >
+                  {isCitibikeRow ? (
+                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} />
+                  ) : (
+                    <TrackCard
+                      direction={track.direction}
+                      line={track.line}
+                      destination={track.destination}
+                      subtitle={track.subtitle}
+                      arrivalMinutes={track.arrivalMinutes}
+                      arrivalLines={track.arrivalLines}
+                      isDowntown={idx === 1}
+                      hasAlert={hasAlertForLine(track.line)}
+                      alertDescriptions={getAlertDescriptions(track.line)}
+                      isBus={track.isBus}
+                      rowHeight={rowHeight}
+                    />
+                  )}
+                  {isEditMode && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                      style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
+                    >
+                      <div className="rounded-[6px] px-4 py-2" style={{ backgroundColor: '#ffd200' }}>
+                        <span className="font-bold text-black" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}>
+                          Edit Row {idx + 1}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               );
             })}
