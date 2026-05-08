@@ -523,7 +523,7 @@ export default function Kiosk() {
                   icon={displayWeather.icon}
                   temperature={displayWeather.temperature}
                   description={displayWeather.description}
-                  rainToday={isEditMode ? false : displayWeather.rainToday}
+                  rainToday={true}
                   snowToday={isEditMode ? false : displayWeather.snowToday}
                   isEditMode={isEditMode}
                 />
