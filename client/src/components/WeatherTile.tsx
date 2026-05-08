@@ -141,7 +141,7 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
           style={{
             bottom: '27px',
             left: '50%',
-            transform: 'translateX(calc(-50% + 5px))',
+            transform: 'translateX(calc(-50% + 0px))',
             backgroundColor: '#C0392B',
             borderRadius: '9px',
             padding: '2px 9px 2px 3px',
