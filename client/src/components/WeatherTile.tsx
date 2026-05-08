@@ -139,9 +139,9 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
         <div
           className="absolute flex items-center gap-[6px]"
           style={{
-            bottom: '22px',
+            bottom: '27px',
             left: '50%',
-            transform: 'translateX(calc(-50% + 20px))',
+            transform: 'translateX(calc(-50% + 35px))',
             backgroundColor: '#C0392B',
             borderRadius: '9px',
             padding: '2px 9px 2px 3px',
