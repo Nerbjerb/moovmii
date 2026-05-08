@@ -516,9 +516,8 @@ export default function Kiosk() {
               }}
             >
               <div
-                className={`flex items-center justify-center ${isEditMode ? 'cursor-pointer' : ''}`}
+                className="flex items-center justify-center"
                 style={{ width: '169px', height: '169px' }}
-                onClick={() => isEditMode && setLocation('/weather-settings')}
                 data-testid="weather-edit-area"
               >
                 <WeatherTile
@@ -528,6 +527,7 @@ export default function Kiosk() {
                   rainToday={isEditMode ? false : displayWeather.rainToday}
                   snowToday={isEditMode ? false : displayWeather.snowToday}
                   isEditMode={isEditMode}
+                  onEditClick={() => setLocation('/weather-settings')}
                 />
               </div>
             </div>

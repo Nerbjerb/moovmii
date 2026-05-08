@@ -59,6 +59,7 @@ interface WeatherTileProps {
   rainToday?: boolean;
   snowToday?: boolean;
   isEditMode?: boolean;
+  onEditClick?: () => void;
 }
 
 const weatherIcons: Record<WeatherIconName, string> = {
@@ -114,7 +115,7 @@ const weatherIcons: Record<WeatherIconName, string> = {
   'cloud': cloudIcon,
 };
 
-export default function WeatherTile({ icon, temperature, description, rainToday, snowToday, isEditMode }: WeatherTileProps) {
+export default function WeatherTile({ icon, temperature, description, rainToday, snowToday, isEditMode, onEditClick }: WeatherTileProps) {
   const iconSrc = weatherIcons[icon];
 
   return (
@@ -129,7 +130,10 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
           />
         )}
         <div className="flex flex-col items-center">
-          <div style={{ transform: 'translateY(-30px)', ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}>
+          <div
+            onClick={isEditMode ? onEditClick : undefined}
+            style={{ transform: 'translateY(-30px)', cursor: isEditMode && onEditClick ? 'pointer' : 'default', ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}
+          >
             <div className="font-bold text-center" style={{ fontSize: '48px', lineHeight: 1, marginLeft: '5px' }} data-testid="text-temperature">{temperature}</div>
             <div className="text-center" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px' }} data-testid="text-description">{description}</div>
           </div>
