@@ -119,7 +119,7 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
 
   return (
     <div className="text-white relative" style={{ width: '169px', height: '169px' }} data-testid="weather-tile">
-      <div className="flex items-center gap-3 absolute inset-0" style={{ transform: 'translateX(-30px) translateY(-5px)' }}>
+      <div className="flex items-center gap-3 absolute inset-0" style={{ transform: `translateX(-30px) translateY(${rainToday || snowToday ? '-5px' : '10px'})` }}>
         {iconSrc && (
           <img
             src={iconSrc}
