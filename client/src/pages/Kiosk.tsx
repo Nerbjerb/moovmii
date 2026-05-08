@@ -492,6 +492,8 @@ export default function Kiosk() {
                     justifyContent: 'center',
                     padding: '0 20px',
                     transform: 'translateX(20px) translateY(-2px)',
+                    position: 'relative',
+                    zIndex: 50,
                   }}
                   onClick={() => setLocation('/settings-menu')}
                   data-testid="other-settings-edit-area"
