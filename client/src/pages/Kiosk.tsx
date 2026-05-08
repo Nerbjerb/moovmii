@@ -532,7 +532,7 @@ export default function Kiosk() {
           </div>
         </section>}
         {!isEditMode && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none">
+          <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 pointer-events-none">
             <img src={moovmiiLogoV2} alt="moovmii" style={{ height: 18 }} />
           </div>
         )}
