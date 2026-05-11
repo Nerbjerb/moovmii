@@ -1274,6 +1274,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let ferryTripsCache: any[] = [];
   let ferryAlertsCacheTime = 0;
   let ferryAlertsCache: any[] = [];
+  // Static GTFS trip map: tripId → { routeId, directionId }
+  let ferryStaticTripMap: Record<string, { routeId: string; directionId: number }> = {};
+  let ferryStaticTripMapTime = 0;
+
+  async function ensureFerryStaticTripMap() {
+    const now = Date.now();
+    if (now - ferryStaticTripMapTime < 3_600_000 && Object.keys(ferryStaticTripMap).length > 0) return;
+    const AdmZip = (await import("adm-zip")).default;
+    const response = await fetch("https://nycferry.connexionz.net/rtt/public/utility/gtfs.aspx", { redirect: "follow" });
+    if (!response.ok) throw new Error(`Ferry GTFS error: ${response.status}`);
+    const zip = new AdmZip(Buffer.from(await response.arrayBuffer()));
+    const tripsLines = zip.getEntry("trips.txt")!.getData().toString("utf8").trim().split("\n");
+    const header = tripsLines[0].split(",").map((h: string) => h.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+    const routeIdx = header.indexOf("route_id");
+    const tripIdx = header.indexOf("trip_id");
+    const dirIdx = header.indexOf("direction_id");
+    const map: Record<string, { routeId: string; directionId: number }> = {};
+    for (let i = 1; i < tripsLines.length; i++) {
+      const cols = tripsLines[i].split(",").map((c: string) => c.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+      if (cols[tripIdx]) map[cols[tripIdx]] = { routeId: cols[routeIdx], directionId: parseInt(cols[dirIdx] || "0", 10) };
+    }
+    ferryStaticTripMap = map;
+    ferryStaticTripMapTime = now;
+  }
 
   app.get("/api/ferry/trips", async (req, res) => {
     try {
@@ -1440,7 +1464,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!routeId || !stopId) return res.status(400).json({ error: "routeId and stopId required" });
 
       const now = Date.now();
-      // Reuse existing trips cache
+      // Load static trip→route/direction map (needed because realtime feed omits routeId)
+      await ensureFerryStaticTripMap();
+
+      // Fetch realtime trip updates
       if (now - ferryCacheTime >= 30_000 || ferryTripsCache.length === 0) {
         const response = await fetch("https://nycferry.connexionz.net/rtt/public/utility/gtfsrealtime.aspx/tripupdate");
         if (!response.ok) throw new Error("Ferry API error");
@@ -1448,13 +1475,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
         ferryTripsCache = feed.entity.filter((e: any) => e.tripUpdate).map((e: any) => {
           const tu = e.tripUpdate;
+          const tripId = String(tu.trip?.tripId ?? "");
+          const staticInfo = ferryStaticTripMap[tripId] ?? { routeId: tu.trip?.routeId ?? "", directionId: tu.trip?.directionId ?? 0 };
           return {
-            tripId: tu.trip?.tripId,
-            routeId: tu.trip?.routeId,
-            directionId: tu.trip?.directionId,
+            tripId,
+            routeId: staticInfo.routeId,
+            directionId: staticInfo.directionId,
             stopTimeUpdates: (tu.stopTimeUpdate || []).map((stu: any) => ({
-              stopId: stu.stopId,
-              departureTime: stu.departure?.time?.toNumber?.() ?? stu.departure?.time ?? null,
+              stopId: String(stu.stopId),
+              departureTime: stu.departure?.time?.toNumber?.() ?? (typeof stu.departure?.time === "string" ? parseInt(stu.departure.time, 10) : stu.departure?.time) ?? null,
             })),
           };
         });
@@ -1469,8 +1498,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       for (const trip of ferryTripsCache) {
         if (trip.routeId !== routeId) continue;
-        if (trip.directionId !== undefined && trip.directionId !== targetDir) continue;
-        const stu = trip.stopTimeUpdates.find((s: any) => s.stopId === stopId);
+        if (trip.directionId !== targetDir) continue;
+        const stu = trip.stopTimeUpdates.find((s: any) => s.stopId === String(stopId));
         if (!stu || !stu.departureTime) continue;
         const mins = Math.round((stu.departureTime - nowSec) / 60);
         if (mins >= 0 && mins <= 90) arrivalMins.push(mins);
