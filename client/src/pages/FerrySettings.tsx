@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useLocation, useSearch } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Home } from "lucide-react";
 import { getDeviceId } from "@/lib/deviceId";
 import { savePreference } from "@/lib/localStorageDB";
 import { queryClient } from "@/lib/queryClient";
-import { FERRY_LINES, type FerryLine } from "@/lib/ferryConfig";
+import { FERRY_LINES, type FerryLine, type FerryStop } from "@/lib/ferryConfig";
 import ferryIconSrc from "@assets/NYC_Ferry_Icon_Black.png";
 
 const font = { fontFamily: "Helvetica, Arial, sans-serif" };
@@ -54,15 +53,10 @@ export default function FerrySettings() {
 
   const [view, setView] = useState<View>("line");
   const [selectedLine, setSelectedLine] = useState<FerryLine | null>(null);
-  const [selectedStop, setSelectedStop] = useState<{ id: string; name: string } | null>(null);
+  const [selectedStop, setSelectedStop] = useState<FerryStop | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<"Inbound" | "Outbound">("Inbound");
 
-  const { data: stopsData, isLoading: stopsLoading } = useQuery<{ routeId: string; stops: { id: string; name: string }[] }[]>({
-    queryKey: ["/api/ferry/stops"],
-    enabled: view === "stop" && !!selectedLine,
-  });
-
-  const stopsForLine = stopsData?.find((r) => r.routeId === selectedLine?.routeId)?.stops ?? [];
+  const stopsForLine = selectedLine?.stops ?? [];
 
   const handleSave = () => {
     if (!selectedLine || !selectedStop) return;
@@ -124,12 +118,7 @@ export default function FerrySettings() {
           {/* STOP PICKER */}
           {view === "stop" && (
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
-              {stopsLoading && (
-                <div className="flex items-center justify-center flex-1">
-                  <span style={{ ...font, fontSize: 16, color: "#aaa" }}>Loading stops…</span>
-                </div>
-              )}
-              {!stopsLoading && stopsForLine.length === 0 && (
+              {stopsForLine.length === 0 && (
                 <div className="flex items-center justify-center flex-1">
                   <span style={{ ...font, fontSize: 16, color: "#aaa" }}>No stops found</span>
                 </div>
