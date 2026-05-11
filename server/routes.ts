@@ -1366,8 +1366,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const AdmZip = (await import("adm-zip")).default;
       const gtfsUrl = "https://nycferry.connexionz.net/rtt/public/utility/gtfs.aspx";
-      const response = await fetch(gtfsUrl);
-      if (!response.ok) throw new Error(`Ferry GTFS error: ${response.statusText}`);
+      const response = await fetch(gtfsUrl, { redirect: "follow" });
+      if (!response.ok) throw new Error(`Ferry GTFS error: ${response.status} ${response.statusText}`);
 
       const buffer = Buffer.from(await response.arrayBuffer());
       const zip = new AdmZip(buffer);
