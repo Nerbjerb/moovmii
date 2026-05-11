@@ -1353,6 +1353,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Ferry GTFS static stops cache
+  let ferryStopsCacheTime = 0;
+  let ferryStopsCache: { routeId: string; stops: { id: string; name: string }[] }[] = [];
+
+  app.get("/api/ferry/stops", async (_req, res) => {
+    try {
+      const now = Date.now();
+      if (now - ferryStopsCacheTime < 3_600_000 && ferryStopsCache.length > 0) {
+        return res.json(ferryStopsCache);
+      }
+
+      const AdmZip = (await import("adm-zip")).default;
+      const gtfsUrl = "https://nycferry.connexionz.net/rtt/public/utility/gtfs.aspx";
+      const response = await fetch(gtfsUrl);
+      if (!response.ok) throw new Error(`Ferry GTFS error: ${response.statusText}`);
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+      const zip = new AdmZip(buffer);
+
+      // Parse stops.txt → id, name map
+      const stopsEntry = zip.getEntry("stops.txt");
+      if (!stopsEntry) throw new Error("No stops.txt in GTFS");
+      const stopsLines = stopsEntry.getData().toString("utf8").trim().split("\n");
+      const stopsHeader = stopsLines[0].split(",").map((h: string) => h.trim().replace(/\r/g, ""));
+      const stopIdIdx = stopsHeader.indexOf("stop_id");
+      const stopNameIdx = stopsHeader.indexOf("stop_name");
+      const stopMap: Record<string, string> = {};
+      for (let i = 1; i < stopsLines.length; i++) {
+        const cols = stopsLines[i].split(",").map((c: string) => c.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+        if (cols[stopIdIdx]) stopMap[cols[stopIdIdx]] = cols[stopNameIdx] || cols[stopIdIdx];
+      }
+
+      // Parse trips.txt → trip_id, route_id, direction_id
+      const tripsEntry = zip.getEntry("trips.txt");
+      if (!tripsEntry) throw new Error("No trips.txt in GTFS");
+      const tripsLines = tripsEntry.getData().toString("utf8").trim().split("\n");
+      const tripsHeader = tripsLines[0].split(",").map((h: string) => h.trim().replace(/\r/g, ""));
+      const tRouteIdx = tripsHeader.indexOf("route_id");
+      const tTripIdx = tripsHeader.indexOf("trip_id");
+      const tripToRoute: Record<string, string> = {};
+      for (let i = 1; i < tripsLines.length; i++) {
+        const cols = tripsLines[i].split(",").map((c: string) => c.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+        if (cols[tTripIdx]) tripToRoute[cols[tTripIdx]] = cols[tRouteIdx];
+      }
+
+      // Parse stop_times.txt → route → ordered stop IDs
+      const stEntry = zip.getEntry("stop_times.txt");
+      if (!stEntry) throw new Error("No stop_times.txt in GTFS");
+      const stLines = stEntry.getData().toString("utf8").trim().split("\n");
+      const stHeader = stLines[0].split(",").map((h: string) => h.trim().replace(/\r/g, ""));
+      const stTripIdx = stHeader.indexOf("trip_id");
+      const stStopIdx = stHeader.indexOf("stop_id");
+      const stSeqIdx  = stHeader.indexOf("stop_sequence");
+
+      // Collect unique stop IDs per route (preserving first-seen order by sequence)
+      const routeStopSets: Record<string, Map<string, number>> = {};
+      for (let i = 1; i < stLines.length; i++) {
+        const cols = stLines[i].split(",").map((c: string) => c.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+        const tripId = cols[stTripIdx];
+        const stopId = cols[stStopIdx];
+        const seq    = parseInt(cols[stSeqIdx] || "0", 10);
+        const routeId = tripToRoute[tripId];
+        if (!routeId || !stopId) continue;
+        if (!routeStopSets[routeId]) routeStopSets[routeId] = new Map();
+        if (!routeStopSets[routeId].has(stopId)) routeStopSets[routeId].set(stopId, seq);
+      }
+
+      ferryStopsCache = Object.entries(routeStopSets).map(([routeId, stopSeqMap]) => ({
+        routeId,
+        stops: Array.from(stopSeqMap.entries())
+          .sort((a, b) => a[1] - b[1])
+          .map(([id]) => ({ id, name: stopMap[id] || id })),
+      }));
+      ferryStopsCacheTime = now;
+      res.json(ferryStopsCache);
+    } catch (error) {
+      console.error("Error fetching NYC Ferry stops:", error);
+      res.status(500).json({ error: "Failed to fetch ferry stops" });
+    }
+  });
+
+  app.get("/api/ferry/arrivals", async (req, res) => {
+    try {
+      const { routeId, stopId, direction } = req.query as { routeId: string; stopId: string; direction: string };
+      if (!routeId || !stopId) return res.status(400).json({ error: "routeId and stopId required" });
+
+      const now = Date.now();
+      // Reuse existing trips cache
+      if (now - ferryCacheTime >= 30_000 || ferryTripsCache.length === 0) {
+        const response = await fetch("https://nycferry.connexionz.net/rtt/public/utility/gtfsrealtime.aspx/tripupdate");
+        if (!response.ok) throw new Error("Ferry API error");
+        const buffer = await response.arrayBuffer();
+        const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
+        ferryTripsCache = feed.entity.filter((e: any) => e.tripUpdate).map((e: any) => {
+          const tu = e.tripUpdate;
+          return {
+            tripId: tu.trip?.tripId,
+            routeId: tu.trip?.routeId,
+            directionId: tu.trip?.directionId,
+            stopTimeUpdates: (tu.stopTimeUpdate || []).map((stu: any) => ({
+              stopId: stu.stopId,
+              departureTime: stu.departure?.time?.toNumber?.() ?? stu.departure?.time ?? null,
+            })),
+          };
+        });
+        ferryCacheTime = now;
+      }
+
+      const nowSec = Math.floor(now / 1000);
+      const arrivalMins: number[] = [];
+
+      // direction: "Inbound" = directionId 1 (towards Manhattan), "Outbound" = 0
+      const targetDir = direction === "Inbound" ? 1 : 0;
+
+      for (const trip of ferryTripsCache) {
+        if (trip.routeId !== routeId) continue;
+        if (trip.directionId !== undefined && trip.directionId !== targetDir) continue;
+        const stu = trip.stopTimeUpdates.find((s: any) => s.stopId === stopId);
+        if (!stu || !stu.departureTime) continue;
+        const mins = Math.round((stu.departureTime - nowSec) / 60);
+        if (mins >= 0 && mins <= 90) arrivalMins.push(mins);
+      }
+
+      arrivalMins.sort((a, b) => a - b);
+
+      res.json({
+        direction: direction || "Inbound",
+        line: `FERRY-${routeId}`,
+        destination: direction === "Inbound" ? "Wall St / Pier 11" : routeId,
+        subtitle: stopId,
+        arrivalMinutes: arrivalMins.slice(0, 3),
+        arrivalLines: [`FERRY-${routeId}`],
+      });
+    } catch (error) {
+      console.error("Error fetching ferry arrivals:", error);
+      res.status(500).json({ error: "Failed to fetch ferry arrivals" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

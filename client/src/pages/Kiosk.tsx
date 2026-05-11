@@ -97,6 +97,12 @@ export default function Kiosk() {
       return ['/api/citibike/noop', { isCitibike: true }];
     }
 
+    // Check if this is a Ferry line
+    if (pref.line.startsWith('FERRY-')) {
+      const routeId = pref.line.replace('FERRY-', '');
+      return ['/api/ferry/arrivals', { routeId, stopId: pref.stop, direction: pref.direction || 'Inbound', isFerry: true }];
+    }
+
     // Check if this is a PATH line
     const isPATH = pref.line.startsWith('PATH-');
     
@@ -167,9 +173,15 @@ export default function Kiosk() {
   };
 
   const makeArrivalQueryFn = (queryKey: any[]) => async () => {
-    const params = queryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean };
+    const params = queryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean; isFerry?: boolean };
     if (params.isCitibike) return null as unknown as SubwayArrival;
     if (params.isBus) return transformBusArrivals(params);
+    if (params.isFerry) {
+      const url = `/api/ferry/arrivals?routeId=${encodeURIComponent(params.routeId || '')}&stopId=${encodeURIComponent(params.stopId || '')}&direction=${encodeURIComponent(params.direction || 'Inbound')}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch ferry arrivals');
+      return res.json();
+    }
     const url = params.isPATH
       ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
       : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
@@ -178,22 +190,24 @@ export default function Kiosk() {
     return res.json();
   };
 
-  // Fetch real-time arrivals for row 1 (subway, PATH, or bus)
+  const isNonFetchableRow = (line?: string) => !line || line === 'CITIBIKE';
+
+  // Fetch real-time arrivals for row 1 (subway, PATH, bus, or ferry)
   const row1QueryKey = getArrivalsQueryKey(row1Pref, 1);
   const { data: row1Arrivals } = useQuery<SubwayArrival>({
     queryKey: row1QueryKey,
     queryFn: makeArrivalQueryFn(row1QueryKey),
     refetchInterval: 30 * 1000,
-    enabled: row1Pref?.line !== 'CITIBIKE',
+    enabled: !isNonFetchableRow(row1Pref?.line),
   });
 
-  // Fetch real-time arrivals for row 2 (subway, PATH, or bus)
+  // Fetch real-time arrivals for row 2 (subway, PATH, bus, or ferry)
   const row2QueryKey = getArrivalsQueryKey(row2Pref, 2);
   const { data: row2Arrivals } = useQuery<SubwayArrival>({
     queryKey: row2QueryKey,
     queryFn: makeArrivalQueryFn(row2QueryKey),
     refetchInterval: 30 * 1000,
-    enabled: row2Pref?.line !== 'CITIBIKE',
+    enabled: !isNonFetchableRow(row2Pref?.line),
   });
 
   // Fetch real-time arrivals for row 3
@@ -202,7 +216,7 @@ export default function Kiosk() {
     queryKey: row3QueryKey,
     queryFn: makeArrivalQueryFn(row3QueryKey),
     refetchInterval: 30 * 1000,
-    enabled: transportRows >= 3 && row3Pref?.line !== 'CITIBIKE',
+    enabled: transportRows >= 3 && !isNonFetchableRow(row3Pref?.line),
   });
 
   // Fetch real-time arrivals for row 4
@@ -211,7 +225,7 @@ export default function Kiosk() {
     queryKey: row4QueryKey,
     queryFn: makeArrivalQueryFn(row4QueryKey),
     refetchInterval: 30 * 1000,
-    enabled: transportRows >= 4 && row4Pref?.line !== 'CITIBIKE',
+    enabled: transportRows >= 4 && !isNonFetchableRow(row4Pref?.line),
   });
 
   // Check if any line in the same-color group has an alert

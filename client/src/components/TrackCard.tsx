@@ -36,6 +36,8 @@ import iconZ from "@assets/moovmii/MTA Icons/src/svg/z.svg";
 import iconLirr from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
 import iconMnr from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
 import iconPath from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
+import ferryIconSrc from "@assets/NYC_Ferry_Icon_Black.png";
+import { getFerryLine } from "@/lib/ferryConfig";
 
 interface TrackCardProps {
   direction: string;
@@ -265,6 +267,19 @@ export default function TrackCard({
   
   // Check if a line is PATH (should show text instead of logo)
   const isPathLine = (lineName: string) => lineName === 'PATH' || lineName.startsWith('PATH-');
+
+  // Check if a line is NYC Ferry
+  const isFerryLine = (lineName: string) => lineName.startsWith('FERRY-');
+
+  // Colorize ferry icon: black pixels → line color, white pixels → transparent
+  const ferryColorFilter = (hex: string) => {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!m) return '';
+    const rN = parseInt(m[1], 16) / 255;
+    const gN = parseInt(m[2], 16) / 255;
+    const bN = parseInt(m[3], 16) / 255;
+    return `0 0 0 0 ${rN}  0 0 0 0 ${gN}  0 0 0 0 ${bN}  -0.333 -0.333 -0.333 0 1`;
+  };
   
   // Check if a line is a bus (should show route number badge)
   const isBusLine = (lineName: string) => 
@@ -546,10 +561,29 @@ export default function TrackCard({
                 {getBusRouteNumber(line)}
               </span>
             </div>
-          ) : iconSrc ? (
-            <img 
-              src={iconSrc} 
-              alt={`${line} train`} 
+          ) : isFerryLine(line) ? (() => {
+            const ferryLine = getFerryLine(line);
+            if (!ferryLine) return <span className="text-[48px] font-bold text-primary-foreground">{line}</span>;
+            const filterId = `ferry-tc-${ferryLine.routeId}`;
+            const matrix = ferryColorFilter(ferryLine.color);
+            const sz = Math.round(cardHeight * 70 / 115);
+            return (
+              <div style={{ transform: 'translate(-35px, -10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <svg width="0" height="0" style={{ position: 'absolute' }}>
+                  <defs>
+                    <filter id={filterId} colorInterpolationFilters="sRGB">
+                      <feColorMatrix type="matrix" values={matrix} />
+                    </filter>
+                  </defs>
+                </svg>
+                <img src={ferryIconSrc} alt={ferryLine.abbr} style={{ width: sz, height: sz, filter: `url(#${filterId})` }} />
+                <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: 13, fontWeight: 700, color: ferryLine.color }}>{ferryLine.abbr}</span>
+              </div>
+            );
+          })() : iconSrc ? (
+            <img
+              src={iconSrc}
+              alt={`${line} train`}
               className="w-[69.7px] h-[69.7px] object-contain"
               style={{ transform: 'translate(-35px, -10px)' }}
             />

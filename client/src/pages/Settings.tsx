@@ -1594,7 +1594,7 @@ export default function Settings() {
       </div>
       {/* Row 4: NYC Ferry | Driving | Citibike */}
       <div className="flex gap-[11px]">
-        <div className="rounded-[6px] flex items-center justify-center gap-2" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-11">
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => navigate(`/ferry-settings${selectedRow ? `?editRow=${selectedRow}` : ''}`)} data-testid="card-settings-11">
           <img src={nycFerryIcon} alt="NYC Ferry" className="h-[25px] object-contain" />
         </div>
         <div className="rounded-[6px] flex items-center justify-center gap-2" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-12">
