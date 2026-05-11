@@ -13,6 +13,7 @@ import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
+import { FERRY_LINE_MAP } from "@/lib/ferryConfig";
 
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -271,14 +272,19 @@ export default function Kiosk() {
   };
 
   // Combine arrivals for display
-  const fallback = (direction: string, line: string): SubwayArrival => ({
-    direction, line, destination: "Loading...", subtitle: "", arrivalMinutes: [], arrivalLines: [],
+  const fallback = (pref: typeof rowPrefs[0], defaultLine: string): SubwayArrival => ({
+    direction: "Loading",
+    line: pref?.line ?? defaultLine,
+    destination: "Loading...",
+    subtitle: "",
+    arrivalMinutes: [],
+    arrivalLines: [],
   });
   const subwayData: SubwayArrival[] = [
-    applyCommuteFilter(row1Arrivals || fallback("Uptown", "N")),
-    applyCommuteFilter(row2Arrivals || fallback("Downtown", "W")),
-    ...(transportRows >= 3 ? [applyCommuteFilter(row3Arrivals || fallback("Uptown", "N"))] : []),
-    ...(transportRows >= 4 ? [applyCommuteFilter(row4Arrivals || fallback("Downtown", "W"))] : []),
+    applyCommuteFilter(row1Arrivals || fallback(row1Pref, "N")),
+    applyCommuteFilter(row2Arrivals || fallback(row2Pref, "W")),
+    ...(transportRows >= 3 ? [applyCommuteFilter(row3Arrivals || fallback(row3Pref, "N"))] : []),
+    ...(transportRows >= 4 ? [applyCommuteFilter(row4Arrivals || fallback(row4Pref, "W"))] : []),
   ];
 
   // Heights account for the station label rendered above each card
@@ -291,6 +297,11 @@ export default function Kiosk() {
   const getStationLabel = (pref: typeof rowPrefs[0], track: SubwayArrival): string | null => {
     if (!pref || pref.line === 'CITIBIKE') return null;
     if (track.isBus) return track.subtitle || null;
+    if (pref.line.startsWith('FERRY-')) {
+      const routeId = pref.line.replace('FERRY-', '');
+      const stop = FERRY_LINE_MAP[routeId]?.stops.find(s => s.id === pref.stop);
+      return stop?.name ?? pref.stop ?? null;
+    }
     return pref.stop || null;
   };
 

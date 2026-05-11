@@ -1478,11 +1478,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       arrivalMins.sort((a, b) => a - b);
 
+      const ferryStopNames: Record<string, string> = {
+        "4": "Hunters Point South", "8": "South Williamsburg", "11": "Atlantic Ave/BBP Pier 6",
+        "17": "East 34th Street", "18": "Greenpoint", "19": "North Williamsburg",
+        "20": "Dumbo/Fulton Ferry", "23": "Bay Ridge", "24": "Red Hook/Atlantic Basin",
+        "25": "Roosevelt Island", "87": "Wall St/Pier 11", "88": "Rockaway",
+        "89": "Astoria", "90": "Long Island City", "111": "Gov. Island/Yankee Pier",
+        "112": "Soundview", "113": "East 90th St", "114": "Stuyvesant Cove",
+        "115": "Corlears Hook", "118": "Sunset Park/BAT", "120": "Brooklyn Navy Yard",
+        "136": "Battery Park City/Vesey St.", "137": "St. George",
+        "138": "Midtown West/W 39th St-Pier 79", "141": "Ferry Point Park",
+      };
+      const stopName = ferryStopNames[stopId] || stopId;
       res.json({
         direction: direction || "Inbound",
         line: `FERRY-${routeId}`,
-        destination: direction === "Inbound" ? "Wall St / Pier 11" : routeId,
-        subtitle: stopId,
+        destination: direction === "Inbound" ? "Wall St / Pier 11" : "Outbound",
+        subtitle: stopName,
         arrivalMinutes: arrivalMins.slice(0, 3),
         arrivalLines: [`FERRY-${routeId}`],
       });
