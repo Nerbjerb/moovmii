@@ -15,7 +15,7 @@ function FerryBadge({ line, size = 64 }: { line: FerryLine; size?: number }) {
   const { r, g, b } = hexToRgb(line.color);
   const rN = r / 255, gN = g / 255, bN = b / 255;
   const filterId = `ferry-badge-${line.routeId}`;
-  const matrix = `0 0 0 0 ${rN}  0 0 0 0 ${gN}  0 0 0 0 ${bN}  -0.333 -0.333 -0.333 0 1`;
+  const matrix = `0 0 0 0 ${rN}  0 0 0 0 ${gN}  0 0 0 0 ${bN}  0 0 0 1 0`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>

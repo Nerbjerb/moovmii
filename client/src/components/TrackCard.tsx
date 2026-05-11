@@ -271,14 +271,14 @@ export default function TrackCard({
   // Check if a line is NYC Ferry
   const isFerryLine = (lineName: string) => lineName.startsWith('FERRY-');
 
-  // Colorize ferry icon: black pixels → line color, white pixels → transparent
+  // Colorize ferry icon: set all pixels to line color, preserve original alpha
   const ferryColorFilter = (hex: string) => {
     const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!m) return '';
     const rN = parseInt(m[1], 16) / 255;
     const gN = parseInt(m[2], 16) / 255;
     const bN = parseInt(m[3], 16) / 255;
-    return `0 0 0 0 ${rN}  0 0 0 0 ${gN}  0 0 0 0 ${bN}  -0.333 -0.333 -0.333 0 1`;
+    return `0 0 0 0 ${rN}  0 0 0 0 ${gN}  0 0 0 0 ${bN}  0 0 0 1 0`;
   };
   
   // Check if a line is a bus (should show route number badge)
