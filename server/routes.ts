@@ -1274,28 +1274,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let ferryTripsCache: any[] = [];
   let ferryAlertsCacheTime = 0;
   let ferryAlertsCache: any[] = [];
-  // Static GTFS trip map: tripId → { routeId, directionId }
-  let ferryStaticTripMap: Record<string, { routeId: string; directionId: number }> = {};
+  // Static GTFS data cache
+  let ferryStaticTripMap: Record<string, { routeId: string; directionId: number; serviceId: number }> = {};
+  // scheduleMap: "routeId:stopId:directionId" → sorted departure seconds-since-midnight for each serviceId
+  let ferryScheduleMap: Record<string, { weekday: number[]; weekend: number[] }> = {};
   let ferryStaticTripMapTime = 0;
 
-  async function ensureFerryStaticTripMap() {
+  async function ensureFerryStaticData() {
     const now = Date.now();
     if (now - ferryStaticTripMapTime < 3_600_000 && Object.keys(ferryStaticTripMap).length > 0) return;
     const AdmZip = (await import("adm-zip")).default;
     const response = await fetch("https://nycferry.connexionz.net/rtt/public/utility/gtfs.aspx", { redirect: "follow" });
     if (!response.ok) throw new Error(`Ferry GTFS error: ${response.status}`);
     const zip = new AdmZip(Buffer.from(await response.arrayBuffer()));
+
+    // Parse trips.txt
     const tripsLines = zip.getEntry("trips.txt")!.getData().toString("utf8").trim().split("\n");
-    const header = tripsLines[0].split(",").map((h: string) => h.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
-    const routeIdx = header.indexOf("route_id");
-    const tripIdx = header.indexOf("trip_id");
-    const dirIdx = header.indexOf("direction_id");
-    const map: Record<string, { routeId: string; directionId: number }> = {};
+    const tHeader = tripsLines[0].split(",").map((h: string) => h.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+    const tRouteIdx = tHeader.indexOf("route_id"), tTripIdx = tHeader.indexOf("trip_id");
+    const tDirIdx = tHeader.indexOf("direction_id"), tSvcIdx = tHeader.indexOf("service_id");
+    const tripMap: Record<string, { routeId: string; directionId: number; serviceId: number }> = {};
     for (let i = 1; i < tripsLines.length; i++) {
-      const cols = tripsLines[i].split(",").map((c: string) => c.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
-      if (cols[tripIdx]) map[cols[tripIdx]] = { routeId: cols[routeIdx], directionId: parseInt(cols[dirIdx] || "0", 10) };
+      const c = tripsLines[i].split(",").map((s: string) => s.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+      if (c[tTripIdx]) tripMap[c[tTripIdx]] = {
+        routeId: c[tRouteIdx],
+        directionId: parseInt(c[tDirIdx] || "0", 10),
+        serviceId: parseInt(c[tSvcIdx] || "1", 10),
+      };
     }
-    ferryStaticTripMap = map;
+
+    // Parse stop_times.txt → build schedule map
+    const stLines = zip.getEntry("stop_times.txt")!.getData().toString("utf8").trim().split("\n");
+    const stHeader = stLines[0].split(",").map((h: string) => h.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+    const stTripIdx = stHeader.indexOf("trip_id"), stStopIdx = stHeader.indexOf("stop_id");
+    const stDepIdx = stHeader.indexOf("departure_time");
+    const schedMap: Record<string, { weekday: number[]; weekend: number[] }> = {};
+    for (let i = 1; i < stLines.length; i++) {
+      const c = stLines[i].split(",").map((s: string) => s.trim().replace(/\r/g, "").replace(/^"|"$/g, ""));
+      const trip = tripMap[c[stTripIdx]];
+      if (!trip || !c[stStopIdx] || !c[stDepIdx]) continue;
+      const key = `${trip.routeId}:${c[stStopIdx]}:${trip.directionId}`;
+      if (!schedMap[key]) schedMap[key] = { weekday: [], weekend: [] };
+      const [h, m, s] = c[stDepIdx].split(":").map(Number);
+      const secs = h * 3600 + m * 60 + (s || 0);
+      if (trip.serviceId === 1) schedMap[key].weekday.push(secs);
+      else schedMap[key].weekend.push(secs);
+    }
+    for (const k of Object.keys(schedMap)) {
+      schedMap[k].weekday.sort((a, b) => a - b);
+      schedMap[k].weekend.sort((a, b) => a - b);
+    }
+
+    ferryStaticTripMap = tripMap;
+    ferryScheduleMap = schedMap;
     ferryStaticTripMapTime = now;
   }
 
@@ -1464,8 +1495,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!routeId || !stopId) return res.status(400).json({ error: "routeId and stopId required" });
 
       const now = Date.now();
-      // Load static trip→route/direction map (needed because realtime feed omits routeId)
-      await ensureFerryStaticTripMap();
+      // Load static GTFS data (trip map + schedule)
+      await ensureFerryStaticData();
 
       // Fetch realtime trip updates
       if (now - ferryCacheTime >= 30_000 || ferryTripsCache.length === 0) {
@@ -1506,6 +1537,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       arrivalMins.sort((a, b) => a - b);
+
+      // Fill gaps from static schedule when realtime has fewer than 3 upcoming times
+      if (arrivalMins.length < 3) {
+        const nyTime = new Date(now + (new Date().getTimezoneOffset() + (-240)) * 60000); // ET offset approx
+        const dayOfWeek = new Date().toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long" });
+        const isWeekend = dayOfWeek === "Saturday" || dayOfWeek === "Sunday";
+        const nowET = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
+        const nowSecs = nowET.getHours() * 3600 + nowET.getMinutes() * 60 + nowET.getSeconds();
+        const schedKey = `${routeId}:${stopId}:${targetDir}`;
+        const schedTimes = isWeekend ? (ferryScheduleMap[schedKey]?.weekend ?? []) : (ferryScheduleMap[schedKey]?.weekday ?? []);
+        for (const secs of schedTimes) {
+          const mins = Math.round((secs - nowSecs) / 60);
+          if (mins >= 0 && mins <= 120 && !arrivalMins.includes(mins)) {
+            arrivalMins.push(mins);
+            if (arrivalMins.length >= 3) break;
+          }
+        }
+        arrivalMins.sort((a, b) => a - b);
+      }
 
       const ferryStopNames: Record<string, string> = {
         "4": "Hunters Point South", "8": "South Williamsburg", "11": "Atlantic Ave/BBP Pier 6",
