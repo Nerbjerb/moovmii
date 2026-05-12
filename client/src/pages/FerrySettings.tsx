@@ -21,7 +21,7 @@ function FerryBadge({ line, size = 64 }: { line: FerryLine; size?: number }) {
           style={{ width: size * 0.72, height: size * 0.72, filter: "brightness(0) invert(1)" }}
         />
       </div>
-      <span style={{ ...font, fontSize: 15, fontWeight: 700, color: line.color }}>
+      <span style={{ ...font, fontSize: 15, fontWeight: 700, color: "#ffffff" }}>
         {line.abbr}
       </span>
     </div>
@@ -105,7 +105,7 @@ export default function FerrySettings() {
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
               {stopsForLine.length === 0 && (
                 <div className="flex items-center justify-center flex-1">
-                  <span style={{ ...font, fontSize: 16, color: "#aaa" }}>No stops found</span>
+                  <span style={{ ...font, fontSize: 16, color: "#ffffff" }}>No stops found</span>
                 </div>
               )}
               {stopsForLine.map((stop) => (
@@ -138,7 +138,7 @@ export default function FerrySettings() {
                   </button>
                 ))}
               </div>
-              <div style={{ ...font, fontSize: 13, color: "#888", textAlign: "center" }}>
+              <div style={{ ...font, fontSize: 13, color: "#ffffff", textAlign: "center" }}>
                 Inbound = toward Manhattan (Wall St/Pier 11) · Outbound = away from Manhattan
               </div>
               <button

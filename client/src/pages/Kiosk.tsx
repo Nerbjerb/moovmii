@@ -13,7 +13,7 @@ import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
-import { FERRY_LINE_MAP } from "@/lib/ferryConfig";
+import { FERRY_LINE_MAP, getFerryRoutesForStop } from "@/lib/ferryConfig";
 
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -100,8 +100,8 @@ export default function Kiosk() {
 
     // Check if this is a Ferry line
     if (pref.line.startsWith('FERRY-')) {
-      const routeId = pref.line.replace('FERRY-', '');
-      return ['/api/ferry/arrivals', { routeId, stopId: pref.stop, direction: pref.direction || 'Inbound', isFerry: true }];
+      const routeIds = getFerryRoutesForStop(pref.stop).join(',') || pref.line.replace('FERRY-', '');
+      return ['/api/ferry/arrivals', { routeIds, stopId: pref.stop, direction: pref.direction || 'Inbound', isFerry: true }];
     }
 
     // Check if this is a PATH line
@@ -174,11 +174,11 @@ export default function Kiosk() {
   };
 
   const makeArrivalQueryFn = (queryKey: any[]) => async () => {
-    const params = queryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean; isFerry?: boolean };
+    const params = queryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; routeIds?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean; isFerry?: boolean };
     if (params.isCitibike) return null as unknown as SubwayArrival;
     if (params.isBus) return transformBusArrivals(params);
     if (params.isFerry) {
-      const url = `/api/ferry/arrivals?routeId=${encodeURIComponent(params.routeId || '')}&stopId=${encodeURIComponent(params.stopId || '')}&direction=${encodeURIComponent(params.direction || 'Inbound')}`;
+      const url = `/api/ferry/arrivals?routeIds=${encodeURIComponent(params.routeIds || '')}&stopId=${encodeURIComponent(params.stopId || '')}&direction=${encodeURIComponent(params.direction || 'Inbound')}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch ferry arrivals');
       return res.json();

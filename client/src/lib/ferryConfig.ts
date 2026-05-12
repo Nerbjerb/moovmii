@@ -90,3 +90,10 @@ export function getFerryLine(line: string): FerryLine | null {
   if (!line.startsWith("FERRY-")) return null;
   return FERRY_LINE_MAP[line.replace("FERRY-", "")] ?? null;
 }
+
+// Returns all routeIds that serve a given stop ID
+export function getFerryRoutesForStop(stopId: string): string[] {
+  return FERRY_LINES
+    .filter(l => l.stops.some(s => s.id === stopId))
+    .map(l => l.routeId);
+}

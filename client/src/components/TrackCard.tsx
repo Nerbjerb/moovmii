@@ -417,7 +417,7 @@ export default function TrackCard({
   };
 
   return (
-    <div className="relative flex items-center gap-[9px]" onClick={handleCardClick}>
+    <div className="relative flex items-start gap-[9px]" onClick={handleCardClick}>
       {/* Main card - front layer with fixed positioning */}
       <Card
         className={`relative rounded-[9px] overflow-visible border-0 bg-[#2D2C31] z-30 transition-all duration-300 ${
@@ -567,10 +567,10 @@ export default function TrackCard({
             const sz = Math.round(cardHeight * 70 / 115);
             return (
               <div style={{ transform: 'translate(-35px, -2px)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                <div style={{ width: sz, height: sz, borderRadius: '50%', backgroundColor: ferryLine.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: sz, height: sz, borderRadius: '50%', backgroundColor: ferryLine.color, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   <img src={ferryIconSrc} alt={ferryLine.abbr} style={{ width: sz * 0.72, height: sz * 0.72, filter: 'brightness(0) invert(1)' }} />
                 </div>
-                <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: 13, fontWeight: 700, color: ferryLine.color }}>{ferryLine.abbr}</span>
+                <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: 13, fontWeight: 700, color: '#ffffff' }}>{ferryLine.abbr}</span>
               </div>
             );
           })() : iconSrc ? (
@@ -773,7 +773,19 @@ export default function TrackCard({
                     {getBusRouteNumber(secondLine)}
                   </span>
                 </div>
-              ) : secondIconSrc ? (
+              ) : secondLine && isFerryLine(secondLine) ? (() => {
+                const fl = getFerryLine(secondLine);
+                if (!fl) return <span className="text-sm font-bold text-primary-foreground">{secondLine}</span>;
+                const smSz = Math.round(cardHeight * 38.6 / 115);
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, transform: 'translate(-32px, 45px)' }}>
+                    <div style={{ width: smSz, height: smSz, borderRadius: '50%', backgroundColor: fl.color, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                      <img src={ferryIconSrc} alt={fl.abbr} style={{ width: smSz * 0.72, height: smSz * 0.72, filter: 'brightness(0) invert(1)' }} />
+                    </div>
+                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: 8, fontWeight: 700, color: '#ffffff' }}>{fl.abbr}</span>
+                  </div>
+                );
+              })() : secondIconSrc ? (
                 <img
                   src={secondIconSrc}
                   alt={`${secondLine} train`}
@@ -854,7 +866,19 @@ export default function TrackCard({
                     {getBusRouteNumber(thirdLine)}
                   </span>
                 </div>
-              ) : thirdIconSrc ? (
+              ) : thirdLine && isFerryLine(thirdLine) ? (() => {
+                const fl = getFerryLine(thirdLine);
+                if (!fl) return <span className="text-sm font-bold text-primary-foreground">{thirdLine}</span>;
+                const smSz = Math.round(cardHeight * 38.6 / 115);
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, transform: 'translate(-32px, 45px)' }}>
+                    <div style={{ width: smSz, height: smSz, borderRadius: '50%', backgroundColor: fl.color, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                      <img src={ferryIconSrc} alt={fl.abbr} style={{ width: smSz * 0.72, height: smSz * 0.72, filter: 'brightness(0) invert(1)' }} />
+                    </div>
+                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: 8, fontWeight: 700, color: '#ffffff' }}>{fl.abbr}</span>
+                  </div>
+                );
+              })() : thirdIconSrc ? (
                 <img
                   src={thirdIconSrc}
                   alt={`${thirdLine} train`}

@@ -1491,9 +1491,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/ferry/arrivals", async (req, res) => {
     try {
-      const { routeId, stopId, direction } = req.query as { routeId: string; stopId: string; direction: string };
-      if (!routeId || !stopId) return res.status(400).json({ error: "routeId and stopId required" });
+      const { routeIds, stopId, direction } = req.query as { routeIds: string; stopId: string; direction: string };
+      if (!routeIds || !stopId) return res.status(400).json({ error: "routeIds and stopId required" });
 
+      const routeIdList = routeIds.split(",").map(r => r.trim()).filter(Boolean);
       const now = Date.now();
       // Load static GTFS data (trip map + schedule)
       await ensureFerryStaticData();
@@ -1522,40 +1523,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const nowSec = Math.floor(now / 1000);
-      const arrivalMins: number[] = [];
-
       // direction: "Inbound" = directionId 0 (towards Manhattan), "Outbound" = 1
       const targetDir = direction === "Inbound" ? 0 : 1;
 
-      for (const trip of ferryTripsCache) {
-        if (trip.routeId !== routeId) continue;
-        if (trip.directionId !== targetDir) continue;
-        const stu = trip.stopTimeUpdates.find((s: any) => s.stopId === String(stopId));
-        if (!stu || !stu.departureTime) continue;
-        const mins = Math.round((stu.departureTime - nowSec) / 60);
-        if (mins >= 0 && mins <= 90) arrivalMins.push(mins);
-      }
+      // Collect arrivals across all requested routes, tracking which route each belongs to
+      const arrivals: { mins: number; routeId: string }[] = [];
 
-      arrivalMins.sort((a, b) => a - b);
-
-      // Fill gaps from static schedule when realtime has fewer than 3 upcoming times
-      if (arrivalMins.length < 3) {
-        const nyTime = new Date(now + (new Date().getTimezoneOffset() + (-240)) * 60000); // ET offset approx
-        const dayOfWeek = new Date().toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long" });
-        const isWeekend = dayOfWeek === "Saturday" || dayOfWeek === "Sunday";
-        const nowET = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
-        const nowSecs = nowET.getHours() * 3600 + nowET.getMinutes() * 60 + nowET.getSeconds();
-        const schedKey = `${routeId}:${stopId}:${targetDir}`;
-        const schedTimes = isWeekend ? (ferryScheduleMap[schedKey]?.weekend ?? []) : (ferryScheduleMap[schedKey]?.weekday ?? []);
-        for (const secs of schedTimes) {
-          const mins = Math.round((secs - nowSecs) / 60);
-          if (mins >= 0 && mins <= 120 && !arrivalMins.includes(mins)) {
-            arrivalMins.push(mins);
-            if (arrivalMins.length >= 3) break;
-          }
+      for (const routeId of routeIdList) {
+        const routeArrivals: number[] = [];
+        for (const trip of ferryTripsCache) {
+          if (trip.routeId !== routeId) continue;
+          if (trip.directionId !== targetDir) continue;
+          const stu = trip.stopTimeUpdates.find((s: any) => s.stopId === String(stopId));
+          if (!stu || !stu.departureTime) continue;
+          const mins = Math.round((stu.departureTime - nowSec) / 60);
+          if (mins >= 0 && mins <= 90) routeArrivals.push(mins);
         }
-        arrivalMins.sort((a, b) => a - b);
+        routeArrivals.sort((a, b) => a - b);
+
+        // Fill from static schedule if realtime is sparse for this route
+        if (routeArrivals.length < 3) {
+          const dayOfWeek = new Date().toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long" });
+          const isWeekend = dayOfWeek === "Saturday" || dayOfWeek === "Sunday";
+          const nowET = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
+          const nowSecs = nowET.getHours() * 3600 + nowET.getMinutes() * 60 + nowET.getSeconds();
+          const schedKey = `${routeId}:${stopId}:${targetDir}`;
+          const schedTimes = isWeekend ? (ferryScheduleMap[schedKey]?.weekend ?? []) : (ferryScheduleMap[schedKey]?.weekday ?? []);
+          for (const secs of schedTimes) {
+            const mins = Math.round((secs - nowSecs) / 60);
+            if (mins >= 0 && mins <= 120 && !routeArrivals.some(m => Math.abs(m - mins) <= 10)) {
+              routeArrivals.push(mins);
+              if (routeArrivals.length >= 3) break;
+            }
+          }
+          routeArrivals.sort((a, b) => a - b);
+        }
+
+        for (const mins of routeArrivals) {
+          arrivals.push({ mins, routeId });
+        }
       }
+
+      // Sort combined arrivals by time and deduplicate same-minute same-route entries
+      arrivals.sort((a, b) => a.mins - b.mins);
+      const seen = new Set<string>();
+      const deduped = arrivals.filter(a => {
+        const key = `${a.routeId}:${a.mins}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      const top = deduped.slice(0, 3);
 
       const ferryStopNames: Record<string, string> = {
         "4": "Hunters Point South", "8": "South Williamsburg", "11": "Atlantic Ave/BBP Pier 6",
@@ -1569,13 +1587,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "138": "Midtown West/W 39th St-Pier 79", "141": "Ferry Point Park",
       };
       const stopName = ferryStopNames[stopId] || stopId;
+
+      // Outbound terminus per route (the far end of the line away from Wall St)
+      const ferryOutboundDest: Record<string, string> = {
+        "ER": "East 34th Street",
+        "SB": "Gov. Island/Yankee Pier",
+        "AS": "East 90th St",
+        "RS": "Ferry Point Park",
+        "SG": "St. George",
+        "RW": "Rockaway",
+        "GI": "Governor's Island",
+      };
+
+      // Primary line shown on the card is the first (or only) route for this stop
+      const primaryRouteId = top[0]?.routeId ?? routeIdList[0];
+      const outboundDest = ferryOutboundDest[primaryRouteId] || "Outbound";
       res.json({
         direction: direction || "Inbound",
-        line: `FERRY-${routeId}`,
-        destination: direction === "Inbound" ? "Wall St / Pier 11" : "Outbound",
+        line: `FERRY-${primaryRouteId}`,
+        destination: direction === "Inbound" ? "Wall St / Pier 11" : outboundDest,
         subtitle: stopName,
-        arrivalMinutes: arrivalMins.slice(0, 3),
-        arrivalLines: [`FERRY-${routeId}`],
+        arrivalMinutes: top.map(a => a.mins),
+        arrivalLines: top.map(a => `FERRY-${a.routeId}`),
       });
     } catch (error) {
       console.error("Error fetching ferry arrivals:", error);
