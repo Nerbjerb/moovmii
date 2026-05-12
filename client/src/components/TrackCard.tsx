@@ -564,19 +564,12 @@ export default function TrackCard({
           ) : isFerryLine(line) ? (() => {
             const ferryLine = getFerryLine(line);
             if (!ferryLine) return <span className="text-[48px] font-bold text-primary-foreground">{line}</span>;
-            const filterId = `ferry-tc-${ferryLine.routeId}`;
-            const matrix = ferryColorFilter(ferryLine.color);
             const sz = Math.round(cardHeight * 70 / 115);
             return (
-              <div style={{ transform: 'translate(-35px, -10px)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                <svg width="0" height="0" style={{ position: 'absolute' }}>
-                  <defs>
-                    <filter id={filterId} colorInterpolationFilters="sRGB">
-                      <feColorMatrix type="matrix" values={matrix} />
-                    </filter>
-                  </defs>
-                </svg>
-                <img src={ferryIconSrc} alt={ferryLine.abbr} style={{ width: sz, height: sz, filter: `url(#${filterId})` }} />
+              <div style={{ transform: 'translate(-35px, -2px)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <div style={{ width: sz, height: sz, borderRadius: '50%', backgroundColor: ferryLine.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={ferryIconSrc} alt={ferryLine.abbr} style={{ width: sz * 0.72, height: sz * 0.72, filter: 'brightness(0) invert(1)' }} />
+                </div>
                 <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: 13, fontWeight: 700, color: ferryLine.color }}>{ferryLine.abbr}</span>
               </div>
             );

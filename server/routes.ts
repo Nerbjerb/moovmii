@@ -1524,8 +1524,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const nowSec = Math.floor(now / 1000);
       const arrivalMins: number[] = [];
 
-      // direction: "Inbound" = directionId 1 (towards Manhattan), "Outbound" = 0
-      const targetDir = direction === "Inbound" ? 1 : 0;
+      // direction: "Inbound" = directionId 0 (towards Manhattan), "Outbound" = 1
+      const targetDir = direction === "Inbound" ? 0 : 1;
 
       for (const trip of ferryTripsCache) {
         if (trip.routeId !== routeId) continue;

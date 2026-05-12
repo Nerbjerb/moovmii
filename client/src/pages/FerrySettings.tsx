@@ -12,35 +12,20 @@ const font = { fontFamily: "Helvetica, Arial, sans-serif" };
 type View = "line" | "stop" | "direction";
 
 function FerryBadge({ line, size = 64 }: { line: FerryLine; size?: number }) {
-  const { r, g, b } = hexToRgb(line.color);
-  const rN = r / 255, gN = g / 255, bN = b / 255;
-  const filterId = `ferry-badge-${line.routeId}`;
-  const matrix = `0 0 0 0 ${rN}  0 0 0 0 ${gN}  0 0 0 0 ${bN}  0 0 0 1 0`;
-
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      <svg width="0" height="0" style={{ position: "absolute" }}>
-        <defs>
-          <filter id={filterId} colorInterpolationFilters="sRGB">
-            <feColorMatrix type="matrix" values={matrix} />
-          </filter>
-        </defs>
-      </svg>
-      <img
-        src={ferryIconSrc}
-        alt={line.abbr}
-        style={{ width: size, height: size, filter: `url(#${filterId})` }}
-      />
+      <div style={{ width: size, height: size, borderRadius: "50%", backgroundColor: line.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <img
+          src={ferryIconSrc}
+          alt={line.abbr}
+          style={{ width: size * 0.72, height: size * 0.72, filter: "brightness(0) invert(1)" }}
+        />
+      </div>
       <span style={{ ...font, fontSize: 15, fontWeight: 700, color: line.color }}>
         {line.abbr}
       </span>
     </div>
   );
-}
-
-function hexToRgb(hex: string) {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : { r: 0, g: 0, b: 0 };
 }
 
 export default function FerrySettings() {
