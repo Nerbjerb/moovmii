@@ -35,6 +35,9 @@ import iconW from "@assets/moovmii/MTA Icons/src/svg/w.svg";
 import iconZ from "@assets/moovmii/MTA Icons/src/svg/z.svg";
 import iconLirr from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
 import iconMnr from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
+import iconMnrHudson from "@assets/Metro North/Hudson.png";
+import iconMnrHarlem from "@assets/Metro North/Harlem.png";
+import iconMnrNewHaven from "@assets/Metro North/New Haven.png";
 import iconPath from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 import ferryIconSrc from "@assets/NYC_Ferry_Icon_Black.png";
 import { getFerryLine } from "@/lib/ferryConfig";
@@ -105,12 +108,12 @@ const lineIcons: Record<string, string> = {
   "LIRR-10": iconLirr,
   // Metro-North lines
   MetroNorth: iconMnr,
-  "MNR-1": iconMnr,
-  "MNR-2": iconMnr,
-  "MNR-3": iconMnr,
-  "MNR-4": iconMnr,
-  "MNR-5": iconMnr,
-  "MNR-6": iconMnr,
+  "MNR-1": iconMnrHudson,
+  "MNR-2": iconMnrHarlem,
+  "MNR-3": iconMnrNewHaven,
+  "MNR-4": iconMnrNewHaven,
+  "MNR-5": iconMnrNewHaven,
+  "MNR-6": iconMnrNewHaven,
 };
 
 export default function TrackCard({

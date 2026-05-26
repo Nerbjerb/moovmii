@@ -126,7 +126,7 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
             src={iconSrc}
             alt={description}
             className="object-contain"
-            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)', transform: 'translateX(10px) translateY(-20px)' }}
+            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)', transform: `translateX(10px) translateY(${icon === 'day-sunny' ? '-30px' : '-20px'})` }}
           />
         )}
         <div className="flex flex-col items-center">

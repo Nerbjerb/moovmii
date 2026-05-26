@@ -1243,10 +1243,7 @@ const groups: GroupItem[] = [
     lines: [
       { id: "MNR-1", icon: metroNorthIcon, alt: "Hudson", size: "26px", isRegional: true, branchName: "Hudson" },
       { id: "MNR-2", icon: metroNorthIcon, alt: "Harlem", size: "26px", isRegional: true, branchName: "Harlem" },
-      { id: "MNR-3", icon: metroNorthIcon, alt: "New Haven", size: "26px", isRegional: true, branchName: "New Haven" },
-      { id: "MNR-4", icon: metroNorthIcon, alt: "New Canaan", size: "26px", isRegional: true, branchName: "New Canaan" },
-      { id: "MNR-5", icon: metroNorthIcon, alt: "Danbury", size: "26px", isRegional: true, branchName: "Danbury" },
-      { id: "MNR-6", icon: metroNorthIcon, alt: "Waterbury", size: "26px", isRegional: true, branchName: "Waterbury" },
+      { id: "MNR-3", icon: metroNorthIcon, alt: "New Haven", size: "26px", isRegional: true, branchName: "New Haven Line" },
     ]
   },
   {
@@ -1472,7 +1469,11 @@ export default function Settings() {
       }
     } else if (selectedRegionalService) {
       // Go back from regional service (LIRR/MNR branches) to regional menu
-      setSelectedRegionalService(null);
+      if (selectedRegionalService === "mnr-newhaven") {
+        setSelectedRegionalService("mnr");
+      } else {
+        setSelectedRegionalService(null);
+      }
     } else {
       setSelectedGroup(null);
     }
@@ -1486,6 +1487,10 @@ export default function Settings() {
     }
     if (lineId === "MetroNorth") {
       setSelectedRegionalService("mnr");
+      return;
+    }
+    if (lineId === "MNR-3") {
+      setSelectedRegionalService("mnr-newhaven");
       return;
     }
     if (lineId === "PATH") {
@@ -2066,6 +2071,84 @@ export default function Settings() {
       );
     }
     
+    // New Haven sub-menu: New Haven main + branches
+    if (selectedRegionalService === "mnr-newhaven") {
+      const newHavenBranches = [
+        { id: "MNR-3", label: "New Haven" },
+        { id: "MNR-4", label: "New Canaan" },
+        { id: "MNR-5", label: "Danbury" },
+        { id: "MNR-6", label: "Waterbury" },
+      ];
+      const midpoint = Math.ceil(newHavenBranches.length / 2);
+      const leftCol = newHavenBranches.slice(0, midpoint);
+      const rightCol = newHavenBranches.slice(midpoint);
+      return (
+        <div className="flex items-center justify-center" style={{ width: '760px', height: '370px', margin: 'auto' }}>
+          <div className="flex gap-[10px]">
+            <div className="flex flex-col gap-[8px]">
+              {leftCol.map((branch) => (
+                <div
+                  key={branch.id}
+                  className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                  onClick={() => setSelectedLine(branch.id)}
+                  data-testid={`card-line-${branch.id}`}
+                >
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', fontWeight: 600, color: '#FFFFFF' }}>
+                    {branch.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-[8px]">
+              {rightCol.map((branch) => (
+                <div
+                  key={branch.id}
+                  className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                  onClick={() => setSelectedLine(branch.id)}
+                  data-testid={`card-line-${branch.id}`}
+                >
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', fontWeight: 600, color: '#FFFFFF' }}>
+                    {branch.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // MNR main branches: single vertical column
+    if (selectedRegionalService === "mnr") {
+      const serviceGroup = groups.find(g => g.id === "mnr");
+      if (!serviceGroup) return null;
+      const lines = serviceGroup.lines;
+      return (
+        <div
+          className="flex items-center justify-center"
+          style={{ width: '760px', height: '370px', margin: 'auto' }}
+        >
+          <div className="flex flex-col gap-[8px]">
+            {lines.map((line) => (
+              <div
+                key={line.id}
+                className="rounded-[6px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
+                onClick={() => handleLineSelect(line.id)}
+                data-testid={`card-line-${line.id}`}
+              >
+                <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', fontWeight: 600, color: '#FFFFFF' }}>
+                  {line.branchName}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     // Handle LIRR/MNR branch selection with two-column layout
     if (selectedRegionalService) {
       const serviceGroup = groups.find(g => g.id === selectedRegionalService);
