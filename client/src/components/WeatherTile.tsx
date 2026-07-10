@@ -120,19 +120,20 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
 
   return (
     <div className="text-white relative" style={{ width: '169px', height: '169px' }} data-testid="weather-tile">
-      <div className="flex items-center gap-3 absolute inset-0" style={{ transform: `translateX(-30px) translateY(${rainToday || snowToday ? '-5px' : '10px'})` }}>
+      <div className="flex items-end gap-3 absolute" style={{ bottom: '66px', left: '-20px' }}>
         {iconSrc && (
-          <img
-            src={iconSrc}
-            alt={description}
-            className="object-contain"
-            style={{ width: '112px', height: '112px', filter: 'brightness(0) invert(1)', transform: `translateX(10px) translateY(${icon === 'day-sunny' ? '-30px' : '-20px'})` }}
-          />
+          <div style={{ position: 'relative', width: '82px', height: '82px', flexShrink: 0, overflow: 'hidden', padding: 0 }}>
+            <img
+              src={iconSrc}
+              alt={description}
+              style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', filter: 'brightness(0) invert(1)', transform: 'scale(1.35)', transformOrigin: 'center' }}
+            />
+          </div>
         )}
         <div className="flex flex-col items-center">
           <div
             onClick={isEditMode ? onEditClick : undefined}
-            style={{ transform: 'translateY(-30px)', cursor: isEditMode && onEditClick ? 'pointer' : 'default', ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}
+            style={{ cursor: isEditMode && onEditClick ? 'pointer' : 'default', ...(isEditMode ? { boxShadow: '0 0 0 3px #FFFFFF', borderRadius: '8px', padding: '4px 8px' } : {}) }}
           >
             <div className="font-bold text-center" style={{ fontSize: '48px', lineHeight: 1, marginLeft: '5px' }} data-testid="text-temperature">{temperature}</div>
             <div className="text-center" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', color: '#ffffff', marginTop: '4px' }} data-testid="text-description">{description}</div>
@@ -143,19 +144,17 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
         <div
           className="absolute flex items-center gap-[6px]"
           style={{
-            bottom: '27px',
-            left: '50%',
-            transform: 'translateX(calc(-50% + 0px))',
+            bottom: '25px',
+            left: '-20px',
+            right: '0',
+            height: '40px',
+            overflow: 'hidden',
             backgroundColor: '#C0392B',
             borderRadius: '9px',
-            padding: '2px 9px 2px 3px',
           }}
         >
-          <img src={rainIcon} alt="rain" style={{ width: '40px', height: '40px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
-          <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-            <span>Rain</span>
-            <span>today</span>
-          </div>
+          <img src={rainIcon} alt="rain" style={{ width: '48px', height: '48px', flexShrink: 0, filter: 'brightness(0) invert(1)', transform: 'translateY(-3px)' }} />
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', fontWeight: 400, color: '#fff', whiteSpace: 'nowrap', transform: 'translateX(-3px)' }}>Rain today</span>
         </div>
       )}
       {snowToday && (
@@ -170,11 +169,8 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
             padding: '2px 9px 2px 3px',
           }}
         >
-          <img src={snowIcon} alt="snow" style={{ width: '40px', height: '40px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
-          <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
-            <span>Snow</span>
-            <span>today</span>
-          </div>
+          <img src={snowIcon} alt="snow" style={{ width: '48px', height: '48px', flexShrink: 0, filter: 'brightness(0) invert(1)' }} />
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '26px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap' }}>Snow today</span>
         </div>
       )}
     </div>

@@ -17,7 +17,7 @@ const transportModes = [
   { label: "Bus",      icon: Bus,   path: "/bus-settings"     },
   { label: "Ferry",    icon: Ship,  path: "/ferry-settings"   },
   { label: "Driving",  icon: Car,   path: "/driving-settings" },
-  { label: "Citibike", icon: Bike,  path: "/citibike-settings"},
+  { label: "Citibike", icon: Bike,  path: "/citibike-preferences"},
 ];
 
 export default function SettingsMenu() {

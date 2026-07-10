@@ -13,10 +13,12 @@ import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
+import { getCitibikeShowParking } from "@/pages/CitibikePreferences";
 import { FERRY_LINE_MAP, getFerryRoutesForStop } from "@/lib/ferryConfig";
 
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
+  const showParking = getCitibikeShowParking();
   const [, setLocation] = useLocation();
 
   // ?reset escape hatch — clears stored resolution and reloads at default scale
@@ -383,7 +385,7 @@ export default function Kiosk() {
               const citibikeSlots = isCitibikeRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : null;
               const stationLabel = getStationLabel(pref, track);
               return (
-              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginLeft: idx === 2 ? '250px' : '0' }}>
                 {stationLabel && (
                   <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
                     {stationLabel}
@@ -395,7 +397,7 @@ export default function Kiosk() {
                   data-testid={`track-row-${idx}`}
                 >
                   {isCitibikeRow ? (
-                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} />
+                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} />
                   ) : (
                     <TrackCard
                       direction={track.direction}
@@ -411,7 +413,7 @@ export default function Kiosk() {
                       rowHeight={rowHeight}
                     />
                   )}
-                  {isEditMode && (
+                  {isEditMode && !isCitibikeRow && (
                     <div
                       className="absolute inset-0 flex items-center justify-center pointer-events-none"
                       style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
@@ -449,7 +451,7 @@ export default function Kiosk() {
                   data-testid={`track-row-${idx}`}
                 >
                   {isCitibikeRow ? (
-                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} />
+                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} />
                   ) : (
                     <TrackCard
                       direction={track.direction}
@@ -465,7 +467,7 @@ export default function Kiosk() {
                       rowHeight={rowHeight}
                     />
                   )}
-                  {isEditMode && (
+                  {isEditMode && !isCitibikeRow && (
                     <div
                       className="absolute inset-0 flex items-center justify-center pointer-events-none"
                       style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}

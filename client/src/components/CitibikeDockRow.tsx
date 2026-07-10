@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import citibikeIcon from "@assets/citibike logo.png";
+import ebikeIcon from "@assets/Citibike icons/e-bike logo.png";
+import normalBikeIcon from "@assets/Citibike icons/normal bike logo.png";
 
 export interface CitibikeSlot {
   id: string;
@@ -20,28 +22,11 @@ interface CitibikeDockRowProps {
   slots: (CitibikeSlot | null)[];
   stations: CitibikeStation[];
   rowHeight?: number;
+  labelHeight?: number;
+  showParking?: boolean;
 }
 
-const EbikeIcon = () => (
-  <svg width="10" height="13" viewBox="0 0 10 14" fill="white" style={{ flexShrink: 0 }}>
-    <path d="M6.5 0L1 8h4l-2 6 7.5-9H7L6.5 0z" />
-  </svg>
-);
-
-const BikeIcon = () => (
-  <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <circle cx="3.5" cy="8.5" r="3" />
-    <circle cx="13.5" cy="8.5" r="3" />
-    <polyline points="6,8.5 7.5,3.5 11,3.5" />
-    <line x1="11" y1="3.5" x2="13.5" y2="8.5" />
-    <line x1="7.5" y1="3.5" x2="7.5" y2="1" />
-    <line x1="5.5" y1="1" x2="9.5" y2="1" />
-    <line x1="11" y1="3.5" x2="12" y2="1.5" />
-    <line x1="10.5" y1="1.5" x2="13" y2="1.5" />
-  </svg>
-);
-
-export default function CitibikeDockRow({ slots, stations, rowHeight }: CitibikeDockRowProps) {
+export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeight = 20, showParking = false }: CitibikeDockRowProps) {
   const cardHeight = rowHeight ?? 115;
 
   const stationMap = useMemo(() => {
@@ -55,7 +40,7 @@ export default function CitibikeDockRow({ slots, stations, rowHeight }: Citibike
     const ebikes = station?.ebikes_available ?? 0;
     const bikes = station?.bikes_available ?? 0;
     const docks = station?.docks_available ?? 0;
-    const name = slot?.name ?? `Slot ${index + 1} open`;
+    const name = slot?.name ?? "";
     const isEmpty = !slot;
 
     return (
@@ -87,76 +72,34 @@ export default function CitibikeDockRow({ slots, stations, rowHeight }: Citibike
           }}
         />
 
-        {/* Right: name + badges */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden" }}>
+        {/* Badges */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <div
             style={{
-              fontFamily: "Helvetica, Arial, sans-serif",
-              fontSize: "12px",
-              fontWeight: 700,
-              color: isEmpty ? "#4a4a4a" : "#ffffff",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: showParking ? "5px" : "8px",
+              backgroundColor: isEmpty ? "#282828" : "#7B2FA0",
+              borderRadius: "20px",
+              padding: showParking ? "3.3px 10px 3.3px 5px" : "3.3px 16px 3.3px 8px",
             }}
           >
-            {name}
-          </div>
-
-          <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
-            {/* E-bike badge */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "3px",
-                backgroundColor: isEmpty ? "#282828" : "#7B2FA0",
-                borderRadius: "20px",
-                padding: "3px 7px 3px 5px",
-                flexShrink: 0,
-              }}
-            >
-              <EbikeIcon />
-              <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "13px", fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
-                {ebikes}
-              </span>
-            </div>
-
-            {/* Classic bike badge */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "3px",
-                backgroundColor: isEmpty ? "#282828" : "#7B2FA0",
-                borderRadius: "20px",
-                padding: "3px 7px 3px 4px",
-                flexShrink: 0,
-              }}
-            >
-              <BikeIcon />
-              <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "13px", fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
-                {bikes}
-              </span>
-            </div>
-
-            {/* Parking badge */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "3px",
-                backgroundColor: isEmpty ? "#282828" : "#484848",
-                borderRadius: "20px",
-                padding: "3px 8px",
-                flexShrink: 0,
-              }}
-            >
-              <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "12px", fontWeight: 900, color: isEmpty ? "#3a3a3a" : "#fff" }}>P</span>
-              <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "13px", fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
-                {docks}
-              </span>
-            </div>
+            <img src={ebikeIcon} alt="e-bike" style={{ height: showParking ? "25px" : "38px", width: "auto", flexShrink: 0 }} />
+            <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: showParking ? "20px" : "30px", fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
+              {ebikes}
+            </span>
+            <img src={normalBikeIcon} alt="bike" style={{ height: showParking ? "23px" : "35px", width: "auto", flexShrink: 0 }} />
+            <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: showParking ? "20px" : "30px", fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
+              {bikes}
+            </span>
+            {showParking && (
+              <>
+                <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "18px", fontWeight: 900, color: isEmpty ? "#3a3a3a" : "#fff", marginLeft: "3px" }}>P</span>
+                <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "20px", fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
+                  {docks}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -165,7 +108,18 @@ export default function CitibikeDockRow({ slots, stations, rowHeight }: Citibike
 
   return (
     <div style={{ display: "flex", gap: "11px" }}>
-      {[0, 1, 2].map((i) => renderCard(slots[i] ?? null, i))}
+      {[0, 1, 2].map((i) => {
+        const slot = slots[i] ?? null;
+        const label = slot?.name ?? "";
+        return (
+          <div key={i} style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+            <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: `${labelHeight}px`, fontWeight: 700, color: label ? "#ffffff" : "transparent" }}>
+              {label || " "}
+            </span>
+            {renderCard(slot, i)}
+          </div>
+        );
+      })}
     </div>
   );
 }
