@@ -36,7 +36,7 @@ export const FERRY_LINES: FerryLine[] = [
       { id: "87",  name: "Wall St/Pier 11" },
       { id: "11",  name: "Atlantic Ave/BBP Pier 6" },
       { id: "24",  name: "Red Hook/Atlantic Basin" },
-      { id: "111", name: "Gov. Island/Yankee Pier" },
+      { id: "111", name: "Governors Island/Yankee Pier" },
     ],
   },
   {
@@ -76,7 +76,7 @@ export const FERRY_LINES: FerryLine[] = [
     ],
   },
   {
-    routeId: "GI", name: "Gov's Island", abbr: "GI", color: "#9893A0",
+    routeId: "GI", name: "Governors Island", abbr: "GI", color: "#9893A0",
     stops: [],
   },
 ];

@@ -244,7 +244,7 @@ export default function CitibikeSettings() {
                 {hasSavedSlots && (
                   <button
                     onClick={handleSave}
-                    style={{ height: "26px", backgroundColor: "#FFD200", borderRadius: "6px", border: "none", cursor: "pointer", padding: "0 14px", flexShrink: 0 }}
+                    style={{ height: "26px", backgroundColor: "#FFFFFF", borderRadius: "6px", border: "none", cursor: "pointer", padding: "0 14px", flexShrink: 0 }}
                   >
                     <span style={{ ...font, fontSize: "12px", fontWeight: 700, color: "#000" }}>Save</span>
                   </button>
@@ -306,7 +306,7 @@ export default function CitibikeSettings() {
                       >
                         space
                       </button>
-                      <Key label="⌫" wide onPress={() => handleKey("⌫")} />
+                      <div style={{ width: KWide }} />
                     </div>
                   </>
                 ) : (

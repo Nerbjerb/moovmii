@@ -21,8 +21,8 @@ function FerryBadge({ line, size = 64 }: { line: FerryLine; size?: number }) {
           style={{ width: size * 0.72, height: size * 0.72, filter: "brightness(0) invert(1)" }}
         />
       </div>
-      <span style={{ ...font, fontSize: 15, fontWeight: 700, color: "#ffffff" }}>
-        {line.abbr}
+      <span style={{ ...font, fontSize: 13, fontWeight: 700, color: "#ffffff", textAlign: "center" }}>
+        {line.name}
       </span>
     </div>
   );

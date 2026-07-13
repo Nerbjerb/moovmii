@@ -1527,6 +1527,11 @@ export default function Settings() {
 
   const renderMainView = () => (
     <div className="flex flex-col gap-[8px]">
+      {isEditMode && (
+        <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px', fontWeight: 400, color: '#ffffff', marginBottom: '4px', textAlign: 'center' }}>
+          Select transit to display in Row {editRow}
+        </div>
+      )}
       {/* Row 0: 1,2,3 | 4,5,6 | 7 */}
       <div className="flex gap-[11px]">
         <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => handleGroupClick("123")} data-testid="card-settings-0">

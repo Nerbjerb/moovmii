@@ -43,6 +43,13 @@ export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeigh
     const name = slot?.name ?? "";
     const isEmpty = !slot;
 
+    const isDoubleDigit = !showParking && (ebikes >= 10 || bikes >= 10);
+    const sizes = showParking
+      ? { ebike: "25px", bike: "23px", text: "20px", gap: "5px", padding: "3.3px 10px 3.3px 5px" }
+      : isDoubleDigit
+      ? { ebike: "47.5px", bike: "43.75px", text: "30px", gap: "3px", padding: "3.3px 10px 3.3px 10px" }
+      : { ebike: "47.5px", bike: "43.75px", text: "45px", gap: "3px", padding: "3.3px 10px 3.3px 10px" };
+
     return (
       <div
         key={index}
@@ -53,24 +60,27 @@ export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeigh
           borderRadius: "10px",
           display: "flex",
           alignItems: "center",
-          padding: "0 12px",
+          padding: "0 12px 0 54px",
           gap: "10px",
           overflow: "hidden",
           flexShrink: 0,
+          position: "relative",
         }}
       >
-        {/* Citibike logo */}
-        <img
-          src={citibikeIcon}
-          alt="Citibike"
-          style={{
-            height: "17px",
-            width: "52px",
-            objectFit: "contain",
-            opacity: isEmpty ? 0.25 : 1,
-            flexShrink: 0,
-          }}
-        />
+        {/* Citibike logo - rotated, centered at 15px from left edge */}
+        <div style={{ position: "absolute", left: "-10px", top: 0, width: "58px", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <img
+            src={citibikeIcon}
+            alt="Citibike"
+            style={{
+              height: "47.8px",
+              width: "146.25px",
+              objectFit: "contain",
+              opacity: isEmpty ? 0.25 : 1,
+              transform: "rotate(-90deg)",
+            }}
+          />
+        </div>
 
         {/* Badges */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -78,18 +88,23 @@ export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeigh
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: showParking ? "5px" : "8px",
+              justifyContent: "center",
+              gap: sizes.gap,
               backgroundColor: isEmpty ? "#282828" : "#7B2FA0",
               borderRadius: "20px",
-              padding: showParking ? "3.3px 10px 3.3px 5px" : "3.3px 16px 3.3px 8px",
+              padding: sizes.padding,
+              transform: "translateX(-11px)",
+              width: "190px",
+              height: "70px",
+              flexShrink: 0,
             }}
           >
-            <img src={ebikeIcon} alt="e-bike" style={{ height: showParking ? "25px" : "38px", width: "auto", flexShrink: 0 }} />
-            <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: showParking ? "20px" : "30px", fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
+            <img src={ebikeIcon} alt="e-bike" style={{ height: sizes.ebike, width: "auto", flexShrink: 0 }} />
+            <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: sizes.text, fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
               {ebikes}
             </span>
-            <img src={normalBikeIcon} alt="bike" style={{ height: showParking ? "23px" : "35px", width: "auto", flexShrink: 0 }} />
-            <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: showParking ? "20px" : "30px", fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
+            <img src={normalBikeIcon} alt="bike" style={{ height: sizes.bike, width: "auto", flexShrink: 0, marginLeft: "10px" }} />
+            <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: sizes.text, fontWeight: 700, color: isEmpty ? "#3a3a3a" : "#fff" }}>
               {bikes}
             </span>
             {showParking && (
