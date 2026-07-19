@@ -482,15 +482,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           for (const stopTimeUpdate of entity.tripUpdate.stopTimeUpdate || []) {
             const stopIdFromFeed = stopTimeUpdate.stopId;
             const arrival = stopTimeUpdate.arrival;
+            const departure = stopTimeUpdate.departure;
 
-            if (!arrival?.time) continue;
+            if (!arrival?.time && !departure?.time) continue;
 
             // Check if this stop matches our target
             if (stopIdFromFeed !== fullStopId) continue;
 
-            const arrivalTime = typeof arrival.time === 'number' 
-              ? arrival.time 
-              : Number(arrival.time);
+            const rawTime = arrival?.time ?? departure?.time;
+            const arrivalTime = typeof rawTime === 'number'
+              ? rawTime
+              : Number(rawTime);
             const minutesUntil = Math.floor((arrivalTime - now) / 60);
 
             if (minutesUntil < 0) continue;

@@ -35,9 +35,9 @@ import iconW from "@assets/moovmii/MTA Icons/src/svg/w.svg";
 import iconZ from "@assets/moovmii/MTA Icons/src/svg/z.svg";
 import iconLirr from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
 import iconMnr from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
-import iconMnrHudson from "@assets/Metro North/Hudson.png";
-import iconMnrHarlem from "@assets/Metro North/Harlem.png";
-import iconMnrNewHaven from "@assets/Metro North/New Haven.png";
+import iconMnrHudson from "@assets/Metro North Lines/hudson line.png";
+import iconMnrHarlem from "@assets/Metro North Lines/harlem line.png";
+import iconMnrNewHaven from "@assets/Metro North Lines/NEW HAVEN 3.png";
 import iconPath from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 import ferryIconSrc from "@assets/NYC_Ferry_Icon_Black.png";
 import { getFerryLine } from "@/lib/ferryConfig";
@@ -527,18 +527,12 @@ export default function TrackCard({
               LIRR
             </span>
           ) : isMnrLine(line) ? (
-            <div 
-              className="font-bold text-white text-left"
-              style={{ 
-                fontSize: '22px',
-                fontFamily: 'Helvetica, Arial, sans-serif',
-                transform: 'translate(-35px, -10px)',
-                lineHeight: '1.1'
-              }}
-            >
-              <div>Metro-</div>
-              <div>North</div>
-            </div>
+            <img
+              src={iconSrc}
+              alt={`${line}`}
+              className="object-contain"
+              style={{ width: '69.7px', height: '69.7px', transform: 'translate(-35px, -10px)' }}
+            />
           ) : isBusLine(line) ? (
             <div 
               className="flex items-center justify-center"
@@ -739,18 +733,12 @@ export default function TrackCard({
                   LIRR
                 </span>
               ) : secondLine && isMnrLine(secondLine) ? (
-                <div 
-                  className="font-bold text-white text-left"
-                  style={{ 
-                    fontSize: '11px',
-                    fontFamily: 'Helvetica, Arial, sans-serif',
-                    transform: 'translate(-32px, 45px)',
-                    lineHeight: '1.1'
-                  }}
-                >
-                  <div>Metro-</div>
-                  <div>North</div>
-                </div>
+                <img
+                  src={secondIconSrc!}
+                  alt={secondLine}
+                  className="object-contain"
+                  style={{ width: '40px', height: '40px', transform: 'translate(-32px, 45px)' }}
+                />
               ) : secondLine && isBusLine(secondLine) ? (
                 <div 
                   className="flex items-center justify-center"
@@ -832,18 +820,12 @@ export default function TrackCard({
                   LIRR
                 </span>
               ) : thirdLine && isMnrLine(thirdLine) ? (
-                <div 
-                  className="font-bold text-white text-left"
-                  style={{ 
-                    fontSize: '11px',
-                    fontFamily: 'Helvetica, Arial, sans-serif',
-                    transform: 'translate(-32px, 45px)',
-                    lineHeight: '1.1'
-                  }}
-                >
-                  <div>Metro-</div>
-                  <div>North</div>
-                </div>
+                <img
+                  src={thirdIconSrc!}
+                  alt={thirdLine}
+                  className="object-contain"
+                  style={{ width: '40px', height: '40px', transform: 'translate(-32px, 45px)' }}
+                />
               ) : thirdLine && isBusLine(thirdLine) ? (
                 <div 
                   className="flex items-center justify-center"

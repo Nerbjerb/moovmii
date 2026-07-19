@@ -1096,19 +1096,20 @@ stopIdMap["LIRR-8"] = { // West Hempstead Branch
   "St Albans": "179",
 };
 stopIdMap["LIRR-9"] = { // Port Washington Branch
-  "Penn Station": "8",
-  "Port Washington": "163",
+  "Penn Station": "237",
+  "Port Washington": "171",
   "Plandome": "162",
   "Manhasset": "131",
   "Great Neck": "72",
   "Little Neck": "120",
   "Douglaston": "42",
-  "Bayside": "11",
-  "Auburndale": "7",
-  "Broadway": "11",
+  "Bayside": "25",
+  "Broadway": "2",
+  "Auburndale": "11",
   "Murray Hill": "130",
   "Flushing Main Street": "56",
-  "Woodside": "200",
+  "Mets-Willets Point": "199",
+  "Woodside": "214",
 };
 stopIdMap["LIRR-10"] = { // Port Jefferson Branch
   "Penn Station": "8",

@@ -36,6 +36,9 @@ import sirIcon from "@assets/moovmii/MTA Icons/src/svg/sir.svg";
 import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 import lirrIcon from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
 import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
+import mnrHudsonIcon from "@assets/Metro North Lines/hudson line.png";
+import mnrHarlemIcon from "@assets/Metro North Lines/harlem line.png";
+import mnrNewHavenIcon from "@assets/Metro North Lines/NEW HAVEN 3.png";
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
 import njTransitBusIcon from "@assets/njt vertical logo.png";
 import mtaBusIcon from "@assets/MTA_Regional_Bus_logo.svg_1768100704004.png";
@@ -2144,9 +2147,14 @@ export default function Settings() {
                 onClick={() => handleLineSelect(line.id)}
                 data-testid={`card-line-${line.id}`}
               >
-                <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', fontWeight: 600, color: '#FFFFFF' }}>
-                  {line.branchName}
-                </span>
+                {line.id === "MNR-1" && <img src={mnrHudsonIcon} alt="Hudson Line" style={{ height: '36px', objectFit: 'contain' }} />}
+                {line.id === "MNR-2" && <img src={mnrHarlemIcon} alt="Harlem Line" style={{ height: '36px', objectFit: 'contain' }} />}
+                {line.id === "MNR-3" && <img src={mnrNewHavenIcon} alt="New Haven Line" style={{ height: '36px', objectFit: 'contain' }} />}
+                {!["MNR-1","MNR-2","MNR-3"].includes(line.id) && (
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', fontWeight: 600, color: '#FFFFFF' }}>
+                    {line.branchName}
+                  </span>
+                )}
               </div>
             ))}
           </div>
