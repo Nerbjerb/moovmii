@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import citibikeIcon from "@assets/citibike logo.png";
 import ebikeIcon from "@assets/Citibike icons/e-bike logo.png";
 import normalBikeIcon from "@assets/Citibike icons/normal bike logo.png";
@@ -24,6 +24,39 @@ interface CitibikeDockRowProps {
   rowHeight?: number;
   labelHeight?: number;
   showParking?: boolean;
+}
+
+function ShrinkLabel({ text, fontSize }: { text: string; fontSize: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let size = fontSize;
+    el.style.fontSize = `${size}px`;
+    while (el.scrollWidth > 246 && size > 9) {
+      size -= 0.5;
+      el.style.fontSize = `${size}px`;
+    }
+  }, [text, fontSize]);
+  return (
+    <span
+      ref={ref}
+      style={{
+        fontFamily: "Helvetica, Arial, sans-serif",
+        fontSize: `${fontSize}px`,
+        fontWeight: 700,
+        color: text ? "#ffffff" : "transparent",
+        whiteSpace: "nowrap",
+        display: "block",
+        width: "246px",
+        height: `${fontSize}px`,
+        lineHeight: `${fontSize}px`,
+        overflow: "hidden",
+      }}
+    >
+      {text || " "}
+    </span>
+  );
 }
 
 export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeight = 20, showParking = false }: CitibikeDockRowProps) {
@@ -128,9 +161,7 @@ export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeigh
         const label = slot?.name ?? "";
         return (
           <div key={i} style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-            <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: `${labelHeight}px`, fontWeight: 700, color: label ? "#ffffff" : "transparent" }}>
-              {label || " "}
-            </span>
+            <ShrinkLabel text={label} fontSize={labelHeight} />
             {renderCard(slot, i)}
           </div>
         );

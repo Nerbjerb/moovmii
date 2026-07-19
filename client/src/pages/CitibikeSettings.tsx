@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useSearch } from "wouter";
 import { ArrowLeft, Home, Search } from "lucide-react";
@@ -70,6 +70,18 @@ export default function CitibikeSettings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStation, setSelectedStation] = useState<CitibikeStation | null>(null);
   const [isNumMode, setIsNumMode] = useState(false);
+
+  const nameRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = nameRef.current;
+    if (!el) return;
+    let size = 17;
+    el.style.fontSize = `${size}px`;
+    while (el.scrollWidth > el.clientWidth && size > 9) {
+      size -= 0.5;
+      el.style.fontSize = `${size}px`;
+    }
+  }, [selectedStation]);
 
   const { data: allStations = [] } = useQuery<CitibikeStation[]>({
     queryKey: ["/api/citibike/stations"],
@@ -337,7 +349,7 @@ export default function CitibikeSettings() {
           {view === "slotPicker" && selectedStation && (
             <div style={{ position: "absolute", top: "56px", left: "20px", right: "20px", bottom: "56px", display: "flex", flexDirection: "column", justifyContent: "center", gap: "16px" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ ...font, fontSize: "17px", fontWeight: 700, color: "#ffffff" }}>{selectedStation.name}</div>
+                <div ref={nameRef} style={{ ...font, fontSize: "17px", fontWeight: 700, color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden" }}>{selectedStation.name}</div>
                 <div style={{ ...font, fontSize: "13px", color: "#666", marginTop: "4px" }}>Add to which slot?</div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -358,7 +370,7 @@ export default function CitibikeSettings() {
                       gap: "12px",
                     }}
                   >
-                    <span style={{ ...font, fontSize: "16px", fontWeight: 700, color: "#FFD200", flexShrink: 0 }}>Slot {i + 1}</span>
+                    <span style={{ ...font, fontSize: "16px", fontWeight: 700, color: "#c084fc", flexShrink: 0 }}>Slot {i + 1}</span>
                     <span style={{ ...font, fontSize: "13px", color: slots[i] ? "#c084fc" : "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {slots[i] ? `Replace: ${slots[i]!.name}` : "Open"}
                     </span>

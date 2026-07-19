@@ -56,6 +56,35 @@ interface TrackCardProps {
   rowHeight?: number;
 }
 
+function ShrinkText({ text, maxWidth, fontSize, className, style }: {
+  text: string;
+  maxWidth: number;
+  fontSize: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let size = fontSize;
+    el.style.fontSize = `${size}px`;
+    while (el.scrollWidth > maxWidth && size > 9) {
+      size -= 0.5;
+      el.style.fontSize = `${size}px`;
+    }
+  }, [text, fontSize, maxWidth]);
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{ ...style, fontSize: `${fontSize}px`, whiteSpace: 'nowrap', overflow: 'hidden' }}
+    >
+      {text}
+    </div>
+  );
+}
+
 // Map all subway lines to their icons
 const lineIcons: Record<string, string> = {
   "1": icon1,
@@ -142,6 +171,25 @@ export default function TrackCard({
 
   // Ref for auto-scrolling alert container
   const alertScrollRef = useRef<HTMLDivElement>(null);
+
+  // Refs for bus destination + stop — shared font size so both match
+  const busDestRef = useRef<HTMLDivElement>(null);
+  const busSubRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isBusLine(line)) return;
+    const destEl = busDestRef.current;
+    const subEl = busSubRef.current;
+    if (!destEl || !subEl) return;
+    const shrinkToFit = (el: HTMLDivElement, start: number) => {
+      let size = start;
+      el.style.fontSize = `${size}px`;
+      while (el.scrollWidth > 270 && size > 9) { size -= 0.5; el.style.fontSize = `${size}px`; }
+      return size;
+    };
+    const shared = Math.min(shrinkToFit(destEl, 35), shrinkToFit(subEl, 20));
+    destEl.style.fontSize = `${shared}px`;
+    subEl.style.fontSize = `${shared}px`;
+  }, [destination, subtitle, line]);
 
   // Auto-scroll effect for service alerts
   useEffect(() => {
@@ -358,26 +406,7 @@ export default function TrackCard({
     return { fontSize: `${baseSize}px` };
   };
   
-  // Calculate subtitle top position - adjust if destination wraps to 2 lines
-  const getSubtitleTop = () => {
-    const baseTop = 58;
-    
-    if (isBusLine(line)) {
-      const fullText = `To: ${busDestination}`;
-      const fontSize = parseInt(getBusDestinationStyle().fontSize);
-      // Estimate characters per line based on font size and 270px max width
-      // Approximate: larger font = fewer chars per line
-      const charsPerLine = Math.floor(270 / (fontSize * 0.6));
-      
-      // If text likely wraps to 2 lines, add extra space
-      if (fullText.length > charsPerLine) {
-        // Add roughly one line height worth of space
-        return `${baseTop + fontSize * 0.8}px`;
-      }
-    }
-    
-    return `${baseTop}px`;
-  };
+  const getSubtitleTop = () => '58px';
   
   // Canonical direction labels that should never wrap - show on single line
   const CANONICAL_DIRECTIONS = ['Downtown', 'Uptown', 'Inbound', 'Outbound', 'To NY', 'To NJ'];
@@ -623,36 +652,27 @@ export default function TrackCard({
 
         {/* Destination - absolute positioned (hidden when expanded) */}
         {!isExpanded && (
-          <div 
-            className="absolute font-bold text-white" 
-            style={{ 
-              left: '130px',
-              top: '18px',
-              lineHeight: '1.1',
-              fontSize: isBusLine(line) ? getBusDestinationStyle().fontSize : '35px',
-              maxWidth: '270px',
-              wordBreak: 'break-word',
-              overflowWrap: 'break-word'
-            }}
-          >
-            {isBusLine(line) ? `To: ${busDestination}` : displayDestination}
+          <div className="absolute" style={{ left: '130px', top: '18px', lineHeight: '1.1' }}>
+            {isBusLine(line) ? (
+              <div ref={busDestRef} className="font-bold text-white" style={{ fontSize: '35px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                {`To: ${busDestination}`}
+              </div>
+            ) : (
+              <ShrinkText text={displayDestination} maxWidth={270} fontSize={35} className="font-bold text-white" />
+            )}
           </div>
         )}
 
         {/* Subtitle - absolute positioned (hidden when expanded) */}
         {!isExpanded && (
-          <div 
-            className="absolute text-[20px] text-white" 
-            style={{ 
-              left: '130px',
-              top: getSubtitleTop(),
-              lineHeight: '1.2',
-              maxWidth: '270px',
-              wordBreak: 'break-word',
-              overflowWrap: 'break-word'
-            }}
-          >
-            {isBusLine(line) ? `Stop: ${shortenSelectBus(toProperCase(subtitle))}` : subtitle}
+          <div className="absolute" style={{ left: '130px', top: getSubtitleTop(), lineHeight: '1.2' }}>
+            {isBusLine(line) ? (
+              <div ref={busSubRef} className="text-white" style={{ fontSize: '20px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                {`Stop: ${shortenSelectBus(toProperCase(subtitle))}`}
+              </div>
+            ) : (
+              <ShrinkText text={subtitle} maxWidth={270} fontSize={20} className="text-white" />
+            )}
           </div>
         )}
 

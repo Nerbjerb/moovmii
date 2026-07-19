@@ -122,11 +122,11 @@ export default function WeatherTile({ icon, temperature, description, rainToday,
     <div className="text-white relative" style={{ width: '169px', height: '169px' }} data-testid="weather-tile">
       <div className="flex items-end gap-3 absolute" style={{ bottom: '66px', left: '-20px' }}>
         {iconSrc && (
-          <div style={{ position: 'relative', width: '82px', height: '82px', flexShrink: 0, overflow: 'hidden', padding: 0 }}>
+          <div style={{ position: 'relative', width: '82px', height: '82px', flexShrink: 0, padding: 0, }}>
             <img
               src={iconSrc}
               alt={description}
-              style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', filter: 'brightness(0) invert(1)', transform: 'scale(1.35)', transformOrigin: 'center' }}
+              style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'top', filter: 'brightness(0) invert(1)', transform: 'translateY(-8px)', transformOrigin: 'top center' }}
             />
           </div>
         )}

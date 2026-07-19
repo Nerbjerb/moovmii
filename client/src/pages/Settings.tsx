@@ -1260,6 +1260,25 @@ const groups: GroupItem[] = [
   },
 ];
 
+function ShrinkText({ text, fontSize, style }: { text: string; fontSize: number; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let size = fontSize;
+    el.style.fontSize = `${size}px`;
+    while (el.scrollWidth > el.clientWidth && size > 9) {
+      size -= 0.5;
+      el.style.fontSize = `${size}px`;
+    }
+  }, [text, fontSize]);
+  return (
+    <span ref={ref} style={{ ...style, fontSize: `${fontSize}px`, whiteSpace: 'nowrap', overflow: 'hidden', display: 'block' }}>
+      {text}
+    </span>
+  );
+}
+
 export default function Settings() {
   const [, navigate] = useLocation();
   // Parse query params for edit mode
@@ -1310,13 +1329,13 @@ export default function Settings() {
 
   // Load bus routes for selected borough
   const { data: busRoutesData, isLoading: busRoutesLoading } = useQuery<{ routes: { id: string; shortName: string; longName: string; description: string }[] }>({
-    queryKey: ['/api/bus/routes', selectedBusBorough],
+    queryKey: [`/api/bus/routes/${selectedBusBorough || ''}`],
     enabled: !!selectedBusBorough && selectedBusBorough !== 'select',
   });
 
   // Load bus stops for selected route
   const { data: busStopsData, isLoading: busStopsLoading } = useQuery<{ directions: { directionId: string; directionName: string; headsign: string; stops: { id: string; name: string; code: string }[] }[] }>({
-    queryKey: ['/api/bus/stops', selectedBusRoute],
+    queryKey: [`/api/bus/stops/${encodeURIComponent(selectedBusRoute || '')}`],
     enabled: !!selectedBusRoute,
   });
 
@@ -1884,17 +1903,11 @@ export default function Settings() {
                   {selectedBusRoute?.split('_')[1] || 'Bus'}
                 </span>
               </div>
-              <span 
-                style={{ 
-                  fontFamily: 'Helvetica, Arial, sans-serif',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  color: '#FFFFFF',
-                  flex: 1,
-                }}
-              >
-                {direction.headsign || direction.directionName || `Direction ${index + 1}`}
-              </span>
+              <ShrinkText
+                text={direction.headsign || direction.directionName || `Direction ${index + 1}`}
+                fontSize={16}
+                style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontWeight: 600, color: '#FFFFFF', flex: 1 }}
+              />
             </div>
           ))}
         </div>
@@ -1958,13 +1971,14 @@ export default function Settings() {
               {stopsToShow.map((stop: { id: string; name: string; code: string }, index: number) => {
                 const isSelected = selectedStop === stop.id;
                 return (
-                  <div 
+                  <div
                     key={`${stop.id}-${index}`}
                     className="rounded-[6px] flex items-center cursor-pointer hover:opacity-80 transition-opacity"
-                    style={{ 
-                      width: '450px', 
-                      minHeight: isSelected ? '80px' : '52px',
-                      backgroundColor: '#2D2C31',
+                    style={{
+                      width: '450px',
+                      height: '52px',
+                      backgroundColor: isSelected ? '#3D3C41' : '#2D2C31',
+                      border: isSelected ? '2px solid #FFFFFF' : '2px solid transparent',
                       paddingLeft: '16px',
                       paddingRight: '16px',
                     }}
@@ -1973,48 +1987,20 @@ export default function Settings() {
                       if (isSelected) {
                         setSelectedStop(null);
                         setSelectedDirection(null);
+                        setSelectedRow(null);
                       } else {
                         setSelectedStop(stop.id);
-                        setSelectedDirection(null);
+                        setSelectedDirection('Uptown');
+                        setSelectedRow(isEditMode ? (editRow || 1) : 1);
                       }
                     }}
                     data-testid={`card-bus-stop-${stop.id}`}
                   >
-                    <div className="flex flex-col flex-1 py-2">
-                      <span 
-                        style={{ 
-                          fontFamily: 'Helvetica, Arial, sans-serif',
-                          fontSize: '14px',
-                          color: '#FFFFFF',
-                        }}
-                      >
-                        {stop.name}
-                      </span>
-                      {isSelected && (
-                        <div className="flex gap-2 mt-2">
-                          <div
-                            className={`rounded-[4px] px-3 py-1 cursor-pointer ${selectedDirection ? 'bg-[#ffd200]' : 'bg-[#444]'}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // For buses, use 'Uptown' as internal marker (actual direction is in selectedBusDirection)
-                              setSelectedDirection('Uptown');
-                              // In edit mode, use editRow; otherwise default to row 1
-                              setSelectedRow(isEditMode ? (editRow || 1) : 1);
-                            }}
-                            data-testid="button-bus-headsign"
-                          >
-                            <span style={{ 
-                              fontFamily: 'Helvetica, Arial, sans-serif', 
-                              fontSize: '12px', 
-                              color: selectedDirection ? '#000' : '#FFF',
-                              fontWeight: 600,
-                            }}>
-                              {directionHeadsign || 'Confirm'}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    <ShrinkText
+                      text={stop.name}
+                      fontSize={14}
+                      style={{ fontFamily: 'Helvetica, Arial, sans-serif', color: '#FFFFFF' }}
+                    />
                   </div>
                 );
               })}

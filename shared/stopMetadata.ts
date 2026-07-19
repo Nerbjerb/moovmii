@@ -969,7 +969,7 @@ stopIdMap["R"] = {
 // LIRR Stations - using GTFS stop_id values
 // Note: LIRR doesn't use N/S suffixes - stop IDs are used directly
 stopIdMap["LIRR-1"] = { // Babylon Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "Mineola": "132",
   "Babylon": "10",
@@ -992,7 +992,7 @@ stopIdMap["LIRR-1"] = { // Babylon Branch
   "Valley Stream": "191",
 };
 stopIdMap["LIRR-2"] = { // Hempstead Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "Hempstead": "84",
   "Garden City": "68",
@@ -1004,7 +1004,7 @@ stopIdMap["LIRR-2"] = { // Hempstead Branch
   "Hollis": "89",
 };
 stopIdMap["LIRR-3"] = { // Oyster Bay Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "Oyster Bay": "154",
   "Locust Valley": "123",
@@ -1019,7 +1019,7 @@ stopIdMap["LIRR-3"] = { // Oyster Bay Branch
   "Mineola": "132",
 };
 stopIdMap["LIRR-4"] = { // Ronkonkoma Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "Ronkonkoma": "166",
   "Central Islip": "28",
@@ -1040,7 +1040,7 @@ stopIdMap["LIRR-4"] = { // Ronkonkoma Branch
   "Kew Gardens": "107",
 };
 stopIdMap["LIRR-5"] = { // Montauk Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "Montauk": "141",
   "Amagansett": "4",
@@ -1060,7 +1060,7 @@ stopIdMap["LIRR-5"] = { // Montauk Branch
   "Babylon": "10",
 };
 stopIdMap["LIRR-6"] = { // Long Beach Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "Long Beach": "113",
   "Island Park": "99",
@@ -1071,7 +1071,7 @@ stopIdMap["LIRR-6"] = { // Long Beach Branch
   "Valley Stream": "191",
 };
 stopIdMap["LIRR-7"] = { // Far Rockaway Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "Far Rockaway": "65",
   "Inwood": "101",
@@ -1085,7 +1085,7 @@ stopIdMap["LIRR-7"] = { // Far Rockaway Branch
   "St Albans": "179",
 };
 stopIdMap["LIRR-8"] = { // West Hempstead Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "West Hempstead": "194",
   "Hempstead Gardens": "85",
@@ -1112,7 +1112,7 @@ stopIdMap["LIRR-9"] = { // Port Washington Branch
   "Woodside": "214",
 };
 stopIdMap["LIRR-10"] = { // Port Jefferson Branch
-  "Penn Station": "8",
+  "Penn Station": "237",
   "Jamaica": "102",
   "Port Jefferson": "164",
   "Stony Brook": "14",
@@ -1357,7 +1357,7 @@ stopIdMap["PATH-NWK"] = {
   "Newark": "26733",
   "Harrison": "26729",
   "Journal Square": "26731",
-  "Grove St": "26728",
+  "Grove Street": "26728",
   "Exchange Place": "26727",
   "World Trade Center": "26734",
 };
@@ -1365,14 +1365,14 @@ stopIdMap["PATH-NWK"] = {
 // Journal Square - 33rd St route
 stopIdMap["PATH-JSQ"] = {
   "Journal Square": "26731",
-  "Grove St": "26728",
+  "Grove Street": "26728",
   "Newport": "26732",
   "Hoboken": "26730",
-  "Christopher St": "26726",
-  "9th St": "26725",
-  "14th St": "26722",
-  "23rd St": "26723",
-  "33rd St": "26724",
+  "Christopher Street": "26726",
+  "9th Street": "26725",
+  "14th Street": "26722",
+  "23rd Street": "26723",
+  "33rd Street": "26724",
 };
 
 // Hoboken - World Trade Center route
@@ -1386,9 +1386,9 @@ stopIdMap["PATH-HOB-WTC"] = {
 // Hoboken - 33rd St route
 stopIdMap["PATH-HOB-33"] = {
   "Hoboken": "26730",
-  "Christopher St": "26726",
-  "9th St": "26725",
-  "14th St": "26722",
-  "23rd St": "26723",
-  "33rd St": "26724",
+  "Christopher Street": "26726",
+  "9th Street": "26725",
+  "14th Street": "26722",
+  "23rd Street": "26723",
+  "33rd Street": "26724",
 };

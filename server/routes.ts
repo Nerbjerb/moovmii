@@ -1618,6 +1618,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NJ Transit Rail API
+  // Token is valid all day — fetch once and cache. Only 10 getToken calls allowed per day.
+  const njtTokenCache: { token: string; dateKey: string } = { token: "", dateKey: "" };
+  // Station departure cache — keyed by station code, refreshed every 60s per station.
+  const njtStationCache = new Map<string, { data: unknown; fetchedAt: number }>();
+
+  async function getNjtToken(): Promise<string> {
+    const today = new Date().toISOString().slice(0, 10);
+    if (njtTokenCache.token && njtTokenCache.dateKey === today) return njtTokenCache.token;
+    const username = process.env.NJTransit_Username;
+    const password = process.env.NJTransit_Password;
+    if (!username || !password) throw new Error("NJT credentials not configured");
+    const form = new FormData();
+    form.append("username", username);
+    form.append("password", password);
+    const res = await fetch("https://raildata.njtransit.com/api/TrainData/getToken", { method: "POST", body: form });
+    const json = await res.json() as { Authenticated: string; UserToken: string };
+    if (json.Authenticated !== "True" || !json.UserToken) throw new Error("NJT authentication failed");
+    njtTokenCache.token = json.UserToken;
+    njtTokenCache.dateKey = today;
+    return json.UserToken;
+  }
+
+  app.get("/api/njt/departures", async (req, res) => {
+    try {
+      const station = (req.query.station as string || "").toUpperCase();
+      if (!station) return res.status(400).json({ error: "station query param required" });
+
+      const cached = njtStationCache.get(station);
+      if (cached && Date.now() - cached.fetchedAt < 60_000) {
+        return res.json(cached.data);
+      }
+
+      const token = await getNjtToken();
+      const form = new FormData();
+      form.append("token", token);
+      form.append("station", station);
+      form.append("line", "");
+      const njtRes = await fetch("https://raildata.njtransit.com/api/TrainData/getTrainSchedule19Rec", { method: "POST", body: form });
+      const raw = await njtRes.json() as {
+        STATION_2CHAR: string;
+        STATIONNAME: string;
+        ITEMS: Array<{
+          SCHED_DEP_DATE: string;
+          DESTINATION: string;
+          TRACK: string;
+          LINE: string;
+          LINECODE: string;
+          LINEABBREVIATION: string;
+          TRAIN_ID: string;
+          STATUS: string;
+          SEC_LATE: string;
+        }>;
+      };
+
+      if (!raw || !raw.ITEMS) {
+        return res.status(502).json({ error: "Invalid response from NJT API" });
+      }
+
+      const departures = raw.ITEMS.map(item => ({
+        trainId: item.TRAIN_ID,
+        destination: item.DESTINATION.replace(/&#\d+;/g, "").trim(),
+        track: item.TRACK,
+        line: item.LINE,
+        lineCode: item.LINECODE,
+        lineAbbr: item.LINEABBREVIATION,
+        scheduledDep: item.SCHED_DEP_DATE,
+        status: item.STATUS?.trim() || "",
+        secLate: parseInt(item.SEC_LATE) || 0,
+      }));
+
+      const payload = { stationCode: raw.STATION_2CHAR, stationName: raw.STATIONNAME, departures };
+      njtStationCache.set(station, { data: payload, fetchedAt: Date.now() });
+      res.json(payload);
+    } catch (error) {
+      console.error("Error fetching NJT departures:", error);
+      res.status(500).json({ error: "Failed to fetch NJT departures" });
+    }
+  });
+
+  app.get("/api/njt/stations", async (_req, res) => {
+    try {
+      const token = await getNjtToken();
+      const form = new FormData();
+      form.append("token", token);
+      const njtRes = await fetch("https://raildata.njtransit.com/api/TrainData/getStationList", { method: "POST", body: form });
+      const data = await njtRes.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching NJT stations:", error);
+      res.status(500).json({ error: "Failed to fetch NJT stations" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
