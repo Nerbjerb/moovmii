@@ -40,6 +40,14 @@ import iconMnrHarlem from "@assets/Metro North Lines/harlem line.png";
 import iconMnrNewHaven from "@assets/Metro North Lines/NEW HAVEN 3.png";
 import iconPath from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 import ferryIconSrc from "@assets/NYC_Ferry_Icon_Black.png";
+import njtNEIcon from "@assets/NJ Transit Lines/Northeast-Corridor.svg";
+import njtNCIcon from "@assets/NJ Transit Lines/North-Jersey-Coast-Line.svg";
+import njtRVIcon from "@assets/NJ Transit Lines/Raritan-Valley-Line.svg";
+import njtMEIcon from "@assets/NJ Transit Lines/Morris-Essex-Line.svg";
+import njtMCIcon from "@assets/NJ Transit Lines/Montclair-Boonton-Line.svg";
+import njtMLIcon from "@assets/NJ Transit Lines/Main-Bergen-Line.svg";
+import njtPVIcon from "@assets/NJ Transit Lines/Pascack-Valley-Line.svg";
+import njtACIcon from "@assets/NJ Transit Lines/Atlantic-City-Line.svg";
 import { getFerryLine } from "@/lib/ferryConfig";
 
 interface TrackCardProps {
@@ -143,6 +151,15 @@ const lineIcons: Record<string, string> = {
   "MNR-4": iconMnrNewHaven,
   "MNR-5": iconMnrNewHaven,
   "MNR-6": iconMnrNewHaven,
+  // NJ Transit lines
+  "NJT-NE": njtNEIcon,
+  "NJT-NC": njtNCIcon,
+  "NJT-RV": njtRVIcon,
+  "NJT-ME": njtMEIcon,
+  "NJT-MC": njtMCIcon,
+  "NJT-ML": njtMLIcon,
+  "NJT-PV": njtPVIcon,
+  "NJT-AC": njtACIcon,
 };
 
 export default function TrackCard({
@@ -319,6 +336,9 @@ export default function TrackCard({
   // Check if a line is PATH (should show text instead of logo)
   const isPathLine = (lineName: string) => lineName === 'PATH' || lineName.startsWith('PATH-');
 
+  // Check if a line is NJT
+  const isNjtLine = (lineName: string) => lineName.startsWith('NJT-');
+
   // Check if a line is NYC Ferry
   const isFerryLine = (lineName: string) => lineName.startsWith('FERRY-');
 
@@ -361,7 +381,7 @@ export default function TrackCard({
       if (direction === 'Uptown' || direction === 'To NY') return 'To NY';
       if (direction === 'Downtown' || direction === 'To NJ') return 'To NJ';
     }
-    if (isLirrLine(line)) {
+    if (isLirrLine(line) || isNjtLine(line)) {
       if (direction === 'Uptown') return 'Inbound';
       if (direction === 'Downtown') return 'Outbound';
     }

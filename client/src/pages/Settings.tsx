@@ -41,6 +41,14 @@ import mnrHarlemIcon from "@assets/Metro North Lines/harlem line.png";
 import mnrNewHavenIcon from "@assets/Metro North Lines/NEW HAVEN 3.png";
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
 import njTransitBusIcon from "@assets/njt vertical logo.png";
+import njtNEIcon from "@assets/NJ Transit Lines/Northeast-Corridor.svg";
+import njtNCIcon from "@assets/NJ Transit Lines/North-Jersey-Coast-Line.svg";
+import njtRVIcon from "@assets/NJ Transit Lines/Raritan-Valley-Line.svg";
+import njtMEIcon from "@assets/NJ Transit Lines/Morris-Essex-Line.svg";
+import njtMCIcon from "@assets/NJ Transit Lines/Montclair-Boonton-Line.svg";
+import njtMLIcon from "@assets/NJ Transit Lines/Main-Bergen-Line.svg";
+import njtPVIcon from "@assets/NJ Transit Lines/Pascack-Valley-Line.svg";
+import njtACIcon from "@assets/NJ Transit Lines/Atlantic-City-Line.svg";
 import mtaBusIcon from "@assets/MTA_Regional_Bus_logo.svg_1768100704004.png";
 import nycFerryIcon from "@assets/NYC_Ferry_Horizontal_White_1768103579529.png";
 import citibikeIcon from "@assets/citibike logo.png";
@@ -88,6 +96,15 @@ const lineColors: Record<string, string> = {
   "MetroNorth": "#0039A6",
   "PATH": "#0039A6",
   "NJT": "#0039A6",
+  // NJT lines
+  "NJT-NE": "#F7505E",  // Northeast Corridor
+  "NJT-NC": "#009CDB",  // North Jersey Coast
+  "NJT-RV": "#FF993E",  // Raritan Valley
+  "NJT-ME": "#00953B",  // Morris & Essex
+  "NJT-MC": "#C36366",  // Montclair-Boonton
+  "NJT-ML": "#F2B826",  // Main/Bergen County
+  "NJT-PV": "#A34F8B",  // Pascack Valley
+  "NJT-AC": "#2E55A5",  // Atlantic City
   // LIRR Branches
   "LIRR-1": "#00985F",   // Babylon
   "LIRR-2": "#CE8E00",   // Hempstead
@@ -1140,12 +1157,49 @@ const lineStops: Record<string, string[]> = {
     "Hoboken", "Christopher Street", "9th Street", "14th Street",
     "23rd Street", "33rd Street"
   ],
-  "NJT": [
-    "Penn Station NY",
-    "Secaucus Junction",
-    "Newark Penn Station",
-    "Newark Broad Street",
-    "Trenton"
+  "NJT-NE": [
+    "New York Penn Station", "Secaucus Upper Lvl", "Newark Penn Station", "Newark Airport",
+    "North Elizabeth", "Elizabeth", "Linden", "Rahway", "Metuchen", "Metropark",
+    "Edison", "New Brunswick", "Jersey Avenue", "Princeton Junction", "Hamilton", "Trenton"
+  ],
+  "NJT-NC": [
+    "New York Penn Station", "Secaucus Upper Lvl", "Newark Penn Station", "Newark Airport",
+    "North Elizabeth", "Elizabeth", "Linden", "Rahway", "South Amboy", "Perth Amboy",
+    "Woodbridge", "Aberdeen-Matawan", "Hazlet", "Middletown NJ", "Red Bank", "Little Silver",
+    "Long Branch", "Asbury Park", "Belmar", "Bradley Beach", "Spring Lake", "Manasquan",
+    "Point Pleasant Beach", "Bay Head"
+  ],
+  "NJT-RV": [
+    "New York Penn Station", "Secaucus Upper Lvl", "Newark Penn Station", "Union", "Roselle Park",
+    "Cranford", "Garwood", "Westfield", "Fanwood", "Netherwood", "Plainfield", "Dunellen",
+    "Bound Brook", "Bridgewater", "Somerville", "Raritan", "White House", "Annandale", "Lebanon", "High Bridge"
+  ],
+  "NJT-ME": [
+    "New York Penn Station", "Secaucus Upper Lvl", "Newark Penn Station", "South Orange", "Maplewood",
+    "Millburn", "Short Hills", "Summit", "New Providence", "Murray Hill", "Berkeley Heights",
+    "Gillette", "Stirling", "Millington", "Lyons", "Basking Ridge", "Bernardsville", "Peapack",
+    "Far Hills", "Gladstone", "Chatham", "Madison", "Convent Station", "Morris Plains",
+    "Morristown", "Mount Tabor", "Dover", "Hackettstown"
+  ],
+  "NJT-MC": [
+    "New York Penn Station", "Secaucus Upper Lvl", "Newark Penn Station", "Bay Street", "Bloomfield",
+    "Glen Ridge", "Montclair Heights", "Mountain Avenue", "Watchung Avenue", "Walnut Street",
+    "Montclair State U", "Little Falls", "Wayne-Route 23", "Mountain View", "Lincoln Park",
+    "Boonton", "Mountain Lakes", "Denville", "Dover", "Hackettstown"
+  ],
+  "NJT-ML": [
+    "New York Penn Station", "Secaucus Upper Lvl", "Rutherford", "Passaic", "Clifton", "Plauderville",
+    "Garfield", "Radburn Fair Lawn", "Broadway Fair Lawn", "Glen Rock Main Line", "Glen Rock Boro Hall",
+    "Ridgewood", "Waldwick", "Allendale", "Ramsey Route 17", "Ramsey Main St", "Mahwah"
+  ],
+  "NJT-PV": [
+    "New York Penn Station", "Secaucus Upper Lvl", "Rutherford", "Lyndhurst", "Wood Ridge", "Teterboro",
+    "River Edge", "New Bridge Landing", "Anderson Street", "Emerson", "Westwood", "Hillsdale",
+    "Woodcliff Lake", "Park Ridge", "Montvale", "Pearl River", "Nanuet", "Spring Valley"
+  ],
+  "NJT-AC": [
+    "Philadelphia", "Pennsauken", "Cherry Hill", "Lindenwold", "Atco", "Hammonton",
+    "Egg Harbor City", "Absecon", "Atlantic City Rail Terminal"
   ]
 };
 
@@ -1223,7 +1277,7 @@ const groups: GroupItem[] = [
       { id: "SIR", icon: sirIcon, alt: "SIR", size: "29px", isRegional: true, branchName: "Staten Island Rwy" },
       { id: "LIRR", icon: lirrIcon, alt: "LIRR", size: "26px", isRegional: true, branchName: "Long Island Rail Road", isParent: true },
       { id: "MetroNorth", icon: metroNorthIcon, alt: "Metro-North", size: "26px", isRegional: true, branchName: "Metro-North Railroad", isParent: true },
-      { id: "NJT", icon: njTransitIcon, alt: "NJ Transit", size: "22px", isRegional: true, branchName: "NJ Transit Rail" },
+      { id: "NJT", icon: njTransitIcon, alt: "NJ Transit", size: "22px", isRegional: true, branchName: "NJ Transit Rail", isParent: true },
     ]
   },
   {
@@ -1247,6 +1301,19 @@ const groups: GroupItem[] = [
       { id: "MNR-1", icon: metroNorthIcon, alt: "Hudson", size: "26px", isRegional: true, branchName: "Hudson" },
       { id: "MNR-2", icon: metroNorthIcon, alt: "Harlem", size: "26px", isRegional: true, branchName: "Harlem" },
       { id: "MNR-3", icon: metroNorthIcon, alt: "New Haven", size: "26px", isRegional: true, branchName: "New Haven Line" },
+    ]
+  },
+  {
+    id: "njt",
+    lines: [
+      { id: "NJT-NE", icon: njtNEIcon, alt: "Northeast Corridor", size: "40px", isRegional: true, branchName: "Northeast Corridor" },
+      { id: "NJT-NC", icon: njtNCIcon, alt: "North Jersey Coast", size: "40px", isRegional: true, branchName: "North Jersey Coast" },
+      { id: "NJT-RV", icon: njtRVIcon, alt: "Raritan Valley", size: "40px", isRegional: true, branchName: "Raritan Valley" },
+      { id: "NJT-ME", icon: njtMEIcon, alt: "Morris & Essex", size: "40px", isRegional: true, branchName: "Morris & Essex" },
+      { id: "NJT-MC", icon: njtMCIcon, alt: "Montclair-Boonton", size: "40px", isRegional: true, branchName: "Montclair-Boonton" },
+      { id: "NJT-ML", icon: njtMLIcon, alt: "Main/Bergen County", size: "40px", isRegional: true, branchName: "Main/Bergen County" },
+      { id: "NJT-PV", icon: njtPVIcon, alt: "Pascack Valley", size: "40px", isRegional: true, branchName: "Pascack Valley" },
+      { id: "NJT-AC", icon: njtACIcon, alt: "Atlantic City", size: "40px", isRegional: true, branchName: "Atlantic City" },
     ]
   },
   {
@@ -1517,6 +1584,10 @@ export default function Settings() {
     }
     if (lineId === "PATH") {
       setSelectedRegionalService("path");
+      return;
+    }
+    if (lineId === "NJT") {
+      setSelectedRegionalService("njt");
       return;
     }
     setSelectedLine(lineId);
@@ -2020,6 +2091,42 @@ export default function Settings() {
   };
 
   const renderSubView = () => {
+    // NJT line selection: 2-column grid with SVG icons
+    if (selectedRegionalService === "njt") {
+      const serviceGroup = groups.find(g => g.id === "njt");
+      if (!serviceGroup) return null;
+      const lines = serviceGroup.lines;
+      const midpoint = Math.ceil(lines.length / 2);
+      const leftCol = lines.slice(0, midpoint);
+      const rightCol = lines.slice(midpoint);
+      const NjtLineCard = ({ line }: { line: typeof lines[0] }) => (
+        <div
+          key={line.id}
+          className="rounded-[6px] flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+          style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31', paddingLeft: '20px', gap: '16px' }}
+          onClick={() => handleLineSelect(line.id)}
+          data-testid={`card-line-${line.id}`}
+        >
+          <img src={line.icon} alt={line.alt} style={{ height: line.size, objectFit: 'contain', flexShrink: 0 }} />
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>
+            {line.branchName}
+          </span>
+        </div>
+      );
+      return (
+        <div className="flex items-center justify-center" style={{ width: '760px', height: '370px', margin: 'auto' }}>
+          <div className="flex gap-[10px]">
+            <div className="flex flex-col gap-[8px]">
+              {leftCol.map((line) => <NjtLineCard key={line.id} line={line} />)}
+            </div>
+            <div className="flex flex-col gap-[8px]">
+              {rightCol.map((line) => <NjtLineCard key={line.id} line={line} />)}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Handle PATH route selection with colored vertical lines
     if (selectedRegionalService === "path") {
       const serviceGroup = groups.find(g => g.id === "path");
@@ -2335,7 +2442,7 @@ export default function Settings() {
                             }}
                           >
                             {(() => {
-                              const isLIRR = selectedLine?.startsWith('LIRR');
+                              const isLIRR = selectedLine?.startsWith('LIRR') || selectedLine?.startsWith('NJT-');
                               const isPATH = selectedLine?.startsWith('PATH-');
                               const isSIR = selectedLine === 'SIR';
                               const is7orLorJZorMNR = selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR');
@@ -2441,7 +2548,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('PATH-') ? 'To NY' : selectedLine === 'SIR' ? 'St George' : selectedLine?.startsWith('LIRR') ? 'Inbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Outbound' : 'Uptown'}
+                                  {selectedLine?.startsWith('PATH-') ? 'To NY' : selectedLine === 'SIR' ? 'St George' : (selectedLine?.startsWith('LIRR') || selectedLine?.startsWith('NJT-')) ? 'Inbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Outbound' : 'Uptown'}
                                 </span>
                               </div>
                               <div 
@@ -2465,7 +2572,7 @@ export default function Settings() {
                                   className="text-white font-medium"
                                   style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px' }}
                                 >
-                                  {selectedLine?.startsWith('PATH-') ? 'To NJ' : selectedLine === 'SIR' ? 'Tottenville' : selectedLine?.startsWith('LIRR') ? 'Outbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Inbound' : 'Downtown'}
+                                  {selectedLine?.startsWith('PATH-') ? 'To NJ' : selectedLine === 'SIR' ? 'Tottenville' : (selectedLine?.startsWith('LIRR') || selectedLine?.startsWith('NJT-')) ? 'Outbound' : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR')) ? 'Inbound' : 'Downtown'}
                                 </span>
                               </div>
                             </>
@@ -2488,7 +2595,7 @@ export default function Settings() {
                                     ? (selectedDirection === 'Uptown' ? 'To NY' : 'To NJ')
                                     : selectedLine === 'SIR'
                                     ? (selectedDirection === 'Uptown' ? 'St George' : 'Tottenville')
-                                    : selectedLine?.startsWith('LIRR')
+                                    : (selectedLine?.startsWith('LIRR') || selectedLine?.startsWith('NJT-'))
                                     ? (selectedDirection === 'Uptown' ? 'Inbound' : 'Outbound')
                                     : (selectedLine === '7' || selectedLine === 'L' || selectedLine === 'J' || selectedLine === 'Z' || selectedLine?.startsWith('MNR'))
                                     ? (selectedDirection === 'Uptown' ? 'Outbound' : 'Inbound')

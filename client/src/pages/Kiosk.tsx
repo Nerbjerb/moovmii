@@ -106,12 +106,17 @@ export default function Kiosk() {
       return ['/api/ferry/arrivals', { routeIds, stopId: pref.stop, direction: pref.direction || 'Inbound', isFerry: true }];
     }
 
+    // Check if this is an NJT line
+    if (pref.line.startsWith('NJT-')) {
+      return ['/api/njt/arrivals', { stop: pref.stop, direction: pref.direction, line: pref.line, isNJT: true }];
+    }
+
     // Check if this is a PATH line
     const isPATH = pref.line.startsWith('PATH-');
-    
+
     // Check if this is a bus line (bus lines start with "MTA NYCT_" or "MTABC_")
     const isBus = pref.line.startsWith('MTA NYCT_') || pref.line.startsWith('MTABC_') || pref.line.startsWith('BUS-');
-    
+
     if (isBus) {
       // For buses, the stop ID is stored directly in pref.stop
       return ['/api/bus/arrivals', { stopId: pref.stop, routeId: pref.line, isBus: true }];
@@ -176,13 +181,19 @@ export default function Kiosk() {
   };
 
   const makeArrivalQueryFn = (queryKey: any[]) => async () => {
-    const params = queryKey[1] as { stopId?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; routeIds?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean; isFerry?: boolean };
+    const params = queryKey[1] as { stopId?: string; stop?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; routeIds?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean; isFerry?: boolean; isNJT?: boolean };
     if (params.isCitibike) return null as unknown as SubwayArrival;
     if (params.isBus) return transformBusArrivals(params);
     if (params.isFerry) {
       const url = `/api/ferry/arrivals?routeIds=${encodeURIComponent(params.routeIds || '')}&stopId=${encodeURIComponent(params.stopId || '')}&direction=${encodeURIComponent(params.direction || 'Inbound')}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch ferry arrivals');
+      return res.json();
+    }
+    if (params.isNJT) {
+      const url = `/api/njt/arrivals?stop=${encodeURIComponent(params.stop || '')}&direction=${encodeURIComponent(params.direction || '')}&line=${encodeURIComponent(params.line || '')}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch NJT arrivals');
       return res.json();
     }
     const url = params.isPATH

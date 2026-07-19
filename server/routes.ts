@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { mapOWMCodeToIcon } from "@shared/weatherIconMapper";
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
-import { feedUrls, lineToFeedGroup, getSameColorLines, getStopId, getFeedUrlsForLines } from "@shared/stopMetadata";
+import { feedUrls, lineToFeedGroup, getSameColorLines, getStopId, getFeedUrlsForLines, njtStationCodeMap } from "@shared/stopMetadata";
 import { insertKioskPreferenceSchema, insertKioskSettingsSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1709,6 +1709,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching NJT stations:", error);
       res.status(500).json({ error: "Failed to fetch NJT stations" });
+    }
+  });
+
+  // NJT arrivals in the same {destination, subtitle, arrivalMinutes} format as subway/LIRR
+  app.get("/api/njt/arrivals", async (req, res) => {
+    try {
+      const { stop, direction, line } = req.query as { stop?: string; direction?: string; line?: string };
+      if (!stop) return res.status(400).json({ error: "stop query param required" });
+
+      const stationCode = njtStationCodeMap[stop] || stop.toUpperCase();
+      const cached = njtStationCache.get(stationCode);
+      let payload: { stationName: string; departures: Array<{ destination: string; lineCode: string; lineAbbr: string; scheduledDep: string; status: string; secLate: number; track: string }> };
+
+      if (cached && Date.now() - cached.fetchedAt < 60_000) {
+        payload = cached.data as typeof payload;
+      } else {
+        const token = await getNjtToken();
+        const form = new FormData();
+        form.append("token", token);
+        form.append("station", stationCode);
+        form.append("line", "");
+        const njtRes = await fetch("https://raildata.njtransit.com/api/TrainData/getTrainSchedule19Rec", { method: "POST", body: form });
+        const raw = await njtRes.json() as { STATIONNAME: string; STATION_2CHAR: string; ITEMS: Array<{ DESTINATION: string; LINECODE: string; LINEABBREVIATION: string; SCHED_DEP_DATE: string; STATUS: string; SEC_LATE: string; TRACK: string }> };
+        if (!raw?.ITEMS) return res.status(502).json({ error: "Invalid NJT response" });
+        const departures = raw.ITEMS.map(item => ({
+          destination: item.DESTINATION.replace(/&#\d+;?/g, "").trim(),
+          lineCode: item.LINECODE,
+          lineAbbr: item.LINEABBREVIATION,
+          scheduledDep: item.SCHED_DEP_DATE,
+          status: item.STATUS?.trim() || "",
+          secLate: parseInt(item.SEC_LATE) || 0,
+          track: item.TRACK,
+        }));
+        payload = { stationName: raw.STATIONNAME, departures };
+        njtStationCache.set(stationCode, { data: payload, fetchedAt: Date.now() });
+      }
+
+      // NJT direction filter: Inbound = towards NY Penn (destination contains "New York")
+      // Outbound = everything else. For Atlantic City line: inbound = towards Philadelphia.
+      const isInbound = direction === "Uptown";
+      const isACLine = line?.includes("AC");
+
+      const filtered = payload.departures.filter(d => {
+        const dest = d.destination.toUpperCase();
+        if (isACLine) {
+          const towardsPHL = dest.includes("PHILADELPHIA") || dest.includes("PHIL");
+          return isInbound ? towardsPHL : !towardsPHL;
+        }
+        const towardsNY = dest.includes("NEW YORK") || dest.includes("SEC") || dest.includes("PENN STATION");
+        return isInbound ? towardsNY : !towardsNY;
+      });
+
+      // Parse "STATUS" like "in 13 Min" or "All Aboard" into minutes
+      const now = new Date();
+      const arrivalMinutes: number[] = [];
+      for (const dep of filtered) {
+        let mins: number | null = null;
+        const inMatch = dep.status.match(/in\s+(\d+)\s*min/i);
+        if (inMatch) {
+          mins = parseInt(inMatch[1]);
+        } else if (dep.status === "All Aboard" || dep.status === "") {
+          // Fall back to scheduled time
+          const schedDate = new Date(dep.scheduledDep);
+          if (!isNaN(schedDate.getTime())) {
+            mins = Math.round((schedDate.getTime() - now.getTime()) / 60000);
+          }
+        }
+        if (mins !== null && mins >= 0) {
+          arrivalMinutes.push(mins);
+        }
+        if (arrivalMinutes.length >= 3) break;
+      }
+
+      const njtLineDestinations: Record<string, { inbound: string; outbound: string }> = {
+        "NJT-NE": { inbound: "New York", outbound: "Trenton" },
+        "NJT-NC": { inbound: "New York", outbound: "Bay Head" },
+        "NJT-RV": { inbound: "New York", outbound: "High Bridge" },
+        "NJT-ME": { inbound: "New York", outbound: "Dover / Gladstone" },
+        "NJT-MC": { inbound: "New York", outbound: "Hackettstown" },
+        "NJT-ML": { inbound: "New York", outbound: "Mahwah" },
+        "NJT-PV": { inbound: "New York", outbound: "Spring Valley" },
+        "NJT-AC": { inbound: "Philadelphia", outbound: "Atlantic City" },
+      };
+      const lineDests = njtLineDestinations[line || ""] || { inbound: "New York", outbound: "Outbound" };
+      const destination = isInbound ? lineDests.inbound : lineDests.outbound;
+
+      const arrivalLines = arrivalMinutes.map(() => line || "NJT");
+      res.json({
+        line: line || "NJT",
+        direction: direction || "Uptown",
+        destination,
+        subtitle: payload.stationName || stop,
+        arrivalMinutes,
+        arrivalLines,
+      });
+    } catch (error) {
+      console.error("Error fetching NJT arrivals:", error);
+      res.status(500).json({ error: "Failed to fetch NJT arrivals" });
     }
   });
 
