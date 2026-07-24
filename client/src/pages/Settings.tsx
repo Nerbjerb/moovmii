@@ -39,6 +39,9 @@ import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_w
 import mnrHudsonIcon from "@assets/Metro North Lines/hudson line.png";
 import mnrHarlemIcon from "@assets/Metro North Lines/harlem line.png";
 import mnrNewHavenIcon from "@assets/Metro North Lines/NEW HAVEN 3.png";
+import mnrHudsonLongIcon from "@assets/Metro North Lines/Hudson Line Long.png";
+import mnrHarlemLongIcon from "@assets/Metro North Lines/Harlem Line Long.png";
+import mnrNewHavenLongIcon from "@assets/Metro North Lines/New Haven Line Long.png";
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
 import njTransitBusIcon from "@assets/njt vertical logo.png";
 import njtNEIcon from "@assets/NJ Transit Lines/Northeast-Corridor.svg";
@@ -1050,10 +1053,10 @@ const lineStops: Record<string, string[]> = {
   ],
   // LIRR Branches
   "LIRR-1": [ // Babylon Branch
-    "Penn Station", "Jamaica", "St Albans", "Valley Stream", "Lynbrook", 
-    "Rockville Centre", "Baldwin", "Freeport", "Merrick", "Bellmore",
-    "Wantagh", "Seaford", "Massapequa", "Massapequa Park", "Amityville",
-    "Copiague", "Lindenhurst", "Babylon"
+    "Penn Station", "Kew Gardens", "Forest Hills", "Jamaica", "St Albans",
+    "Valley Stream", "Lynbrook", "Rockville Centre", "Baldwin", "Freeport",
+    "Merrick", "Bellmore", "Wantagh", "Seaford", "Massapequa", "Massapequa Park",
+    "Amityville", "Copiague", "Lindenhurst", "Babylon"
   ],
   "LIRR-2": [ // Hempstead Branch
     "Penn Station", "Jamaica", "Hollis", "Queens Village", "Floral Park",
@@ -1065,10 +1068,10 @@ const lineStops: Record<string, string[]> = {
     "Glen Cove", "Locust Valley", "Oyster Bay"
   ],
   "LIRR-4": [ // Ronkonkoma Branch
-    "Penn Station", "Woodside", "Forest Hills", "Kew Gardens", "Jamaica",
-    "Floral Park", "New Hyde Park", "Mineola", "Carle Place", "Westbury",
-    "Hicksville", "Bethpage", "Farmingdale", "Pinelawn", "Wyandanch",
-    "Deer Park", "Brentwood", "Central Islip", "Ronkonkoma"
+    "Penn Station", "Woodside", "Jamaica", "Floral Park", "New Hyde Park",
+    "Mineola", "Carle Place", "Westbury", "Hicksville", "Bethpage",
+    "Farmingdale", "Pinelawn", "Wyandanch", "Deer Park", "Brentwood",
+    "Central Islip", "Ronkonkoma"
   ],
   "LIRR-5": [ // Montauk Branch
     "Penn Station", "Jamaica", "Babylon", "Bay Shore", "Islip",
@@ -1077,25 +1080,26 @@ const lineStops: Record<string, string[]> = {
     "Bridgehampton", "East Hampton", "Amagansett", "Montauk"
   ],
   "LIRR-6": [ // Long Beach Branch
-    "Penn Station", "Jamaica", "Valley Stream", "Lynbrook", "Centre Avenue",
-    "East Rockaway", "Oceanside", "Island Park", "Long Beach"
+    "Penn Station", "Woodside", "Jamaica", "St Albans", "Locust Manor",
+    "Valley Stream", "Lynbrook", "Centre Avenue", "East Rockaway",
+    "Oceanside", "Island Park", "Long Beach"
   ],
   "LIRR-7": [ // Far Rockaway Branch
-    "Penn Station", "Jamaica", "St Albans", "Locust Manor", "Valley Stream",
-    "Gibson", "Hewlett", "Woodmere", "Cedarhurst", "Lawrence",
-    "Inwood", "Far Rockaway"
+    "Penn Station", "Kew Gardens", "Forest Hills", "Jamaica", "St Albans",
+    "Locust Manor", "Valley Stream", "Gibson", "Hewlett", "Woodmere",
+    "Cedarhurst", "Lawrence", "Inwood", "Far Rockaway"
   ],
   "LIRR-8": [ // West Hempstead Branch
     "Penn Station", "Jamaica", "St Albans", "Valley Stream", "Westwood",
     "Malverne", "Lakeview", "Hempstead Gardens", "West Hempstead"
   ],
   "LIRR-9": [ // Port Washington Branch
-    "Penn Station", "Woodside", "Flushing Main Street", "Murray Hill",
-    "Broadway", "Auburndale", "Bayside", "Douglaston", "Little Neck",
-    "Great Neck", "Manhasset", "Plandome", "Port Washington"
+    "Penn Station", "Woodside", "Mets-Willets Point", "Flushing Main Street",
+    "Murray Hill", "Auburndale", "Broadway", "Bayside", "Douglaston",
+    "Little Neck", "Great Neck", "Manhasset", "Plandome", "Port Washington"
   ],
   "LIRR-10": [ // Port Jefferson Branch
-    "Penn Station", "Jamaica", "Mineola", "Hicksville", "Syosset",
+    "Penn Station", "Jamaica", "Woodside", "Mineola", "Hicksville", "Syosset",
     "Cold Spring Harbor", "Huntington", "Greenlawn", "Northport",
     "Kings Park", "Smithtown", "St James", "Stony Brook", "Port Jefferson"
   ],
@@ -1700,7 +1704,7 @@ export default function Settings() {
         <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => navigate(`/ferry-settings${selectedRow ? `?editRow=${selectedRow}` : ''}`)} data-testid="card-settings-11">
           <img src={nycFerryIcon} alt="NYC Ferry" className="h-[25px] object-contain" />
         </div>
-        <div className="rounded-[6px] flex items-center justify-center gap-2" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} data-testid="card-settings-12">
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => navigate(`/driving-settings${selectedRow ? `?editRow=${selectedRow}` : ''}`)} data-testid="card-settings-12">
           <CarFront className="w-[22px] h-[22px] text-white" />
           <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>Driving</span>
         </div>
@@ -2240,9 +2244,9 @@ export default function Settings() {
                 onClick={() => handleLineSelect(line.id)}
                 data-testid={`card-line-${line.id}`}
               >
-                {line.id === "MNR-1" && <img src={mnrHudsonIcon} alt="Hudson Line" style={{ height: '36px', objectFit: 'contain' }} />}
-                {line.id === "MNR-2" && <img src={mnrHarlemIcon} alt="Harlem Line" style={{ height: '36px', objectFit: 'contain' }} />}
-                {line.id === "MNR-3" && <img src={mnrNewHavenIcon} alt="New Haven Line" style={{ height: '36px', objectFit: 'contain' }} />}
+                {line.id === "MNR-1" && <img src={mnrHudsonLongIcon} alt="Hudson Line" style={{ height: '36px', objectFit: 'contain' }} />}
+                {line.id === "MNR-2" && <img src={mnrHarlemLongIcon} alt="Harlem Line" style={{ height: '36px', objectFit: 'contain' }} />}
+                {line.id === "MNR-3" && <img src={mnrNewHavenLongIcon} alt="New Haven Line" style={{ height: '36px', objectFit: 'contain' }} />}
                 {!["MNR-1","MNR-2","MNR-3"].includes(line.id) && (
                   <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', fontWeight: 600, color: '#FFFFFF' }}>
                     {line.branchName}

@@ -412,14 +412,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(502).json({ error: "Failed to fetch any MTA feeds" });
       }
 
+      const now = Math.floor(Date.now() / 1000);
+
+      // Check for stale feeds — LIRR GTFS-RT is known to go stale on weekends
+      if (isCommuterRail) {
+        for (const feed of feeds) {
+          if (!feed) continue;
+          const feedTimestamp = Number(feed.header?.timestamp);
+          if (feedTimestamp && (now - feedTimestamp) > 1800) {
+            const ageMinutes = Math.round((now - feedTimestamp) / 60);
+            console.warn(`[Feed Warning] ${isLIRR ? 'LIRR' : 'MNR'} feed is stale: last updated ${ageMinutes} minutes ago (${new Date(feedTimestamp * 1000).toISOString()})`);
+          }
+        }
+      }
+
       // Collect arrivals from all feeds
-      const arrivals: { 
-        line: string; 
-        minutes: number; 
+      const arrivals: {
+        line: string;
+        minutes: number;
         headsign: string;
       }[] = [];
-
-      const now = Math.floor(Date.now() / 1000);
 
       // Map internal branch IDs to GTFS route IDs for LIRR/MNR
       const branchToGtfsRoute: Record<string, string> = {
@@ -428,9 +440,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "MNR-1": "1", "MNR-2": "2", "MNR-3": "3", "MNR-4": "4", "MNR-5": "5", "MNR-6": "6",
       };
 
+      // For LIRR debug: collect a sample of what's in the feed
+      if (isCommuterRail && isLIRR) {
+        const sampleRouteIds = new Set<string>();
+        const sampleDirIds = new Set<string>();
+        for (const feed of feeds) {
+          if (!feed) continue;
+          for (const entity of feed.entity.slice(0, 30)) {
+            if (!entity.tripUpdate) continue;
+            const t = entity.tripUpdate.trip;
+            if (t?.routeId) sampleRouteIds.add(t.routeId);
+            const d = (t as any)?.directionId;
+            if (d !== undefined) sampleDirIds.add(String(d));
+            // Sample a stop ID from the first stop time update
+            const stu = entity.tripUpdate.stopTimeUpdate?.[0];
+            if (stu?.stopId && sampleRouteIds.size <= 3) {
+              console.log(`[LIRR Debug] routeId=${t?.routeId} dirId=${d} firstStop=${stu.stopId}`);
+            }
+          }
+          break;
+        }
+        console.log(`[LIRR Debug] routeIds in feed (first 30 entities): ${[...sampleRouteIds].join(',')}`);
+        console.log(`[LIRR Debug] directionIds in feed: ${[...sampleDirIds].join(',')}`);
+        console.log(`[LIRR Debug] Searching for routeId=${branchToGtfsRoute[linesToFetch[0]]} stopId=${fullStopId} direction=${direction} (requestedDirId=${direction === "Uptown" ? 1 : 0})`);
+      }
+
+      // For MNR debug: collect a sample of what's in the feed
+      if (isCommuterRail && isMNR) {
+        const sampleRouteIds = new Set<string>();
+        const sampleDirIds = new Set<string>();
+        for (const feed of feeds) {
+          if (!feed) continue;
+          for (const entity of feed.entity.slice(0, 50)) {
+            if (!entity.tripUpdate) continue;
+            const t = entity.tripUpdate.trip;
+            if (t?.routeId) sampleRouteIds.add(t.routeId);
+            const d = (t as any)?.directionId;
+            if (d !== undefined) sampleDirIds.add(String(d));
+            const stu = entity.tripUpdate.stopTimeUpdate?.[0];
+            if (stu?.stopId && sampleRouteIds.size <= 5) {
+              console.log(`[MNR Debug] routeId=${t?.routeId} dirId=${d} firstStop=${stu.stopId}`);
+            }
+          }
+          break;
+        }
+        console.log(`[MNR Debug] routeIds in feed (first 50 entities): ${[...sampleRouteIds].join(',')}`);
+        console.log(`[MNR Debug] directionIds in feed: ${[...sampleDirIds].join(',')}`);
+        console.log(`[MNR Debug] Searching for routeId=${branchToGtfsRoute[linesToFetch[0]]} stopId=${fullStopId} direction=${direction} (requestedDirId=${direction === "Uptown" ? 1 : 0})`);
+      }
+
       for (const feed of feeds) {
         if (!feed) continue;
-        
+
         for (const entity of feed.entity) {
           if (!entity.tripUpdate) continue;
 
@@ -442,7 +503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // For commuter rail, map our branch IDs to GTFS route IDs
           let matchesLine = false;
           let matchedLine = "";
-          
+
           if (isCommuterRail) {
             // Check if any of our branches match this route
             for (const line of linesToFetch) {
@@ -470,7 +531,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // For LIRR/MNR, filter by direction using GTFS direction_id
           // direction_id: 0 = Outbound (away from Manhattan), 1 = Inbound (to Manhattan)
-          // UI mapping: Uptown = East = Inbound (1), Downtown = West = Outbound (0)
           if (isCommuterRail) {
             const tripDirectionId = (trip as any)?.directionId;
             const requestedDirectionId = direction === "Uptown" ? 1 : 0;
@@ -487,7 +547,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (!arrival?.time && !departure?.time) continue;
 
             // Check if this stop matches our target
-            if (stopIdFromFeed !== fullStopId) continue;
+            if (stopIdFromFeed !== fullStopId) {
+              if (isLIRR && arrivals.length === 0) {
+                console.log(`[LIRR Debug] Stop mismatch: feed=${stopIdFromFeed}, looking for=${fullStopId} (route ${routeId})`);
+              }
+              if (isMNR && arrivals.length === 0) {
+                console.log(`[MNR Debug] Stop mismatch: feed=${stopIdFromFeed}, looking for=${fullStopId} (route ${routeId})`);
+              }
+              continue;
+            }
 
             const rawTime = arrival?.time ?? departure?.time;
             const arrivalTime = typeof rawTime === 'number'
@@ -535,17 +603,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "J": { station: "Jamaica Center", borough: "Queens" },
           "Z": { station: "Jamaica Center", borough: "Queens" },
           "L": { station: "8 Av", borough: "Manhattan" },
-          // LIRR Branches - Eastbound/Outbound
-          "LIRR-1": { station: "Babylon", borough: "Long Island" },
-          "LIRR-2": { station: "Hempstead", borough: "Long Island" },
-          "LIRR-3": { station: "Oyster Bay", borough: "Long Island" },
-          "LIRR-4": { station: "Ronkonkoma", borough: "Long Island" },
-          "LIRR-5": { station: "Montauk", borough: "Long Island" },
-          "LIRR-6": { station: "Long Beach", borough: "Long Island" },
-          "LIRR-7": { station: "Far Rockaway", borough: "Queens" },
-          "LIRR-8": { station: "West Hempstead", borough: "Long Island" },
-          "LIRR-9": { station: "Port Washington", borough: "Long Island" },
-          "LIRR-10": { station: "Port Jefferson", borough: "Long Island" },
+          // LIRR Branches - Westbound/Inbound (to Penn Station); Uptown = Inbound for LIRR
+          "LIRR-1": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-2": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-3": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-4": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-5": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-6": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-7": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-8": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-9": { station: "Penn Station", borough: "Manhattan" },
+          "LIRR-10": { station: "Penn Station", borough: "Manhattan" },
           // Metro-North Lines - Northbound
           "MNR-1": { station: "Poughkeepsie", borough: "Hudson Valley" },
           "MNR-2": { station: "Wassaic", borough: "Hudson Valley" },
@@ -579,17 +647,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "J": { station: "Broad St", borough: "Manhattan" },
           "Z": { station: "Broad St", borough: "Manhattan" },
           "L": { station: "Canarsie-Rockaway Pkwy", borough: "Brooklyn" },
-          // LIRR Branches - Westbound/Inbound (to Penn Station)
-          "LIRR-1": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-2": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-3": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-4": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-5": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-6": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-7": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-8": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-9": { station: "Penn Station", borough: "Manhattan" },
-          "LIRR-10": { station: "Penn Station", borough: "Manhattan" },
+          // LIRR Branches - Eastbound/Outbound; Downtown = Outbound for LIRR
+          "LIRR-1": { station: "Babylon", borough: "Long Island" },
+          "LIRR-2": { station: "Hempstead", borough: "Long Island" },
+          "LIRR-3": { station: "Oyster Bay", borough: "Long Island" },
+          "LIRR-4": { station: "Ronkonkoma", borough: "Long Island" },
+          "LIRR-5": { station: "Montauk", borough: "Long Island" },
+          "LIRR-6": { station: "Long Beach", borough: "Long Island" },
+          "LIRR-7": { station: "Far Rockaway", borough: "Queens" },
+          "LIRR-8": { station: "West Hempstead", borough: "Long Island" },
+          "LIRR-9": { station: "Port Washington", borough: "Long Island" },
+          "LIRR-10": { station: "Port Jefferson", borough: "Long Island" },
           // Metro-North Lines - Southbound (to Grand Central)
           "MNR-1": { station: "Grand Central", borough: "Manhattan" },
           "MNR-2": { station: "Grand Central", borough: "Manhattan" },
@@ -1795,6 +1863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lineDests = njtLineDestinations[line || ""] || { inbound: "New York", outbound: "Outbound" };
       const destination = isInbound ? lineDests.inbound : lineDests.outbound;
 
+      arrivalMinutes.sort((a, b) => a - b);
       const arrivalLines = arrivalMinutes.map(() => line || "NJT");
       res.json({
         line: line || "NJT",
@@ -1807,6 +1876,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching NJT arrivals:", error);
       res.status(500).json({ error: "Failed to fetch NJT arrivals" });
+    }
+  });
+
+  // ── Driving / Google Maps ──────────────────────────────────────────────────
+
+  app.get("/api/driving/route", async (req, res) => {
+    const { origin, destination } = req.query as { origin?: string; destination?: string };
+    if (!origin || !destination) {
+      return res.status(400).json({ error: "origin and destination query params required" });
+    }
+
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey || apiKey === "YOUR_KEY_HERE") {
+      return res.status(503).json({ error: "Google Maps API key not configured" });
+    }
+
+    try {
+      const url = new URL("https://maps.googleapis.com/maps/api/directions/json");
+      url.searchParams.set("origin", origin);
+      url.searchParams.set("destination", destination);
+      url.searchParams.set("departure_time", "now");
+      url.searchParams.set("traffic_model", "best_guess");
+      url.searchParams.set("key", apiKey);
+
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        return res.status(502).json({ error: "Google Maps API request failed" });
+      }
+
+      const data = await response.json() as any;
+      if (data.status !== "OK" || !data.routes?.length) {
+        return res.status(404).json({ error: data.error_message || "No route found" });
+      }
+
+      const route = data.routes[0];
+      const leg = route.legs[0];
+      const summary: string = route.summary || "";
+
+      // Parse interstate from summary (e.g. "I-278 W", "I-95 N")
+      const interstateMatch = summary.match(/^I-(\d+)/i);
+      const isInterstate = !!interstateMatch;
+      const interstateNumber = interstateMatch ? interstateMatch[1] : null;
+
+      // Duration with and without traffic
+      const durationSeconds: number = leg.duration?.value ?? 0;
+      const durationTrafficSeconds: number = leg.duration_in_traffic?.value ?? durationSeconds;
+
+      // Show delay badge when traffic adds ≥10% or 5+ minutes
+      const trafficExtra = durationTrafficSeconds - durationSeconds;
+      const hasTrafficDelay = trafficExtra >= 300 || (durationSeconds > 0 && trafficExtra / durationSeconds >= 0.1);
+
+      // Extract city names from leg addresses
+      const extractCity = (addr: string): string => {
+        // Google addresses look like "Jamaica, Queens, NY 11435, USA" or "Midtown, New York, NY"
+        const parts = addr.split(",").map((p) => p.trim());
+        return parts[0] || addr;
+      };
+
+      const originCity = extractCity(leg.start_address || origin);
+      const destCity = extractCity(leg.end_address || destination);
+
+      res.json({
+        durationSeconds,
+        durationTrafficSeconds,
+        mainRoute: summary,
+        isInterstate,
+        interstateNumber,
+        hasTrafficDelay,
+        originCity,
+        destCity,
+      });
+    } catch (error) {
+      console.error("Error fetching driving route:", error);
+      res.status(500).json({ error: "Failed to fetch driving route" });
+    }
+  });
+
+  // Driving autocomplete suggestions (proxies Google Places Autocomplete)
+  app.get("/api/driving/autocomplete", async (req, res) => {
+    const { input } = req.query as { input?: string };
+    if (!input || input.trim().length < 2) return res.json({ predictions: [] });
+
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey || apiKey === "YOUR_KEY_HERE") return res.json({ predictions: [] });
+
+    try {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/autocomplete/json");
+      url.searchParams.set("input", input);
+      url.searchParams.set("components", "country:us");
+      url.searchParams.set("key", apiKey);
+
+      const response = await fetch(url.toString());
+      const data = await response.json() as any;
+      const predictions = (data.predictions || []).slice(0, 5).map((p: any) => ({
+        description: p.description,
+        placeId: p.place_id,
+      }));
+      res.json({ predictions });
+    } catch {
+      res.json({ predictions: [] });
     }
   });
 

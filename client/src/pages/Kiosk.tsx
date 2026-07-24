@@ -6,6 +6,8 @@ import { Settings } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import CitibikeDockRow from "@/components/CitibikeDockRow";
 import type { CitibikeStation } from "@/components/CitibikeDockRow";
+import DrivingRouteCard from "@/components/DrivingRouteCard";
+import type { DrivingSlot } from "@/pages/DrivingSettings";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
 import type { SubwayArrival, KioskPreference, KioskSettings } from "@shared/schema";
@@ -98,6 +100,10 @@ export default function Kiosk() {
 
     if (pref.line === 'CITIBIKE') {
       return ['/api/citibike/noop', { isCitibike: true }];
+    }
+
+    if (pref.line === 'DRIVING') {
+      return ['/api/citibike/noop', { isDriving: true }];
     }
 
     // Check if this is a Ferry line
@@ -204,7 +210,7 @@ export default function Kiosk() {
     return res.json();
   };
 
-  const isNonFetchableRow = (line?: string) => !line || line === 'CITIBIKE';
+  const isNonFetchableRow = (line?: string) => !line || line === 'CITIBIKE' || line === 'DRIVING';
 
   // Fetch real-time arrivals for row 1 (subway, PATH, bus, or ferry)
   const row1QueryKey = getArrivalsQueryKey(row1Pref, 1);
@@ -308,7 +314,7 @@ export default function Kiosk() {
     : 115 - labelOverhead;
 
   const getStationLabel = (pref: typeof rowPrefs[0], track: SubwayArrival): string | null => {
-    if (!pref || pref.line === 'CITIBIKE') return null;
+    if (!pref || pref.line === 'CITIBIKE' || pref.line === 'DRIVING') return null;
     if (track.isBus) return track.subtitle || null;
     if (pref.line.startsWith('FERRY-')) {
       const routeId = pref.line.replace('FERRY-', '');
@@ -393,11 +399,13 @@ export default function Kiosk() {
             {subwayData.map((track, idx) => {
               const pref = rowPrefs[idx];
               const isCitibikeRow = pref?.line === 'CITIBIKE';
+              const isDrivingRow = pref?.line === 'DRIVING';
               const citibikeSlots = isCitibikeRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : null;
+              const drivingSlots: (DrivingSlot | null)[] = isDrivingRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : [null, null, null];
               const stationLabel = getStationLabel(pref, track);
               return (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginLeft: idx === 2 ? '250px' : '0' }}>
-                {stationLabel && (
+                {stationLabel && !isDrivingRow && (
                   <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
                     {stationLabel}
                   </span>
@@ -409,6 +417,8 @@ export default function Kiosk() {
                 >
                   {isCitibikeRow ? (
                     <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} />
+                  ) : isDrivingRow ? (
+                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} />
                   ) : (
                     <TrackCard
                       direction={track.direction}
@@ -424,7 +434,7 @@ export default function Kiosk() {
                       rowHeight={rowHeight}
                     />
                   )}
-                  {isEditMode && !isCitibikeRow && (
+                  {isEditMode && !isCitibikeRow && !isDrivingRow && (
                     <div
                       className="absolute inset-0 flex items-center justify-center pointer-events-none"
                       style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
@@ -447,11 +457,13 @@ export default function Kiosk() {
             {subwayData.map((track, idx) => {
               const pref = rowPrefs[idx];
               const isCitibikeRow = pref?.line === 'CITIBIKE';
+              const isDrivingRow = pref?.line === 'DRIVING';
               const citibikeSlots = isCitibikeRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : null;
+              const drivingSlots: (DrivingSlot | null)[] = isDrivingRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : [null, null, null];
               const stationLabel = getStationLabel(pref, track);
               return (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                {stationLabel && (
+                {stationLabel && !isDrivingRow && (
                   <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
                     {stationLabel}
                   </span>
@@ -463,6 +475,8 @@ export default function Kiosk() {
                 >
                   {isCitibikeRow ? (
                     <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} />
+                  ) : isDrivingRow ? (
+                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} />
                   ) : (
                     <TrackCard
                       direction={track.direction}
@@ -478,7 +492,7 @@ export default function Kiosk() {
                       rowHeight={rowHeight}
                     />
                   )}
-                  {isEditMode && !isCitibikeRow && (
+                  {isEditMode && !isCitibikeRow && !isDrivingRow && (
                     <div
                       className="absolute inset-0 flex items-center justify-center pointer-events-none"
                       style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}

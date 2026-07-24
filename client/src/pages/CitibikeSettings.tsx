@@ -130,6 +130,17 @@ export default function CitibikeSettings() {
     }
   };
 
+  useEffect(() => {
+    if (view !== "search") return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Backspace") { e.preventDefault(); handleKey("⌫"); }
+      else if (e.key === " ") { e.preventDefault(); handleKey("SPACE"); }
+      else if (e.key.length === 1) { handleKey(e.key.toUpperCase()); }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [view, handleKey]);
+
   const handleSlotSelect = (slotIndex: number) => {
     if (!selectedStation) return;
     const newSlots = [...slots] as (CitibikeSlot | null)[];
@@ -276,7 +287,7 @@ export default function CitibikeSettings() {
               </div>
 
               {/* Results */}
-              <div style={{ position: "absolute", top: "140px", left: "20px", right: "20px", bottom: "204px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "5px" }}>
+              <div className="show-scrollbar" style={{ position: "absolute", top: "140px", left: "20px", right: "20px", bottom: "204px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "5px" }}>
                 {filteredStations.length === 0 ? (
                   <div style={{ ...font, fontSize: "14px", color: "#444", textAlign: "center", paddingTop: "16px" }}>
                     {searchQuery ? "No docks found" : "Loading stations..."}

@@ -365,6 +365,23 @@
   box-shadow: none !important;
 }
 
+/* Opt-in scrollbar for specific containers that need visible scroll indication */
+.show-scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #444 transparent; /* Firefox */
+}
+.show-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 4px;
+}
+.show-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.show-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 999px;
+}
+
 /* Edit mode outline for track cards - uses pseudo-element for consistent border */
 .edit-mode-outline {
   position: relative;
