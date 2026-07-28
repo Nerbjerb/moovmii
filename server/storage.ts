@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type KioskPreference, type InsertKioskPreference, type RowSelection, type KioskSettings, type InsertKioskSettings } from "@shared/schema";
+import { type User, type InsertUser, type KioskPreference, type InsertKioskPreference, type RowSelection, type KioskSettings, type InsertKioskSettings, type KioskFavorite } from "@shared/schema";
 import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
@@ -16,12 +16,17 @@ export interface IStorage {
   // Kiosk settings
   getKioskSettings(kioskId?: string): Promise<KioskSettings>;
   setKioskSettings(settings: InsertKioskSettings): Promise<KioskSettings>;
+
+  // Kiosk favorites
+  getKioskFavorites(kioskId?: string): Promise<KioskFavorite[]>;
+  toggleKioskFavorite(kioskId: string, config: RowSelection): Promise<{ favorited: boolean }>;
 }
 
 interface PersistedData {
   users: Record<string, User>;
   preferences: Record<string, KioskPreference>;
   settings: Record<string, KioskSettings>;
+  favorites: Record<string, KioskFavorite>;
 }
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -36,12 +41,18 @@ function ensureDataDir(): void {
 function readData(): PersistedData {
   ensureDataDir();
   if (!fs.existsSync(DATA_FILE)) {
-    return { users: {}, preferences: {}, settings: {} };
+    return { users: {}, preferences: {}, settings: {}, favorites: {} };
   }
   try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8")) as PersistedData;
+    const parsed = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8")) as Partial<PersistedData>;
+    return {
+      users: parsed.users || {},
+      preferences: parsed.preferences || {},
+      settings: parsed.settings || {},
+      favorites: parsed.favorites || {},
+    };
   } catch {
-    return { users: {}, preferences: {}, settings: {} };
+    return { users: {}, preferences: {}, settings: {}, favorites: {} };
   }
 }
 
@@ -124,6 +135,30 @@ export class FileStorage implements IStorage {
     data.settings[kioskId] = newSettings;
     writeData(data);
     return newSettings;
+  }
+
+  async getKioskFavorites(kioskId: string = "default"): Promise<KioskFavorite[]> {
+    // Filter on `line` to drop any entries from the earlier per-row favorites shape
+    return Object.values(readData().favorites).filter((f) => f.kioskId === kioskId && !!f.line);
+  }
+
+  async toggleKioskFavorite(kioskId: string, config: RowSelection): Promise<{ favorited: boolean }> {
+    const data = readData();
+    const key = `${kioskId}-${config.line}::${config.stop}::${config.direction}`;
+    if (data.favorites[key]) {
+      delete data.favorites[key];
+      writeData(data);
+      return { favorited: false };
+    }
+    data.favorites[key] = {
+      id: randomUUID(),
+      kioskId,
+      line: config.line,
+      stop: config.stop,
+      direction: config.direction,
+    };
+    writeData(data);
+    return { favorited: true };
   }
 }
 

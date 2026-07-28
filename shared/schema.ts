@@ -34,6 +34,22 @@ export const insertKioskPreferenceSchema = createInsertSchema(kioskPreferences).
 export type InsertKioskPreference = z.infer<typeof insertKioskPreferenceSchema>;
 export type KioskPreference = typeof kioskPreferences.$inferSelect;
 
+// Kiosk favorites table - saved row configs (shared pool per kiosk)
+export const kioskFavorites = pgTable("kiosk_favorites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  kioskId: varchar("kiosk_id").notNull().default("default"),
+  line: text("line").notNull(),
+  stop: text("stop").notNull(),
+  direction: text("direction").notNull(),
+});
+
+export const insertKioskFavoriteSchema = createInsertSchema(kioskFavorites).omit({
+  id: true,
+});
+
+export type InsertKioskFavorite = z.infer<typeof insertKioskFavoriteSchema>;
+export type KioskFavorite = typeof kioskFavorites.$inferSelect;
+
 // Row selection type used in frontend
 export type RowSelection = {
   stop: string;

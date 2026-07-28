@@ -314,6 +314,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Favorites API - Get starred rows for a kiosk
+  app.get("/api/favorites", async (req, res) => {
+    try {
+      const kioskId = (req.query.kioskId as string) || "default";
+      const favorites = await storage.getKioskFavorites(kioskId);
+      res.json(favorites);
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+      res.status(500).json({ error: "Failed to fetch favorites" });
+    }
+  });
+
+  // Favorites API - Toggle a saved row config in the favorites pool
+  app.post("/api/favorites/toggle", async (req, res) => {
+    try {
+      const { kioskId, line, stop, direction } = req.body as {
+        kioskId?: string; line?: string; stop?: string; direction?: string;
+      };
+      if (!line || !stop || !direction) {
+        return res.status(400).json({ error: "line, stop and direction required" });
+      }
+      const result = await storage.toggleKioskFavorite(kioskId || "default", { line, stop, direction } as any);
+      res.json(result);
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      res.status(500).json({ error: "Failed to toggle favorite" });
+    }
+  });
+
   // Settings API - Get kiosk settings
   app.get("/api/settings", async (req, res) => {
     try {

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>moovmii WiFi Setup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: #0b0b0b; font-family: Helvetica, Arial, sans-serif; overflow: hidden; }
+  .screen { display: none; height: 100%; flex-direction: column; padding: 24px 28px; }
+  .screen.active { display: flex; }
+
+  .header { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+  .eyebrow { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
+  .title { font-size: 22px; font-weight: 700; color: #fff; margin-top: 4px; }
+
+  .network-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+  .network-row {
+    height: 58px; background: #2D2C31; border-radius: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; cursor: pointer;
+  }
+  .network-row:active { opacity: 0.8; }
+  .network-left { display: flex; align-items: center; gap: 12px; }
+  .network-ssid { font-size: 16px; font-weight: 600; color: #fff; }
+  .network-right { display: flex; align-items: center; gap: 12px; }
+
+  .bars { display: flex; align-items: flex-end; gap: 2px; }
+  .bar { width: 4px; border-radius: 1px; background: #555; }
+  .bar.on { background: #fff; }
+
+  .center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+  .net-name { font-size: 20px; font-weight: 700; color: #fff; }
+  .hint { font-size: 13px; color: #888; }
+  .error { font-size: 13px; color: #f87171; min-height: 16px; }
+
+  .pw-wrap { position: relative; width: 460px; max-width: 90vw; }
+  #pw {
+    width: 100%; height: 52px; background: #2D2C31; border: 2px solid #444; border-radius: 6px;
+    color: #fff; font-size: 16px; padding: 0 48px 0 16px; outline: none;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  #pw:focus { border-color: #FFD200; }
+  .eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9ca3af; cursor: pointer; padding: 4px; }
+
+  .actions { display: flex; gap: 12px; align-items: center; }
+  .btn-cancel { font-size: 14px; color: #888; background: none; border: none; cursor: pointer; padding: 10px 20px; font-family: inherit; }
+  .btn-connect {
+    font-size: 16px; font-weight: 700; color: #000; background: #FFD200;
+    border: none; border-radius: 6px; padding: 12px 36px; cursor: pointer; font-family: inherit;
+  }
+  .btn-connect:disabled { background: #555; cursor: not-allowed; }
+
+  .spinner {
+    width: 48px; height: 48px; border: 4px solid #333; border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status-text { font-size: 18px; font-weight: 600; color: #fff; }
+  .check { color: #4ade80; font-size: 56px; line-height: 1; }
+
+  svg.icon { display: block; }
+</style>
+</head>
+<body>
+
+  <!-- SCREEN: network list -->
+  <div id="screen-list" class="screen active">
+    <div class="header">
+      <span class="eyebrow">WiFi Setup</span>
+      <span class="title">Select a Network</span>
+    </div>
+    <div id="network-list" class="network-list"></div>
+  </div>
+
+  <!-- SCREEN: password -->
+  <div id="screen-password" class="screen">
+    <div class="center">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <svg class="icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 20 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        <span id="pw-ssid" class="net-name"></span>
+        <span class="hint">Enter WiFi password</span>
+        <span id="pw-error" class="error"></span>
+      </div>
+      <div class="pw-wrap">
+        <input id="pw" type="password" placeholder="Password" autocomplete="off" />
+        <button class="eye" onclick="togglePw()" aria-label="Show password">
+          <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="actions">
+        <button class="btn-cancel" onclick="showScreen('list')">Cancel</button>
+        <button id="btn-connect" class="btn-connect" disabled onclick="doConnect()">Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: connecting -->
+  <div id="screen-connecting" class="screen">
+    <div class="center">
+      <div class="spinner"></div>
+      <span id="connecting-text" class="status-text"></span>
+    </div>
+  </div>
+
+  <!-- SCREEN: connected -->
+  <div id="screen-connected" class="screen">
+    <div class="center">
+      <span class="check">&#10003;</span>
+      <span id="connected-text" class="status-text"></span>
+      <span class="hint">Launching moovmii...</span>
+    </div>
+  </div>
+
+<script>
+  // When previewing in a desktop browser there is no native bridge; fall back to demo data.
+  var native = window.MoovmiiNative || {
+    scanNetworks: function () {
+      return JSON.stringify([
+        { ssid: "moovmii-5G", secured: true, strength: 4 },
+        { ssid: "BuildingNet", secured: true, strength: 3 },
+        { ssid: "Xfinity_Guest", secured: false, strength: 2 }
+      ]);
+    },
+    connect: function () { return true; },
+    isOnline: function () { return false; }
+  };
+
+  var selected = null;
+  var scanTimer = null;
+
+  function showScreen(name) {
+    document.querySelectorAll(".screen").forEach(function (s) { s.classList.remove("active"); });
+    document.getElementById("screen-" + name).classList.add("active");
+    if (name === "list") {
+      selected = null;
+      document.getElementById("pw").value = "";
+      document.getElementById("pw-error").textContent = "";
+      document.getElementById("btn-connect").disabled = true;
+      startScanning();
+    } else {
+      stopScanning();
+    }
+  }
+
+  function barsHtml(strength) {
+    var html = '<div class="bars">';
+    for (var i = 1; i <= 4; i++) {
+      html += '<div class="bar' + (i <= strength ? " on" : "") + '" style="height:' + (4 + i * 3) + 'px"></div>';
+    }
+    return html + "</div>";
+  }
+
+  var lockSvg = '<svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+  var wifiSvg = '<svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 20 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>';
+
+  function refreshNetworks() {
+    var networks;
+    try { networks = JSON.parse(native.scanNetworks()); } catch (e) { networks = []; }
+    var list = document.getElementById("network-list");
+    list.innerHTML = "";
+    networks.forEach(function (n) {
+      var row = document.createElement("div");
+      row.className = "network-row";
+      row.innerHTML =
+        '<div class="network-left">' + wifiSvg + '<span class="network-ssid"></span></div>' +
+        '<div class="network-right">' + barsHtml(n.strength) + (n.secured ? lockSvg : "") + "</div>";
+      row.querySelector(".network-ssid").textContent = n.ssid;
+      row.onclick = function () { pickNetwork(n); };
+      list.appendChild(row);
+    });
+  }
+
+  function startScanning() {
+    refreshNetworks();
+    stopScanning();
+    scanTimer = setInterval(refreshNetworks, 8000);
+  }
+  function stopScanning() {
+    if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+  }
+
+  function pickNetwork(n) {
+    selected = n;
+    if (n.secured) {
+      document.getElementById("pw-ssid").textContent = n.ssid;
+      showScreen("password");
+      document.getElementById("pw").focus();
+    } else {
+      doConnect();
+    }
+  }
+
+  function togglePw() {
+    var pw = document.getElementById("pw");
+    pw.type = pw.type === "password" ? "text" : "password";
+  }
+
+  document.getElementById("pw").addEventListener("input", function () {
+    document.getElementById("btn-connect").disabled = this.value.length === 0;
+  });
+  document.getElementById("pw").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && this.value.length > 0) doConnect();
+  });
+
+  function doConnect() {
+    if (!selected) return;
+    var password = selected.secured ? document.getElementById("pw").value : "";
+    document.getElementById("connecting-text").textContent = "Connecting to " + selected.ssid + "...";
+    showScreen("connecting");
+
+    var accepted = false;
+    try { accepted = native.connect(selected.ssid, password); } catch (e) { accepted = false; }
+    if (!accepted) return connectFailed("Couldn't connect. Check the password and try again.");
+
+    // Poll until the native side reports validated internet; MainActivity will
+    // navigate to the web app on its own — the connected screen is a brief bridge.
+    var waited = 0;
+    var poll = setInterval(function () {
+      waited += 1000;
+      var online = false;
+      try { online = native.isOnline(); } catch (e) {}
+      if (online) {
+        clearInterval(poll);
+        document.getElementById("connected-text").textContent = "Connected to " + selected.ssid;
+        showScreen("connected");
+      } else if (waited >= 25000) {
+        clearInterval(poll);
+        connectFailed("Couldn't join " + selected.ssid + ". Check the password and try again.");
+      }
+    }, 1000);
+  }
+
+  function connectFailed(message) {
+    if (selected && selected.secured) {
+      document.getElementById("pw-error").textContent = message;
+      document.querySelectorAll(".screen").forEach(function (s) { s.classList.remove("active"); });
+      document.getElementById("screen-password").classList.add("active");
+    } else {
+      showScreen("list");
+    }
+  }
+
+  startScanning();
+</script>
+</body>
+</html>

@@ -23,6 +23,15 @@ interface DrivingRouteCardProps {
   labelHeight: number;
 }
 
+// Insert soft hyphens into long words so mid-word line breaks show a hyphen;
+// browsers skip proper nouns (road names) when auto-hyphenating
+function softHyphenate(text: string): string {
+  return text
+    .split(" ")
+    .map((w) => (w.length > 7 ? w.split("").join("\u00AD") : w))
+    .join(" ");
+}
+
 function formatDuration(seconds: number): { hrs: number; mins: number; isOverHour: boolean } {
   const totalMins = Math.max(0, Math.round(seconds / 60));
   return { hrs: Math.floor(totalMins / 60), mins: totalMins % 60, isOverHour: totalMins >= 60 };
@@ -105,9 +114,9 @@ function SingleDrivingCard({ slot, rowHeight, labelHeight }: DrivingRouteCardPro
             </div>
 
             {/* Zone 2: route name — full height, vertically centered, wraps */}
-            <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", marginRight: "-5px" }}>
+            <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", marginRight: "-8px" }}>
               <span lang="en" style={{ ...font, fontSize: "18px", fontWeight: 500, color: "#ffffff", lineHeight: 1.2, overflowWrap: "break-word", hyphens: "auto", minWidth: 0 }}>
-                Via {data.mainRoute}
+                Via {softHyphenate(data.mainRoute)}
               </span>
             </div>
 

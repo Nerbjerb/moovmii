@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { usePressScroll } from "@/hooks/use-press-scroll";
-import { Settings } from "lucide-react";
+import { Settings, Star } from "lucide-react";
 import TrackCard from "@/components/TrackCard";
 import CitibikeDockRow from "@/components/CitibikeDockRow";
 import type { CitibikeStation } from "@/components/CitibikeDockRow";
@@ -10,13 +10,53 @@ import DrivingRouteCard from "@/components/DrivingRouteCard";
 import type { DrivingSlot } from "@/pages/DrivingSettings";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
-import type { SubwayArrival, KioskPreference, KioskSettings } from "@shared/schema";
+import type { SubwayArrival, KioskPreference, KioskSettings, KioskFavorite } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
+import { savePreference } from "@/lib/localStorageDB";
 import { getCitibikeShowParking } from "@/pages/CitibikePreferences";
 import { FERRY_LINE_MAP, getFerryRoutesForStop } from "@/lib/ferryConfig";
+
+function EditOverlay({ label, borderRadius = "12px", style }: { label: string; borderRadius?: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      className="absolute inset-0 flex items-center justify-center pointer-events-none"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.55)", borderRadius, zIndex: 50, ...style }}
+    >
+      <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "16px", fontWeight: 700, color: "#ffffff" }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// What kind of thing this row shows, for the "Favorite this ___" label
+function favoriteWord(line?: string): string {
+  if (!line) return "Subway";
+  if (line.startsWith("FERRY-")) return "Ferry";
+  if (line.startsWith("LIRR-") || line.startsWith("MNR-") || line.startsWith("NJT-") || line.startsWith("PATH-")) return "Train";
+  if (line.startsWith("MTA NYCT_") || line.startsWith("MTABC_") || line.startsWith("BUS-")) return "Bus";
+  return "Subway";
+}
+
+function FavoriteBox({ favorited, word, onClick }: { favorited: boolean; word: string; onClick: () => void }) {
+  return (
+    <div
+      onClick={onClick}
+      className="cursor-pointer"
+      style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: "#2D2C31", borderRadius: "6px", padding: "3px 10px", marginLeft: "10px" }}
+      data-testid="favorite-box"
+    >
+      <Star size={14} color={favorited ? "#FFD200" : "#ffffff"} fill={favorited ? "#FFD200" : "none"} />
+      <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "13px", fontWeight: 600, color: "#ffffff", whiteSpace: "nowrap" }}>
+        Favorite this {word}
+      </span>
+    </div>
+  );
+}
 
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -38,6 +78,11 @@ export default function Kiosk() {
   // Fetch preferences
   const { data: preferences } = useQuery<KioskPreference[]>({
     queryKey: ['/api/preferences', deviceId],
+  });
+
+  // Fetch favorites pool (saved row configs) — used for the star boxes and swipe cycling
+  const { data: favorites } = useQuery<KioskFavorite[]>({
+    queryKey: [`/api/favorites?kioskId=${deviceId}`],
   });
 
   // Fetch service alerts with descriptions
@@ -78,6 +123,129 @@ export default function Kiosk() {
   const row3Pref = preferences?.find(p => p.row === 3);
   const row4Pref = preferences?.find(p => p.row === 4);
   const rowPrefs = [row1Pref, row2Pref, row3Pref, row4Pref];
+
+  // --- Favorites: config snapshots + swipe cycling ---
+  type RowConfig = { line: string; stop: string; direction: string };
+
+  const isSwappableRow = (pref: KioskPreference | undefined) =>
+    !(pref && (pref.line === 'CITIBIKE' || pref.line === 'DRIVING'));
+
+  // Default rows (no saved pref) show Broadway N/W
+  const effectiveRowConfig = (rowIdx: number): RowConfig => {
+    const pref = rowPrefs[rowIdx];
+    if (pref) return { line: pref.line, stop: pref.stop, direction: pref.direction };
+    return { line: 'N', stop: 'Broadway', direction: rowIdx % 2 === 0 ? 'Uptown' : 'Downtown' };
+  };
+
+  const configMatches = (a: RowConfig, b: RowConfig) =>
+    a.line === b.line && a.stop === b.stop && a.direction === b.direction;
+
+  const isRowFavorited = (rowIdx: number) =>
+    !!favorites?.some((f) => configMatches(f, effectiveRowConfig(rowIdx)));
+
+  const toggleFavorite = async (rowIdx: number) => {
+    await apiRequest("POST", "/api/favorites/toggle", { kioskId: deviceId, ...effectiveRowConfig(rowIdx) });
+    queryClient.invalidateQueries({ queryKey: [`/api/favorites?kioskId=${deviceId}`] });
+  };
+
+  // Favorites not currently displayed on any visible row
+  const getUnshownFavorites = (): KioskFavorite[] => {
+    if (!favorites || favorites.length === 0) return [];
+    const displayedConfigs = Array.from({ length: transportRows }, (_, i) => i)
+      .filter((i) => isSwappableRow(rowPrefs[i]))
+      .map((i) => effectiveRowConfig(i));
+    return favorites.filter((f) => !displayedConfigs.some((d) => configMatches(f, d)));
+  };
+
+  // Swipe a row to cycle through favorites not currently displayed on any row
+  const cycleFavorite = (rowIdx: number, dir: 1 | -1) => {
+    if (!favorites || !isSwappableRow(rowPrefs[rowIdx])) return;
+    const unshown = getUnshownFavorites();
+    if (unshown.length === 0) return;
+
+    const cur = effectiveRowConfig(rowIdx);
+    const curIdx = favorites.findIndex((f) => configMatches(f, cur));
+    let target: KioskFavorite | undefined;
+    if (curIdx === -1) {
+      target = dir === 1 ? unshown[0] : unshown[unshown.length - 1];
+    } else {
+      const n = favorites.length;
+      for (let step = 1; step <= n; step++) {
+        const cand = favorites[(((curIdx + dir * step) % n) + n) % n];
+        if (unshown.some((u) => u.id === cand.id)) { target = cand; break; }
+      }
+    }
+    if (!target) return;
+
+    savePreference({ row: rowIdx + 1, stop: target.stop, direction: target.direction, line: target.line }, deviceId);
+    queryClient.invalidateQueries({ queryKey: ['/api/preferences', deviceId] });
+  };
+
+  // --- Drag-to-swipe with carousel animation ---
+  // The whole row (label + cards) follows the finger; on release past the
+  // threshold, it slides out and the next favorite slides in from the other side.
+  const ROW_SLIDE_W = 800;
+  const COMMIT_THRESHOLD = 80;
+
+  const dragRef = useRef<{ row: number; startX: number; startY: number; active: boolean } | null>(null);
+  const dragBusy = useRef(false); // true while the out/in animation plays
+  const [drag, setDrag] = useState<{ row: number; dx: number; transition: string } | null>(null);
+
+  const onRowPointerDown = (rowIdx: number) => (e: React.PointerEvent) => {
+    if (isEditMode || dragBusy.current || !isSwappableRow(rowPrefs[rowIdx])) return;
+    dragRef.current = { row: rowIdx, startX: e.clientX, startY: e.clientY, active: false };
+  };
+
+  const onRowPointerMove = (rowIdx: number) => (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d || d.row !== rowIdx) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (!d.active) {
+      if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)) { dragRef.current = null; return; } // vertical → press-scroll's gesture
+      if (Math.abs(dx) < 12 || Math.abs(dx) <= Math.abs(dy)) return; // not horizontal enough yet
+      if (getUnshownFavorites().length === 0) { dragRef.current = null; return; } // nothing to cycle to
+      d.active = true;
+      try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+    }
+    setDrag({ row: rowIdx, dx, transition: "none" });
+  };
+
+  const onRowPointerUp = (rowIdx: number) => (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (!d || !d.active) return;
+    const dx = e.clientX - d.startX;
+    if (Math.abs(dx) >= COMMIT_THRESHOLD) {
+      commitSwipe(rowIdx, dx);
+    } else {
+      // Spring back
+      setDrag({ row: rowIdx, dx: 0, transition: "transform 0.2s ease-out" });
+      setTimeout(() => setDrag(null), 220);
+    }
+  };
+
+  const commitSwipe = (rowIdx: number, dx: number) => {
+    dragBusy.current = true;
+    const exitX = dx < 0 ? -ROW_SLIDE_W : ROW_SLIDE_W;
+    const dir: 1 | -1 = dx < 0 ? 1 : -1;
+    // Old row slides out in the swipe direction...
+    setDrag({ row: rowIdx, dx: exitX, transition: "transform 0.18s ease-in" });
+    setTimeout(() => {
+      cycleFavorite(rowIdx, dir);
+      // ...new row jumps to the opposite side, then slides into place
+      setDrag({ row: rowIdx, dx: -exitX, transition: "none" });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setDrag({ row: rowIdx, dx: 0, transition: "transform 0.25s ease-out" });
+        setTimeout(() => { setDrag(null); dragBusy.current = false; }, 280);
+      }));
+    }, 190);
+  };
+
+  const rowDragStyle = (rowIdx: number): React.CSSProperties =>
+    drag?.row === rowIdx
+      ? { transform: `translateX(${drag.dx}px)`, transition: drag.transition }
+      : {};
 
   // Fetch citibike station data when any row is configured as citibike
   const hasCitibikeRow = rowPrefs.some(p => p?.line === 'CITIBIKE');
@@ -404,11 +572,27 @@ export default function Kiosk() {
               const drivingSlots: (DrivingSlot | null)[] = isDrivingRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : [null, null, null];
               const stationLabel = getStationLabel(pref, track);
               return (
-              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginLeft: idx === 2 ? '250px' : '0' }}>
+              <div
+                key={idx}
+                onPointerDown={onRowPointerDown(idx)}
+                onPointerMove={onRowPointerMove(idx)}
+                onPointerUp={onRowPointerUp(idx)}
+                onPointerCancel={onRowPointerUp(idx)}
+                style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginLeft: idx === 2 ? '250px' : '0', touchAction: 'pan-y', ...rowDragStyle(idx) }}
+              >
                 {stationLabel && !isDrivingRow && (
-                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
-                    {stationLabel}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
+                      {stationLabel}
+                    </span>
+                    {isEditMode && !isCitibikeRow && (
+                      <FavoriteBox
+                        favorited={isRowFavorited(idx)}
+                        word={favoriteWord(pref?.line)}
+                        onClick={() => toggleFavorite(idx)}
+                      />
+                    )}
+                  </div>
                 )}
                 <div
                   onClick={() => handleRowClick(idx)}
@@ -434,18 +618,7 @@ export default function Kiosk() {
                       rowHeight={rowHeight}
                     />
                   )}
-                  {isEditMode && !isCitibikeRow && !isDrivingRow && (
-                    <div
-                      className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                      style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
-                    >
-                      <div className="rounded-[6px] px-4 py-2" style={{ backgroundColor: '#ffd200' }}>
-                        <span className="font-bold text-black" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}>
-                          Edit Row {idx + 1}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                  {isEditMode && <EditOverlay label={`Edit Row ${idx + 1}`} />}
                 </div>
               </div>
               );
@@ -462,11 +635,27 @@ export default function Kiosk() {
               const drivingSlots: (DrivingSlot | null)[] = isDrivingRow ? (() => { try { return JSON.parse(pref!.stop).slots; } catch { return [null, null, null]; } })() : [null, null, null];
               const stationLabel = getStationLabel(pref, track);
               return (
-              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <div
+                key={idx}
+                onPointerDown={onRowPointerDown(idx)}
+                onPointerMove={onRowPointerMove(idx)}
+                onPointerUp={onRowPointerUp(idx)}
+                onPointerCancel={onRowPointerUp(idx)}
+                style={{ display: 'flex', flexDirection: 'column', gap: '3px', touchAction: 'pan-y', ...rowDragStyle(idx) }}
+              >
                 {stationLabel && !isDrivingRow && (
-                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
-                    {stationLabel}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
+                      {stationLabel}
+                    </span>
+                    {isEditMode && !isCitibikeRow && (
+                      <FavoriteBox
+                        favorited={isRowFavorited(idx)}
+                        word={favoriteWord(pref?.line)}
+                        onClick={() => toggleFavorite(idx)}
+                      />
+                    )}
+                  </div>
                 )}
                 <div
                   onClick={() => handleRowClick(idx)}
@@ -492,18 +681,7 @@ export default function Kiosk() {
                       rowHeight={rowHeight}
                     />
                   )}
-                  {isEditMode && !isCitibikeRow && !isDrivingRow && (
-                    <div
-                      className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                      style={{ backgroundColor: 'rgba(255, 210, 0, 0.1)', borderRadius: '12px' }}
-                    >
-                      <div className="rounded-[6px] px-4 py-2" style={{ backgroundColor: '#ffd200' }}>
-                        <span className="font-bold text-black" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '16px' }}>
-                          Edit Row {idx + 1}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                  {isEditMode && <EditOverlay label={`Edit Row ${idx + 1}`} />}
                 </div>
               </div>
               );
@@ -515,7 +693,7 @@ export default function Kiosk() {
           <div className="flex flex-col justify-center items-start h-full">
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '25px', ...(isEditMode ? { width: '537px' } : {}) }}>
               <div
-                className={`inline-flex items-center flex-shrink-0 ${isEditMode ? 'cursor-pointer' : ''}`}
+                className={`relative inline-flex items-center flex-shrink-0 ${isEditMode ? 'cursor-pointer' : ''}`}
                 style={{
                   transform: 'translateY(-2px)',
                   padding: '8px 12px',
@@ -530,6 +708,7 @@ export default function Kiosk() {
                   format={settings?.clockFormat === "24hr" ? "24" : "12"}
                   hideAmPm={isEditMode}
                 />
+                {isEditMode && <EditOverlay label="Edit Clock" />}
               </div>
               {isEditMode && (
                 <div
@@ -568,8 +747,9 @@ export default function Kiosk() {
               }}
             >
               <div
-                className="flex items-center justify-center"
+                className={`relative flex items-center justify-center ${isEditMode ? 'cursor-pointer' : ''}`}
                 style={{ width: '169px', height: '169px' }}
+                onClick={() => isEditMode && setLocation('/weather-settings')}
                 data-testid="weather-edit-area"
               >
                 <WeatherTile
@@ -578,9 +758,8 @@ export default function Kiosk() {
                   description={displayWeather.description}
                   rainToday={isEditMode ? false : displayWeather.rainToday}
                   snowToday={isEditMode ? false : displayWeather.snowToday}
-                  isEditMode={isEditMode}
-                  onEditClick={() => setLocation('/weather-settings')}
                 />
+                {isEditMode && <EditOverlay label="Edit Weather" style={{ left: '-24px', bottom: '66px', boxShadow: '0 0 0 3px #FFFFFF' }} />}
               </div>
             </div>
           </div>
