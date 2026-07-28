@@ -184,12 +184,14 @@ export default function Kiosk() {
   // --- Drag-to-swipe with carousel animation ---
   // The whole row (label + cards) follows the finger; on release past the
   // threshold, it slides out and the next favorite slides in from the other side.
-  const ROW_SLIDE_W = 800;
   const COMMIT_THRESHOLD = 80;
 
   const dragRef = useRef<{ row: number; startX: number; startY: number; active: boolean } | null>(null);
   const dragBusy = useRef(false); // true while the out/in animation plays
-  const [drag, setDrag] = useState<{ row: number; dx: number; transition: string } | null>(null);
+  const [drag, setDrag] = useState<{ row: number; dx: number } | null>(null);
+  // Committed animations run as CSS keyframes (deterministic start/end positions,
+  // no dependence on React paint timing). dir 1 = swiped left, -1 = swiped right.
+  const [anim, setAnim] = useState<{ row: number; phase: "exit" | "enter" | "return"; dir: 1 | -1; fromDx: number } | null>(null);
 
   const onRowPointerDown = (rowIdx: number) => (e: React.PointerEvent) => {
     if (isEditMode || dragBusy.current || !isSwappableRow(rowPrefs[rowIdx])) return;
@@ -208,7 +210,7 @@ export default function Kiosk() {
       d.active = true;
       try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
     }
-    setDrag({ row: rowIdx, dx, transition: "none" });
+    setDrag({ row: rowIdx, dx });
   };
 
   const onRowPointerUp = (rowIdx: number) => (e: React.PointerEvent) => {
@@ -216,36 +218,49 @@ export default function Kiosk() {
     dragRef.current = null;
     if (!d || !d.active) return;
     const dx = e.clientX - d.startX;
+    setDrag(null);
     if (Math.abs(dx) >= COMMIT_THRESHOLD) {
       commitSwipe(rowIdx, dx);
     } else {
-      // Spring back
-      setDrag({ row: rowIdx, dx: 0, transition: "transform 0.2s ease-out" });
-      setTimeout(() => setDrag(null), 220);
+      // Spring back from the released finger position
+      setAnim({ row: rowIdx, phase: "return", dir: 1, fromDx: dx });
+      setTimeout(() => setAnim(null), 220);
     }
   };
 
   const commitSwipe = (rowIdx: number, dx: number) => {
     dragBusy.current = true;
-    const exitX = dx < 0 ? -ROW_SLIDE_W : ROW_SLIDE_W;
     const dir: 1 | -1 = dx < 0 ? 1 : -1;
-    // Old row slides out in the swipe direction...
-    setDrag({ row: rowIdx, dx: exitX, transition: "transform 0.18s ease-in" });
+    // Old row slides out in the swipe direction, continuing from the finger position...
+    setAnim({ row: rowIdx, phase: "exit", dir, fromDx: dx });
     setTimeout(() => {
       cycleFavorite(rowIdx, dir);
-      // ...new row jumps to the opposite side, then slides into place
-      setDrag({ row: rowIdx, dx: -exitX, transition: "none" });
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        setDrag({ row: rowIdx, dx: 0, transition: "transform 0.25s ease-out" });
-        setTimeout(() => { setDrag(null); dragBusy.current = false; }, 280);
-      }));
+      // ...new row slides in from the opposite side
+      setAnim({ row: rowIdx, phase: "enter", dir, fromDx: 0 });
+      setTimeout(() => { setAnim(null); dragBusy.current = false; }, 270);
     }, 190);
   };
 
-  const rowDragStyle = (rowIdx: number): React.CSSProperties =>
-    drag?.row === rowIdx
-      ? { transform: `translateX(${drag.dx}px)`, transition: drag.transition }
-      : {};
+  const rowDragStyle = (rowIdx: number): React.CSSProperties => {
+    if (drag?.row === rowIdx) return { transform: `translateX(${drag.dx}px)` };
+    if (anim?.row === rowIdx) {
+      if (anim.phase === "exit") {
+        return {
+          ["--drag-x" as any]: `${anim.fromDx}px`,
+          animation: `${anim.dir === 1 ? "row-exit-left" : "row-exit-right"} 0.18s ease-in both`,
+        };
+      }
+      if (anim.phase === "enter") {
+        // Swiped left → new row enters from the right, and vice versa
+        return { animation: `${anim.dir === 1 ? "row-enter-right" : "row-enter-left"} 0.25s ease-out both` };
+      }
+      return {
+        ["--drag-x" as any]: `${anim.fromDx}px`,
+        animation: "row-return 0.2s ease-out both",
+      };
+    }
+    return {};
+  };
 
   // Fetch citibike station data when any row is configured as citibike
   const hasCitibikeRow = rowPrefs.some(p => p?.line === 'CITIBIKE');

@@ -399,3 +399,26 @@
   pointer-events: none;
   z-index: 100;
 }
+
+/* Favorite-swipe row carousel animations. --drag-x is the finger position the
+   gesture released at, so the motion continues from where the finger left off. */
+@keyframes row-exit-left {
+  from { transform: translateX(var(--drag-x, 0px)); }
+  to   { transform: translateX(-820px); }
+}
+@keyframes row-exit-right {
+  from { transform: translateX(var(--drag-x, 0px)); }
+  to   { transform: translateX(820px); }
+}
+@keyframes row-enter-left {
+  from { transform: translateX(-820px); }
+  to   { transform: translateX(0); }
+}
+@keyframes row-enter-right {
+  from { transform: translateX(820px); }
+  to   { transform: translateX(0); }
+}
+@keyframes row-return {
+  from { transform: translateX(var(--drag-x, 0px)); }
+  to   { transform: translateX(0); }
+}
