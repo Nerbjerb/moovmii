@@ -191,7 +191,8 @@ export default function Kiosk() {
   const [drag, setDrag] = useState<{ row: number; dx: number } | null>(null);
   // Committed animations run as CSS keyframes (deterministic start/end positions,
   // no dependence on React paint timing). dir 1 = swiped left, -1 = swiped right.
-  const [anim, setAnim] = useState<{ row: number; phase: "exit" | "enter" | "return"; dir: 1 | -1; fromDx: number } | null>(null);
+  // The outgoing row is a DOM clone that slides out in parallel (true carousel).
+  const [anim, setAnim] = useState<{ row: number; phase: "enter" | "return"; dir: 1 | -1; fromDx: number } | null>(null);
 
   const onRowPointerDown = (rowIdx: number) => (e: React.PointerEvent) => {
     if (isEditMode || dragBusy.current || !isSwappableRow(rowPrefs[rowIdx])) return;
@@ -220,7 +221,7 @@ export default function Kiosk() {
     const dx = e.clientX - d.startX;
     setDrag(null);
     if (Math.abs(dx) >= COMMIT_THRESHOLD) {
-      commitSwipe(rowIdx, dx);
+      commitSwipe(rowIdx, dx, e.currentTarget as HTMLElement);
     } else {
       // Spring back from the released finger position
       setAnim({ row: rowIdx, phase: "return", dir: 1, fromDx: dx });
@@ -228,31 +229,40 @@ export default function Kiosk() {
     }
   };
 
-  const commitSwipe = (rowIdx: number, dx: number) => {
+  const commitSwipe = (rowIdx: number, dx: number, rowEl: HTMLElement) => {
     dragBusy.current = true;
     const dir: 1 | -1 = dx < 0 ? 1 : -1;
-    // Old row slides out in the swipe direction, continuing from the finger position...
-    setAnim({ row: rowIdx, phase: "exit", dir, fromDx: dx });
-    setTimeout(() => {
-      cycleFavorite(rowIdx, dir);
-      // ...new row slides in from the opposite side
-      setAnim({ row: rowIdx, phase: "enter", dir, fromDx: 0 });
-      setTimeout(() => { setAnim(null); dragBusy.current = false; }, 270);
-    }, 190);
+
+    // Clone the outgoing row so it stays fully visible while it slides out of
+    // frame, in parallel with the incoming row (true carousel)
+    const parent = rowEl.parentElement;
+    if (parent) {
+      const ghost = rowEl.cloneNode(true) as HTMLElement;
+      ghost.style.position = "absolute";
+      ghost.style.left = `${rowEl.offsetLeft}px`;
+      ghost.style.top = `${rowEl.offsetTop}px`;
+      ghost.style.width = `${rowEl.offsetWidth}px`;
+      ghost.style.margin = "0";
+      ghost.style.pointerEvents = "none";
+      ghost.style.zIndex = "40";
+      ghost.style.setProperty("--drag-x", `${dx}px`);
+      ghost.style.animation = `${dir === 1 ? "row-exit-left" : "row-exit-right"} 0.6s ease-in-out both`;
+      parent.appendChild(ghost);
+      setTimeout(() => ghost.remove(), 650);
+    }
+
+    // Real row swaps to the new favorite and slides in from the opposite side
+    cycleFavorite(rowIdx, dir);
+    setAnim({ row: rowIdx, phase: "enter", dir, fromDx: 0 });
+    setTimeout(() => { setAnim(null); dragBusy.current = false; }, 640);
   };
 
   const rowDragStyle = (rowIdx: number): React.CSSProperties => {
     if (drag?.row === rowIdx) return { transform: `translateX(${drag.dx}px)` };
     if (anim?.row === rowIdx) {
-      if (anim.phase === "exit") {
-        return {
-          ["--drag-x" as any]: `${anim.fromDx}px`,
-          animation: `${anim.dir === 1 ? "row-exit-left" : "row-exit-right"} 0.18s ease-in both`,
-        };
-      }
       if (anim.phase === "enter") {
         // Swiped left → new row enters from the right, and vice versa
-        return { animation: `${anim.dir === 1 ? "row-enter-right" : "row-enter-left"} 0.25s ease-out both` };
+        return { animation: `${anim.dir === 1 ? "row-enter-right" : "row-enter-left"} 0.6s ease-in-out both` };
       }
       return {
         ["--drag-x" as any]: `${anim.fromDx}px`,
@@ -575,7 +585,7 @@ export default function Kiosk() {
         {transportRows >= 3 ? (
           /* 3 or 4 row mode: fill entire content area, no clock/weather */
           <section
-            className="flex flex-col items-start justify-center"
+            className="relative flex flex-col items-start justify-center"
             style={{ gap: '9px', height: '400px' }}
             data-testid="section-tracks"
           >
@@ -641,7 +651,7 @@ export default function Kiosk() {
           </section>
         ) : (
           /* 2 row mode: original layout with clock and weather */
-          <section className="flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
+          <section className="relative flex flex-col gap-4 mb-6 items-start" data-testid="section-tracks">
             {subwayData.map((track, idx) => {
               const pref = rowPrefs[idx];
               const isCitibikeRow = pref?.line === 'CITIBIKE';
