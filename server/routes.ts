@@ -976,12 +976,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Extract alerts by route with descriptions
       const alertsByRoute: Record<string, { hasAlert: boolean; descriptions: string[] }> = {};
+      const nowSec = Math.floor(Date.now() / 1000);
 
       for (const entity of feed.entity) {
         if (!entity.alert) continue;
 
         const alert = entity.alert;
-        
+
+        // Only show alerts with at least one activePeriod that has started and not yet ended
+        const periods = alert.activePeriod || [];
+        if (periods.length > 0) {
+          const isCurrentlyActive = periods.some((p) => {
+            const start = Number(p.start) || 0;
+            const end = Number(p.end) || 0;
+            return (start === 0 || nowSec >= start) && (end === 0 || nowSec <= end);
+          });
+          if (!isCurrentlyActive) continue;
+        }
+
         // Extract alert header text (plain text version, not HTML)
         let alertText = "";
         if (alert.headerText?.translation) {
@@ -1916,8 +1928,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Parse interstate from summary (e.g. "I-278 W", "I-95 N")
       const interstateMatch = summary.match(/^I-(\d+)/i);
-      const isInterstate = !!interstateMatch;
-      const interstateNumber = interstateMatch ? interstateMatch[1] : null;
+      let isInterstate = !!interstateMatch;
+      let interstateNumber = interstateMatch ? interstateMatch[1] : null;
+
+      // If the summary isn't an interstate, check every step of the journey;
+      // show the interstate the route spends the most distance on
+      if (!isInterstate) {
+        const distByNumber = new Map<string, number>();
+        for (const step of leg.steps || []) {
+          const stepText: string = step.html_instructions || "";
+          const stepMatches = stepText.match(/I-(\d+)/g);
+          if (stepMatches) {
+            const stepDist = step.distance?.value ?? 0;
+            for (const m of Array.from(new Set(stepMatches))) {
+              const num = m.slice(2);
+              distByNumber.set(num, (distByNumber.get(num) || 0) + stepDist);
+            }
+          }
+        }
+        if (distByNumber.size > 0) {
+          isInterstate = true;
+          interstateNumber = Array.from(distByNumber.entries()).sort((a, b) => b[1] - a[1])[0][0];
+        }
+      }
 
       // Duration with and without traffic
       const durationSeconds: number = leg.duration?.value ?? 0;

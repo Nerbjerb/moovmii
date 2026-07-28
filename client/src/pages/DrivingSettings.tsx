@@ -50,6 +50,7 @@ export default function DrivingSettings() {
   const [isNumMode, setIsNumMode] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selectionMade = useRef(false);
 
   const isOriginView = view === "origin";
   const currentStep = isOriginView ? "origin" : "destination";
@@ -58,6 +59,7 @@ export default function DrivingSettings() {
   useEffect(() => {
     if (view === "slotPicker") return;
     if (suggestTimer.current) clearTimeout(suggestTimer.current);
+    if (selectionMade.current) { selectionMade.current = false; return; }
     if (query.trim().length < 2) { setSuggestions([]); return; }
     suggestTimer.current = setTimeout(async () => {
       try {
@@ -91,6 +93,7 @@ export default function DrivingSettings() {
   }, [view, handleKey]);
 
   const handleSelectSuggestion = (s: string) => {
+    selectionMade.current = true;
     setQuery(s);
     setSuggestions([]);
   };

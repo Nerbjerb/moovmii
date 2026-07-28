@@ -418,7 +418,7 @@ export default function Kiosk() {
                   {isCitibikeRow ? (
                     <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} />
                   ) : isDrivingRow ? (
-                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} />
+                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} labelHeight={labelHeight} />
                   ) : (
                     <TrackCard
                       direction={track.direction}
@@ -476,7 +476,7 @@ export default function Kiosk() {
                   {isCitibikeRow ? (
                     <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} />
                   ) : isDrivingRow ? (
-                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} />
+                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} labelHeight={labelHeight} />
                   ) : (
                     <TrackCard
                       direction={track.direction}
