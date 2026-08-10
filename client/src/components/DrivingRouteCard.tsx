@@ -21,6 +21,7 @@ interface DrivingRouteCardProps {
   slot: DrivingSlot;
   rowHeight: number;
   labelHeight: number;
+  labelOverride?: React.ReactNode;
 }
 
 // Insert soft hyphens into long words so mid-word line breaks show a hyphen;
@@ -65,7 +66,7 @@ function TimeStack({ value, label }: { value: number; label: string }) {
   );
 }
 
-function SingleDrivingCard({ slot, rowHeight, labelHeight }: DrivingRouteCardProps) {
+function SingleDrivingCard({ slot, rowHeight, labelHeight, labelOverride }: DrivingRouteCardProps) {
   const cardH = rowHeight;
   const { data, isLoading, isError } = useQuery<RouteData>({
     queryKey: ["/api/driving/route", slot.origin, slot.destination],
@@ -83,10 +84,16 @@ function SingleDrivingCard({ slot, rowHeight, labelHeight }: DrivingRouteCardPro
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-      {/* City-to-city label */}
-      <span style={{ ...font, fontSize: `${labelHeight}px`, fontWeight: 700, color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "240px" }}>
-        {data ? `${data.originCity} to ${data.destCity}` : `${slot.origin} → ${slot.destination}`}
-      </span>
+      {/* City-to-city label (fixed line height so the edit-mode override doesn't shift the card) */}
+      {labelOverride ? (
+        <div style={{ height: `${labelHeight}px`, display: "flex", alignItems: "center" }}>
+          {labelOverride}
+        </div>
+      ) : (
+        <span style={{ ...font, fontSize: `${labelHeight}px`, fontWeight: 700, color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "240px", height: `${labelHeight}px`, lineHeight: `${labelHeight}px` }}>
+          {data ? `${data.originCity} to ${data.destCity}` : `${slot.origin} → ${slot.destination}`}
+        </span>
+      )}
 
       {/* Card */}
       <div style={{
@@ -151,9 +158,10 @@ interface DrivingRowProps {
   slots: (DrivingSlot | null)[];
   rowHeight: number;
   labelHeight?: number;
+  firstLabelOverride?: React.ReactNode;
 }
 
-export default function DrivingRouteCard({ slots, rowHeight, labelHeight = 20 }: DrivingRowProps) {
+export default function DrivingRouteCard({ slots, rowHeight, labelHeight = 20, firstLabelOverride }: DrivingRowProps) {
   const activeSlots = slots.filter(Boolean) as DrivingSlot[];
   if (activeSlots.length === 0) {
     return (
@@ -163,11 +171,18 @@ export default function DrivingRouteCard({ slots, rowHeight, labelHeight = 20 }:
     );
   }
 
+  const firstActiveIdx = slots.findIndex(Boolean);
   return (
     <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
       {slots.map((slot, i) =>
         slot ? (
-          <SingleDrivingCard key={i} slot={slot} rowHeight={rowHeight} labelHeight={labelHeight} />
+          <SingleDrivingCard
+            key={i}
+            slot={slot}
+            rowHeight={rowHeight}
+            labelHeight={labelHeight}
+            labelOverride={i === firstActiveIdx ? firstLabelOverride : undefined}
+          />
         ) : null
       )}
     </div>

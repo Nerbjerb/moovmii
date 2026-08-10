@@ -24,6 +24,7 @@ interface CitibikeDockRowProps {
   rowHeight?: number;
   labelHeight?: number;
   showParking?: boolean;
+  firstLabelOverride?: React.ReactNode;
 }
 
 function ShrinkLabel({ text, fontSize }: { text: string; fontSize: number }) {
@@ -59,7 +60,7 @@ function ShrinkLabel({ text, fontSize }: { text: string; fontSize: number }) {
   );
 }
 
-export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeight = 20, showParking = false }: CitibikeDockRowProps) {
+export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeight = 20, showParking = false, firstLabelOverride }: CitibikeDockRowProps) {
   const cardHeight = rowHeight ?? 115;
 
   const stationMap = useMemo(() => {
@@ -161,7 +162,13 @@ export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeigh
         const label = slot?.name ?? "";
         return (
           <div key={i} style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-            <ShrinkLabel text={label} fontSize={labelHeight} />
+            {i === 0 && firstLabelOverride ? (
+              <div style={{ height: `${labelHeight}px`, display: "flex", alignItems: "center" }}>
+                {firstLabelOverride}
+              </div>
+            ) : (
+              <ShrinkLabel text={label} fontSize={labelHeight} />
+            )}
             {renderCard(slot, i)}
           </div>
         );

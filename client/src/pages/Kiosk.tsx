@@ -42,17 +42,24 @@ function favoriteWord(line?: string): string {
   return "Subway";
 }
 
-function FavoriteBox({ favorited, word, onClick }: { favorited: boolean; word: string; onClick: () => void }) {
+function FavoriteBox({ favorited, label, onClick, standalone }: { favorited: boolean; label: string; onClick: () => void; standalone?: boolean }) {
   return (
     <div
-      onClick={onClick}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
       className="cursor-pointer"
-      style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: "#2D2C31", borderRadius: "6px", padding: "3px 10px", marginLeft: "10px" }}
+      style={{
+        display: "flex", alignItems: "center", gap: "6px",
+        backgroundColor: "#2D2C31", borderRadius: "6px", padding: "3px 10px",
+        marginLeft: standalone ? "0" : "10px",
+        alignSelf: standalone ? "flex-start" : undefined,
+        // standalone = inline replacement for a card label inside the row; keep it above the edit scrim
+        ...(standalone ? { position: "relative" as const, zIndex: 60 } : {}),
+      }}
       data-testid="favorite-box"
     >
       <Star size={14} color={favorited ? "#FFD200" : "#ffffff"} fill={favorited ? "#FFD200" : "none"} />
       <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "13px", fontWeight: 600, color: "#ffffff", whiteSpace: "nowrap" }}>
-        Favorite this {word}
+        {label}
       </span>
     </div>
   );
@@ -127,9 +134,6 @@ export default function Kiosk() {
   // --- Favorites: config snapshots + swipe cycling ---
   type RowConfig = { line: string; stop: string; direction: string };
 
-  const isSwappableRow = (pref: KioskPreference | undefined) =>
-    !(pref && (pref.line === 'CITIBIKE' || pref.line === 'DRIVING'));
-
   // Default rows (no saved pref) show Broadway N/W
   const effectiveRowConfig = (rowIdx: number): RowConfig => {
     const pref = rowPrefs[rowIdx];
@@ -151,15 +155,13 @@ export default function Kiosk() {
   // Favorites not currently displayed on any visible row
   const getUnshownFavorites = (): KioskFavorite[] => {
     if (!favorites || favorites.length === 0) return [];
-    const displayedConfigs = Array.from({ length: transportRows }, (_, i) => i)
-      .filter((i) => isSwappableRow(rowPrefs[i]))
-      .map((i) => effectiveRowConfig(i));
+    const displayedConfigs = Array.from({ length: transportRows }, (_, i) => effectiveRowConfig(i));
     return favorites.filter((f) => !displayedConfigs.some((d) => configMatches(f, d)));
   };
 
   // Swipe a row to cycle through favorites not currently displayed on any row
   const cycleFavorite = (rowIdx: number, dir: 1 | -1) => {
-    if (!favorites || !isSwappableRow(rowPrefs[rowIdx])) return;
+    if (!favorites) return;
     const unshown = getUnshownFavorites();
     if (unshown.length === 0) return;
 
@@ -195,7 +197,7 @@ export default function Kiosk() {
   const [anim, setAnim] = useState<{ row: number; phase: "enter" | "return"; dir: 1 | -1; fromDx: number } | null>(null);
 
   const onRowPointerDown = (rowIdx: number) => (e: React.PointerEvent) => {
-    if (isEditMode || dragBusy.current || !isSwappableRow(rowPrefs[rowIdx])) return;
+    if (isEditMode || dragBusy.current) return;
     dragRef.current = { row: rowIdx, startX: e.clientX, startY: e.clientY, active: false };
   };
 
@@ -566,9 +568,11 @@ export default function Kiosk() {
             >
               <div
                 className="rounded-[6px] flex items-center justify-center hover:opacity-80 transition-opacity"
-                style={{ width: '28px', height: '28px', backgroundColor: '#2D2C31' }}
+                style={{ height: '28px', padding: '0 14px', backgroundColor: '#2D2C31' }}
               >
-                <Settings className="w-5 h-5 text-white" />
+                <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', fontWeight: 600, color: '#ffffff' }}>
+                  Cancel
+                </span>
               </div>
             </button>
           ) : (
@@ -610,10 +614,10 @@ export default function Kiosk() {
                     <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
                       {stationLabel}
                     </span>
-                    {isEditMode && !isCitibikeRow && (
+                    {isEditMode && (
                       <FavoriteBox
                         favorited={isRowFavorited(idx)}
-                        word={favoriteWord(pref?.line)}
+                        label={`Favorite this ${favoriteWord(pref?.line)}`}
                         onClick={() => toggleFavorite(idx)}
                       />
                     )}
@@ -625,9 +629,9 @@ export default function Kiosk() {
                   data-testid={`track-row-${idx}`}
                 >
                   {isCitibikeRow ? (
-                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} />
+                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} firstLabelOverride={isEditMode ? <FavoriteBox standalone favorited={isRowFavorited(idx)} label="Favorite these Docks" onClick={() => toggleFavorite(idx)} /> : undefined} />
                   ) : isDrivingRow ? (
-                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} labelHeight={labelHeight} />
+                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} labelHeight={labelHeight} firstLabelOverride={isEditMode ? <FavoriteBox standalone favorited={isRowFavorited(idx)} label="Favorite these Routes" onClick={() => toggleFavorite(idx)} /> : undefined} />
                   ) : (
                     <TrackCard
                       direction={track.direction}
@@ -673,10 +677,10 @@ export default function Kiosk() {
                     <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
                       {stationLabel}
                     </span>
-                    {isEditMode && !isCitibikeRow && (
+                    {isEditMode && (
                       <FavoriteBox
                         favorited={isRowFavorited(idx)}
-                        word={favoriteWord(pref?.line)}
+                        label={`Favorite this ${favoriteWord(pref?.line)}`}
                         onClick={() => toggleFavorite(idx)}
                       />
                     )}
@@ -688,9 +692,9 @@ export default function Kiosk() {
                   data-testid={`track-row-${idx}`}
                 >
                   {isCitibikeRow ? (
-                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} />
+                    <CitibikeDockRow slots={citibikeSlots} stations={citibikeStations} rowHeight={rowHeight} labelHeight={labelHeight} showParking={showParking} firstLabelOverride={isEditMode ? <FavoriteBox standalone favorited={isRowFavorited(idx)} label="Favorite these Docks" onClick={() => toggleFavorite(idx)} /> : undefined} />
                   ) : isDrivingRow ? (
-                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} labelHeight={labelHeight} />
+                    <DrivingRouteCard slots={drivingSlots} rowHeight={rowHeight} labelHeight={labelHeight} firstLabelOverride={isEditMode ? <FavoriteBox standalone favorited={isRowFavorited(idx)} label="Favorite these Routes" onClick={() => toggleFavorite(idx)} /> : undefined} />
                   ) : (
                     <TrackCard
                       direction={track.direction}
