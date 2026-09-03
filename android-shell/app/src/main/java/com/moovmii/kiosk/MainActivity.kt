@@ -58,6 +58,11 @@ class MainActivity : Activity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setupDeviceOwnerLockdown()
 
+        // Allows inspecting the WebView from chrome://inspect on a USB-connected machine
+        if (BuildConfig.DEBUG) {
+            WebView.setWebContentsDebuggingEnabled(true)
+        }
+
         webView = WebView(this)
         webView.settings.apply {
             javaScriptEnabled = true
