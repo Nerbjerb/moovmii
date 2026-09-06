@@ -38,3 +38,12 @@ android {
         jvmTarget = "17"
     }
 }
+
+dependencies {
+    // GeckoView: bundled Mozilla engine so the kiosk renders identically on every
+    // tablet regardless of the (possibly ancient, non-updatable) system WebView.
+    // "+" grabs the newest release for first sync — pin the resolved version before
+    // shipping (see README; available versions at
+    // https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/)
+    implementation("org.mozilla.geckoview:geckoview:+")
+}

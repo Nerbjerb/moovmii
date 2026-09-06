@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Car, TriangleAlert } from "lucide-react";
 import shieldNarrow from "@assets/interstate-shield.png";
@@ -25,11 +26,28 @@ interface DrivingRouteCardProps {
 }
 
 // Insert soft hyphens into long words so mid-word line breaks show a hyphen;
-// browsers skip proper nouns (road names) when auto-hyphenating
+// browsers skip proper nouns (road names) when auto-hyphenating.
+// Breaks are only allowed at readable spots: at least 4 chars before the
+// hyphen and 3 after. "/" is a natural break point (no hyphen shown).
 function softHyphenate(text: string): string {
   return text
     .split(" ")
-    .map((w) => (w.length > 7 ? w.split("").join("\u00AD") : w))
+    .map((word) =>
+      word
+        .split("/")
+        .map((part) => {
+          if (part.length <= 7) return part;
+          let out = "";
+          for (let i = 0; i < part.length; i++) {
+            out += part[i];
+            const before = i + 1;
+            const after = part.length - before;
+            if (before >= 4 && after >= 3) out += "\u00AD";
+          }
+          return out;
+        })
+        .join("/\u200B")
+    )
     .join(" ");
 }
 
@@ -68,6 +86,8 @@ function TimeStack({ value, label }: { value: number; label: string }) {
 
 function SingleDrivingCard({ slot, rowHeight, labelHeight, labelOverride }: DrivingRouteCardProps) {
   const cardH = rowHeight;
+  const routeTextRef = useRef<HTMLSpanElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
   const { data, isLoading, isError } = useQuery<RouteData>({
     queryKey: ["/api/driving/route", slot.origin, slot.destination],
     queryFn: async () => {
@@ -82,6 +102,31 @@ function SingleDrivingCard({ slot, rowHeight, labelHeight, labelOverride }: Driv
 
   const time = data ? formatDuration(data.durationTrafficSeconds) : null;
 
+  // Shrink the origin-to-destination label until it fits on one line
+  useEffect(() => {
+    const el = labelRef.current;
+    if (!el) return;
+    let size = labelHeight;
+    el.style.fontSize = `${size}px`;
+    while (el.scrollWidth > el.clientWidth && size > 11) {
+      size -= 0.5;
+      el.style.fontSize = `${size}px`;
+    }
+  }, [data?.originCity, data?.destCity, slot.origin, slot.destination, labelHeight]);
+
+  // Shrink the route text until the whole name fits the card height
+  useEffect(() => {
+    const el = routeTextRef.current;
+    const zone = el?.parentElement;
+    if (!el || !zone) return;
+    let size = 18;
+    el.style.fontSize = `${size}px`;
+    while (el.scrollHeight > zone.clientHeight && size > 11) {
+      size -= 0.5;
+      el.style.fontSize = `${size}px`;
+    }
+  }, [data?.mainRoute, rowHeight]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
       {/* City-to-city label (fixed line height so the edit-mode override doesn't shift the card) */}
@@ -90,7 +135,7 @@ function SingleDrivingCard({ slot, rowHeight, labelHeight, labelOverride }: Driv
           {labelOverride}
         </div>
       ) : (
-        <span style={{ ...font, fontSize: `${labelHeight}px`, fontWeight: 700, color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "240px", height: `${labelHeight}px`, lineHeight: `${labelHeight}px` }}>
+        <span ref={labelRef} style={{ ...font, fontSize: `${labelHeight}px`, fontWeight: 700, color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "240px", height: `${labelHeight}px`, lineHeight: `${labelHeight}px` }}>
           {data ? `${data.originCity} to ${data.destCity}` : `${slot.origin} → ${slot.destination}`}
         </span>
       )}
@@ -122,7 +167,7 @@ function SingleDrivingCard({ slot, rowHeight, labelHeight, labelOverride }: Driv
 
             {/* Zone 2: route name — full height, vertically centered, wraps */}
             <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", marginRight: "-8px" }}>
-              <span lang="en" style={{ ...font, fontSize: "18px", fontWeight: 500, color: "#ffffff", lineHeight: 1.2, overflowWrap: "break-word", hyphens: "auto", minWidth: 0 }}>
+              <span ref={routeTextRef} lang="en" style={{ ...font, fontSize: "18px", fontWeight: 500, color: "#ffffff", lineHeight: 1.2, overflowWrap: "break-word", hyphens: "auto", minWidth: 0 }}>
                 Via {softHyphenate(data.mainRoute)}
               </span>
             </div>

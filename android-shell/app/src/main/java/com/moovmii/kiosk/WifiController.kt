@@ -3,45 +3,39 @@ package com.moovmii.kiosk
 import android.content.Context
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
-import android.webkit.JavascriptInterface
-import org.json.JSONArray
-import org.json.JSONObject
+
+data class WifiNetwork(val ssid: String, val secured: Boolean, val strength: Int /* 1..4 */)
 
 /**
- * JavaScript bridge exposed to the bundled WiFi setup page as `MoovmiiNative`.
+ * Native WiFi scanning/joining for the setup screen.
  *
  * Uses the legacy WifiManager network APIs, which are deprecated for normal apps
  * on Android 10+ but remain fully available to Device Owner apps — that exemption
  * is what makes programmatic WiFi join possible in this kiosk.
  */
-class WifiBridge(private val activity: MainActivity) {
+class WifiController(context: Context) {
 
     private val wifiManager =
-        activity.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
-    /** Returns visible networks as JSON: [{ssid, secured, strength(1-4)}], strongest first, deduped. */
-    @JavascriptInterface
-    fun scanNetworks(): String {
+    /** Visible networks, strongest first, deduped by SSID. */
+    fun scanNetworks(): List<WifiNetwork> {
         @Suppress("DEPRECATION")
         wifiManager.startScan()
 
-        val seen = LinkedHashMap<String, JSONObject>()
+        val seen = LinkedHashMap<String, WifiNetwork>()
         @Suppress("DEPRECATION")
         for (result in wifiManager.scanResults.sortedByDescending { it.level }) {
             val ssid = result.SSID
             if (ssid.isNullOrBlank() || seen.containsKey(ssid)) continue
             val secured = result.capabilities.contains("WPA") || result.capabilities.contains("WEP")
-            val strength = WifiManager.calculateSignalLevel(result.level, 4) + 1 // 1..4
-            seen[ssid] = JSONObject()
-                .put("ssid", ssid)
-                .put("secured", secured)
-                .put("strength", strength)
+            val strength = WifiManager.calculateSignalLevel(result.level, 4) + 1
+            seen[ssid] = WifiNetwork(ssid, secured, strength)
         }
-        return JSONArray(seen.values.toList()).toString()
+        return seen.values.toList()
     }
 
     /** Joins the given network. Empty password = open network. Returns false if config was rejected. */
-    @JavascriptInterface
     fun connect(ssid: String, password: String): Boolean {
         @Suppress("DEPRECATION")
         val config = WifiConfiguration().apply {
@@ -60,8 +54,4 @@ class WifiBridge(private val activity: MainActivity) {
         @Suppress("DEPRECATION")
         return wifiManager.enableNetwork(netId, true)
     }
-
-    /** True once the active network has validated internet access. */
-    @JavascriptInterface
-    fun isOnline(): Boolean = activity.isOnline()
 }

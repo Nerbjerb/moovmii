@@ -231,7 +231,9 @@ export default function DrivingSettings() {
               <div style={{ position: "absolute", top: "108px", left: "20px", right: "20px", height: "44px", backgroundColor: "#2D2C31", borderRadius: "8px", display: "flex", alignItems: "center", padding: "0 14px", gap: "10px" }}>
                 <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: view === "origin" ? "#4ade80" : "#f87171" }} />
                 <span style={{ ...font, fontSize: "15px", color: query ? "#fff" : "#555", flex: 1, overflow: "hidden", whiteSpace: "nowrap" }}>
+                  {!query && <span className="search-cursor" />}
                   {query || (view === "origin" ? "Start address..." : "Destination address...")}
+                  {query && <span className="search-cursor" />}
                 </span>
                 {query && (
                   <button onPointerDown={(e) => { e.preventDefault(); setQuery(""); setSuggestions([]); }} style={{ color: "#666", fontSize: "20px", lineHeight: 1, border: "none", background: "none", cursor: "pointer" }}>×</button>

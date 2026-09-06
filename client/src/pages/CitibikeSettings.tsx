@@ -278,6 +278,7 @@ export default function CitibikeSettings() {
               <div style={{ position: "absolute", top: "88px", left: "20px", right: "20px", height: "44px", backgroundColor: "#2D2C31", borderRadius: "8px", display: "flex", alignItems: "center", padding: "0 14px", gap: "10px" }}>
                 <Search className="w-4 h-4 flex-shrink-0" style={{ color: "#888" }} />
                 <span style={{ ...font, fontSize: "15px", color: searchQuery ? "#fff" : "#555", flex: 1, overflow: "hidden", whiteSpace: "nowrap" }}>
+                  {!searchQuery && <span className="search-cursor" />}
                   {searchQuery || "Search docks..."}
                   {searchQuery && <span className="search-cursor" />}
                 </span>

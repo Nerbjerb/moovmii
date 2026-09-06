@@ -460,6 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         line: string;
         minutes: number;
         headsign: string;
+        terminal?: string;
       }[] = [];
 
       // Map internal branch IDs to GTFS route IDs for LIRR/MNR
@@ -534,13 +535,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let matchedLine = "";
 
           if (isCommuterRail) {
-            // Check if any of our branches match this route
-            for (const line of linesToFetch) {
-              const gtfsRouteId = branchToGtfsRoute[line];
-              if (gtfsRouteId && routeId === gtfsRouteId) {
+            if (direction === "Uptown") {
+              // Inbound: merge every branch serving this stop — riders at a hub
+              // like Jamaica want the next train into the city regardless of
+              // branch. Reverse-map the GTFS route to our internal branch ID so
+              // each arrival is labeled with its actual branch.
+              const internalId = `${isLIRR ? "LIRR" : "MNR"}-${routeId}`;
+              if (branchToGtfsRoute[internalId] === routeId) {
                 matchesLine = true;
-                matchedLine = line; // Keep our internal ID (LIRR-1, MNR-1, etc.)
-                break;
+                matchedLine = internalId;
+              }
+            } else {
+              // Outbound: branches diverge, keep only the selected branch
+              for (const line of linesToFetch) {
+                const gtfsRouteId = branchToGtfsRoute[line];
+                if (gtfsRouteId && routeId === gtfsRouteId) {
+                  matchesLine = true;
+                  matchedLine = line; // Keep our internal ID (LIRR-1, MNR-1, etc.)
+                  break;
+                }
               }
             }
           } else {
@@ -566,6 +579,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (tripDirectionId !== undefined && tripDirectionId !== requestedDirectionId) {
               continue;
             }
+          }
+
+          // LIRR inbound: Manhattan-bound trains only — terminal must be Penn
+          // Station (237) or Grand Central Madison (349); excludes Atlantic
+          // Terminal (Brooklyn) trains
+          let tripTerminal = "";
+          if (isLIRR && direction === "Uptown") {
+            const stus = entity.tripUpdate.stopTimeUpdate || [];
+            tripTerminal = stus.length ? String(stus[stus.length - 1].stopId || "") : "";
+            if (tripTerminal !== "237" && tripTerminal !== "349") continue;
           }
 
           for (const stopTimeUpdate of entity.tripUpdate.stopTimeUpdate || []) {
@@ -594,10 +617,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             if (minutesUntil < 0) continue;
 
-            arrivals.push({ 
-              line: matchedLine, 
+            arrivals.push({
+              line: matchedLine,
               minutes: minutesUntil,
               headsign: tripHeadsign,
+              terminal: tripTerminal || undefined,
             });
           }
         }
@@ -790,9 +814,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const firstLine = topArrivals[0]?.line || lineList[0];
       const firstHeadsign = topArrivals[0]?.headsign || "";
       
-      const terminalInfo = firstHeadsign 
+      let terminalInfo = firstHeadsign
         ? parseHeadsign(firstHeadsign, direction as string, firstLine)
         : terminalStations[direction as string]?.[firstLine] || { station: "Unknown", borough: "New York" };
+
+      // LIRR inbound: subtitle reflects the soonest train's actual terminal
+      if (isLIRR && direction === "Uptown" && topArrivals[0]?.terminal) {
+        terminalInfo = {
+          station: topArrivals[0].terminal === "349" ? "Grand Central" : "Penn Station",
+          borough: "Manhattan",
+        };
+      }
 
       const subwayData = {
         direction: direction as string,
@@ -908,27 +940,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Identify each train's route from the feed's line color, so multi-line
+      // stations (e.g. Grove St: NWK-WTC + JSQ-33) show every line with the
+      // correct badge, interleaved by arrival time
+      const colorToLine: Record<string, string> = {
+        "D93A30": "PATH-NWK",
+        "FF9900": "PATH-JSQ",
+        "F0A01E": "PATH-JSQ",
+        "65C100": "PATH-HOB-WTC",
+        "4CAF50": "PATH-HOB-WTC",
+        "4D92FB": "PATH-HOB-33",
+        "0078D7": "PATH-HOB-33",
+      };
+
       // Extract arrivals from messages
       const arrivals = destinationData.messages
-        .map(msg => ({
-          minutes: Math.round(parseInt(msg.secondsToArrival, 10) / 60),
-          headsign: msg.headSign,
-          target: msg.target,
-        }))
+        .map(msg => {
+          const firstColor = (msg.lineColor || "").split(",")[0].trim().toUpperCase();
+          return {
+            minutes: Math.round(parseInt(msg.secondsToArrival, 10) / 60),
+            headsign: msg.headSign,
+            target: msg.target,
+            line: colorToLine[firstColor] || (line as string),
+          };
+        })
         .filter(a => a.minutes >= 0)
         .sort((a, b) => a.minutes - b.minutes)
         .slice(0, 3);
 
-      // Determine terminal info from first arrival's headsign
+      // Main card follows the soonest train: its destination and its route badge
       const firstHeadsign = arrivals[0]?.headsign || "";
-      
+
       const pathData = {
         direction: direction as string,
-        line: line as string,
-        destination: direction === "To NY" ? "Manhattan" : "New Jersey",
-        subtitle: firstHeadsign || (direction === "To NY" ? "World Trade Center" : "Newark"),
+        line: arrivals[0]?.line || (line as string),
+        destination: firstHeadsign || (direction === "To NY" ? "Manhattan" : "New Jersey"),
+        subtitle: direction === "To NY" ? "Manhattan" : "New Jersey",
         arrivalMinutes: arrivals.map(a => a.minutes === 0 ? 1 : a.minutes),
-        arrivalLines: arrivals.map(() => line as string),
+        arrivalLines: arrivals.map(a => a.line),
       };
 
       res.json(pathData);
@@ -1870,9 +1919,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return isInbound ? towardsNY : !towardsNY;
       });
 
+      // The station lookup returns every line's departures (line filter is
+      // blank), so label each train with its actual line for correct badges
+      const njtCodeToLine: Record<string, string> = {
+        NE: "NJT-NE", NC: "NJT-NC", RV: "NJT-RV", ME: "NJT-ME",
+        MC: "NJT-MC", ML: "NJT-ML", PV: "NJT-PV", AC: "NJT-AC",
+        // alternate codes the NJT feed sometimes uses for Main/Bergen
+        BC: "NJT-ML", MB: "NJT-ML",
+      };
+
       // Parse "STATUS" like "in 13 Min" or "All Aboard" into minutes
       const now = new Date();
-      const arrivalMinutes: number[] = [];
+      const parsedDeps: { mins: number; line: string }[] = [];
       for (const dep of filtered) {
         let mins: number | null = null;
         const inMatch = dep.status.match(/in\s+(\d+)\s*min/i);
@@ -1886,10 +1944,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         if (mins !== null && mins >= 0) {
-          arrivalMinutes.push(mins);
+          parsedDeps.push({ mins, line: njtCodeToLine[dep.lineCode?.toUpperCase()] || line || "NJT" });
         }
-        if (arrivalMinutes.length >= 3) break;
       }
+      parsedDeps.sort((a, b) => a.mins - b.mins);
+      const topDeps = parsedDeps.slice(0, 3);
+      const arrivalMinutes = topDeps.map(d => d.mins);
 
       const njtLineDestinations: Record<string, { inbound: string; outbound: string }> = {
         "NJT-NE": { inbound: "New York", outbound: "Trenton" },
@@ -1904,10 +1964,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lineDests = njtLineDestinations[line || ""] || { inbound: "New York", outbound: "Outbound" };
       const destination = isInbound ? lineDests.inbound : lineDests.outbound;
 
-      arrivalMinutes.sort((a, b) => a - b);
-      const arrivalLines = arrivalMinutes.map(() => line || "NJT");
+      const arrivalLines = topDeps.map(d => d.line);
       res.json({
-        line: line || "NJT",
+        line: topDeps[0]?.line || line || "NJT",
         direction: direction || "Uptown",
         destination,
         subtitle: payload.stationName || stop,
