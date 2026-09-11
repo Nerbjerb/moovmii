@@ -1673,10 +1673,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tripId,
             routeId: staticInfo.routeId,
             directionId: staticInfo.directionId,
-            stopTimeUpdates: (tu.stopTimeUpdate || []).map((stu: any) => ({
-              stopId: String(stu.stopId),
-              departureTime: stu.departure?.time?.toNumber?.() ?? (typeof stu.departure?.time === "string" ? parseInt(stu.departure.time, 10) : stu.departure?.time) ?? null,
-            })),
+            stopTimeUpdates: (tu.stopTimeUpdate || []).map((stu: any) => {
+              const toNum = (t: any) => t?.toNumber?.() ?? (typeof t === "string" ? parseInt(t, 10) : t) ?? null;
+              // Terminal stops often carry only an arrival time — fall back to
+              // it so inbound boats at a route's last stop still show
+              return {
+                stopId: String(stu.stopId),
+                departureTime: toNum(stu.departure?.time) ?? toNum(stu.arrival?.time),
+              };
+            }),
           };
         });
         ferryCacheTime = now;

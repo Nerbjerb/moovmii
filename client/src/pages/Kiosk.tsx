@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { usePressScroll } from "@/hooks/use-press-scroll";
@@ -18,6 +18,7 @@ import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
 import { savePreference } from "@/lib/localStorageDB";
 import { getCitibikeShowParking } from "@/pages/CitibikePreferences";
+import { getScreenDimSettings, isDimActive } from "@/lib/screenDim";
 import { FERRY_LINE_MAP, getFerryRoutesForStop } from "@/lib/ferryConfig";
 
 function EditOverlay({ label, borderRadius = "12px", style }: { label: string; borderRadius?: string; style?: React.CSSProperties }) {
@@ -68,6 +69,22 @@ function FavoriteBox({ favorited, label, onClick, standalone }: { favorited: boo
 export default function Kiosk() {
   const [isEditMode, setIsEditMode] = useState(false);
   const showParking = getCitibikeShowParking();
+
+  // Screen dim schedule: dark overlay during quiet hours; any tap wakes to
+  // full brightness for 60s, then re-dims while still inside the window
+  const [isDimmed, setIsDimmed] = useState(false);
+  const dimWakeUntil = useRef(0);
+  useEffect(() => {
+    const evaluate = () =>
+      setIsDimmed(isDimActive(getScreenDimSettings()) && Date.now() > dimWakeUntil.current);
+    evaluate();
+    const id = setInterval(evaluate, 5000);
+    return () => clearInterval(id);
+  }, []);
+  const wakeScreen = () => {
+    dimWakeUntil.current = Date.now() + 60_000;
+    setIsDimmed(false);
+  };
   const [, setLocation] = useLocation();
 
   // ?reset escape hatch — clears stored resolution and reloads at default scale
@@ -800,6 +817,15 @@ export default function Kiosk() {
         )}
         </main>
       </div>
+
+      {/* Screen dim overlay — first tap wakes, doesn't click through */}
+      {isDimmed && (
+        <div
+          onPointerDown={(e) => { e.stopPropagation(); wakeScreen(); }}
+          style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0, 0, 0, 0.75)", zIndex: 300 }}
+          data-testid="screen-dim-overlay"
+        />
+      )}
     </div>
   );
 }

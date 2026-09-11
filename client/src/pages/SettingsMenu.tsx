@@ -6,6 +6,7 @@ import { queryClient } from "@/lib/queryClient";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
 import { saveSettings } from "@/lib/localStorageDB";
+import { getScreenDimSettings, saveScreenDimSettings, formatTime12, TIME_OPTIONS, type ScreenDimSettings } from "@/lib/screenDim";
 import type { KioskSettings } from "@shared/schema";
 
 const font = { fontFamily: "Helvetica, Arial, sans-serif" };
@@ -30,6 +31,13 @@ export default function SettingsMenu() {
   const [transportRows, setTransportRows] = useState<2 | 3 | 4>(2);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedResolution, setSelectedResolution] = useState(() => localStorage.getItem("kioskResolution") || "800x480");
+  const [dimSettings, setDimSettings] = useState<ScreenDimSettings>(getScreenDimSettings);
+
+  const updateDimSettings = (patch: Partial<ScreenDimSettings>) => {
+    const next = { ...dimSettings, ...patch };
+    setDimSettings(next);
+    saveScreenDimSettings(next);
+  };
 
   const { data: settings } = useQuery<KioskSettings>({
     queryKey: ["/api/settings", deviceId],
@@ -246,6 +254,64 @@ export default function SettingsMenu() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Screen dim schedule */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between" style={{ padding: "0 4px" }}>
+                  <span style={{ ...font, fontSize: "15px", fontWeight: 600, color: "#ffffff" }}>Screen Dim Schedule</span>
+                  <button
+                    onClick={() => updateDimSettings({ enabled: !dimSettings.enabled })}
+                    style={{
+                      width: "52px",
+                      height: "28px",
+                      borderRadius: "14px",
+                      backgroundColor: dimSettings.enabled ? "#FFD200" : "#555",
+                      border: "none",
+                      cursor: "pointer",
+                      position: "relative",
+                      transition: "background-color 0.2s",
+                    }}
+                    data-testid="toggle-screen-dim"
+                  >
+                    <div style={{
+                      width: "22px",
+                      height: "22px",
+                      borderRadius: "50%",
+                      backgroundColor: "#ffffff",
+                      position: "absolute",
+                      top: "3px",
+                      left: dimSettings.enabled ? "27px" : "3px",
+                      transition: "left 0.2s",
+                    }} />
+                  </button>
+                </div>
+                {dimSettings.enabled && (
+                  <div className="flex gap-[8px]">
+                    {([
+                      { label: "Dim at", key: "start" as const },
+                      { label: "Full brightness at", key: "end" as const },
+                    ]).map(({ label, key }) => (
+                      <div key={key} className="flex-1 flex flex-col gap-1">
+                        <span style={{ ...font, fontSize: "12px", color: "#888" }}>{label}</span>
+                        <select
+                          value={dimSettings[key]}
+                          onChange={(e) => updateDimSettings({ [key]: e.target.value })}
+                          style={{
+                            ...font, height: "44px", backgroundColor: "#2D2C31", color: "#ffffff",
+                            borderRadius: "6px", border: "none", fontSize: "15px", fontWeight: 600,
+                            padding: "0 12px", cursor: "pointer",
+                          }}
+                          data-testid={`select-dim-${key}`}
+                        >
+                          {TIME_OPTIONS.map((t) => (
+                            <option key={t} value={t}>{formatTime12(t)}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
