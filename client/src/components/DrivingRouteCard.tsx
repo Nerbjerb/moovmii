@@ -112,7 +112,7 @@ function SingleDrivingCard({ slot, rowHeight, labelHeight, labelOverride }: Driv
       size -= 0.5;
       el.style.fontSize = `${size}px`;
     }
-  }, [data?.originCity, data?.destCity, slot.origin, slot.destination, labelHeight]);
+  }, [data?.originCity, data?.destCity, slot.origin, slot.destination, slot.originName, slot.destName, labelHeight]);
 
   // Shrink the route text until the whole name fits the card height
   useEffect(() => {
@@ -136,7 +136,11 @@ function SingleDrivingCard({ slot, rowHeight, labelHeight, labelOverride }: Driv
         </div>
       ) : (
         <span ref={labelRef} style={{ ...font, fontSize: `${labelHeight}px`, fontWeight: 700, color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "240px", height: `${labelHeight}px`, lineHeight: `${labelHeight}px` }}>
-          {data ? `${data.originCity} to ${data.destCity}` : `${slot.origin} → ${slot.destination}`}
+          {/* Prefer nicknames ("Home to Work"); auto-converted places whose name
+              is still the raw address fall back to the API's city names */}
+          {slot.originName && slot.destName && slot.originName !== slot.origin && slot.destName !== slot.destination
+            ? `${slot.originName} to ${slot.destName}`
+            : data ? `${data.originCity} to ${data.destCity}` : `${slot.origin} → ${slot.destination}`}
         </span>
       )}
 
