@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.moovmii.kiosk"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.moovmii.kiosk"
@@ -22,6 +22,17 @@ android {
 
     buildFeatures {
         buildConfig = true
+    }
+
+    // One APK per CPU architecture — GeckoView's native libs are large, and a
+    // tablet only needs its own ABI (the fleet is ARM; no x86 needed)
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a")
+            isUniversalApk = false
+        }
     }
 
     buildTypes {
@@ -42,8 +53,9 @@ android {
 dependencies {
     // GeckoView: bundled Mozilla engine so the kiosk renders identically on every
     // tablet regardless of the (possibly ancient, non-updatable) system WebView.
-    // "+" grabs the newest release for first sync — pin the resolved version before
-    // shipping (see README; available versions at
-    // https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/)
-    implementation("org.mozilla.geckoview:geckoview:+")
+    // Pinned to the 140 ESR line — the last major line supporting Android 5-7,
+    // which the initial hardware batch (Android 7) requires. Newer lines (142+)
+    // dropped pre-Android-8 support; do not bump past 140 while Android 7
+    // tablets are in the fleet.
+    implementation("org.mozilla.geckoview:geckoview:140.0.20250707120347")
 }

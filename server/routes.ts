@@ -274,6 +274,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // APK downloads: redirect to GitHub Release assets — the shell APKs are too
+  // large for the git repo (>100MB), so releases host the binaries and this
+  // route keeps a stable app.moovmii.com/downloads/... URL for tablets/QR provisioning
+  app.get("/downloads/:file", (req, res) => {
+    res.redirect(302, `https://github.com/Nerbjerb/moovmii/releases/latest/download/${encodeURIComponent(req.params.file)}`);
+  });
+
   // Preferences API - Get all preferences for a kiosk
   app.get("/api/preferences", async (req, res) => {
     try {
