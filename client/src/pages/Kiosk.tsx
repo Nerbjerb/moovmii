@@ -85,6 +85,32 @@ export default function Kiosk() {
     dimWakeUntil.current = Date.now() + 60_000;
     setIsDimmed(false);
   };
+
+  // Auto-update: kiosks run this page indefinitely, so poll for new deploys.
+  // Every 10 min, re-fetch index.html and compare its hashed bundle filename
+  // against the one this page loaded with; on mismatch, reload to pick up the
+  // new build. No-op in dev (no hashed bundle) and deferred during edit mode.
+  const editModeRef = useRef(isEditMode);
+  editModeRef.current = isEditMode;
+  useEffect(() => {
+    const currentBundle = document
+      .querySelector('script[type="module"][src*="assets/index"]')
+      ?.getAttribute("src");
+    if (!currentBundle) return;
+    const id = setInterval(async () => {
+      if (editModeRef.current) return; // don't reload mid-interaction; retry next tick
+      try {
+        const res = await fetch(`/?update-check=${Date.now()}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const html = await res.text();
+        const latest = html.match(/\/assets\/index-[^"]+\.js/)?.[0];
+        if (latest && !currentBundle.endsWith(latest)) {
+          window.location.reload();
+        }
+      } catch {} // offline or server mid-deploy — try again next tick
+    }, 10 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
   const [, setLocation] = useLocation();
 
   // ?reset escape hatch — clears stored resolution and reloads at default scale
