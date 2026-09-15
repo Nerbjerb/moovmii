@@ -1,4 +1,4 @@
-import type { KioskPreference, KioskSettings } from "@shared/schema";
+import type { KioskPreference, KioskSettings, KioskFavorite } from "@shared/schema";
 import { getDeviceId } from "./deviceId";
 
 const DEFAULT_SETTINGS = {
@@ -62,4 +62,32 @@ export function savePreference(
   }
   localStorage.setItem(`kiosk_preferences_${id}`, JSON.stringify(prefs));
   return record;
+}
+
+// Favorites pool (starred row configs) — stored on-device so deploys can't
+// wipe it (the server's disk on Render is ephemeral)
+export function getFavorites(deviceId?: string): KioskFavorite[] {
+  const id = deviceId || getDeviceId();
+  const stored = localStorage.getItem(`kiosk_favorites_${id}`);
+  if (stored) {
+    try {
+      return JSON.parse(stored) as KioskFavorite[];
+    } catch {}
+  }
+  return [];
+}
+
+export function toggleFavorite(
+  config: { line: string; stop: string; direction: string },
+  deviceId?: string
+): KioskFavorite[] {
+  const id = deviceId || getDeviceId();
+  const favs = getFavorites(id);
+  const idx = favs.findIndex(
+    (f) => f.line === config.line && f.stop === config.stop && f.direction === config.direction
+  );
+  if (idx >= 0) favs.splice(idx, 1);
+  else favs.push({ id: `${id}-${Date.now()}`, kioskId: id, ...config });
+  localStorage.setItem(`kiosk_favorites_${id}`, JSON.stringify(favs));
+  return favs;
 }

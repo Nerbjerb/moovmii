@@ -11,12 +11,12 @@ import type { DrivingSlot } from "@/pages/DrivingSettings";
 import ClockDisplay from "@/components/ClockDisplay";
 import WeatherTile from "@/components/WeatherTile";
 import type { SubwayArrival, KioskPreference, KioskSettings, KioskFavorite } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
-import { savePreference } from "@/lib/localStorageDB";
+import { savePreference, toggleFavorite as toggleStoredFavorite } from "@/lib/localStorageDB";
 import { getCitibikeShowParking } from "@/pages/CitibikePreferences";
 import { getScreenDimSettings, isDimActive } from "@/lib/screenDim";
 import { FERRY_LINE_MAP, getFerryRoutesForStop } from "@/lib/ferryConfig";
@@ -130,9 +130,10 @@ export default function Kiosk() {
     queryKey: ['/api/preferences', deviceId],
   });
 
-  // Fetch favorites pool (saved row configs) — used for the star boxes and swipe cycling
+  // Fetch favorites pool (saved row configs) — used for the star boxes and swipe
+  // cycling. Served from device localStorage (see queryClient) so deploys can't wipe it.
   const { data: favorites } = useQuery<KioskFavorite[]>({
-    queryKey: [`/api/favorites?kioskId=${deviceId}`],
+    queryKey: ['/api/favorites', deviceId],
   });
 
   // Fetch service alerts with descriptions
@@ -190,9 +191,9 @@ export default function Kiosk() {
   const isRowFavorited = (rowIdx: number) =>
     !!favorites?.some((f) => configMatches(f, effectiveRowConfig(rowIdx)));
 
-  const toggleFavorite = async (rowIdx: number) => {
-    await apiRequest("POST", "/api/favorites/toggle", { kioskId: deviceId, ...effectiveRowConfig(rowIdx) });
-    queryClient.invalidateQueries({ queryKey: [`/api/favorites?kioskId=${deviceId}`] });
+  const toggleFavorite = (rowIdx: number) => {
+    toggleStoredFavorite(effectiveRowConfig(rowIdx), deviceId);
+    queryClient.invalidateQueries({ queryKey: ['/api/favorites', deviceId] });
   };
 
   // Favorites not currently displayed on any visible row

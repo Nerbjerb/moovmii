@@ -1,6 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { getDeviceId } from "./deviceId";
-import { getSettings, getPreferences } from "./localStorageDB";
+import { getSettings, getPreferences, getFavorites } from "./localStorageDB";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -39,6 +39,9 @@ export const getQueryFn: <T>(options: {
     }
     if (baseUrl === '/api/settings') {
       return getSettings(getDeviceId()) as unknown;
+    }
+    if (baseUrl === '/api/favorites') {
+      return getFavorites(getDeviceId()) as unknown;
     }
 
     const res = await fetch(baseUrl, {
