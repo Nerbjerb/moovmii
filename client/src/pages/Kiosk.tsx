@@ -654,8 +654,8 @@ export default function Kiosk() {
                 style={{ display: 'flex', flexDirection: 'column', gap: '3px', height: `${labelHeight + 3 + rowHeight}px`, marginLeft: idx === 2 ? '250px' : '0', touchAction: 'pan-y', ...rowDragStyle(idx) }}
               >
                 {stationLabel && !isDrivingRow && (
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', height: `${labelHeight}px` }}>
+                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff', lineHeight: `${labelHeight}px`, whiteSpace: 'nowrap' }}>
                       {stationLabel}
                     </span>
                     {isEditMode && (
@@ -717,8 +717,8 @@ export default function Kiosk() {
                 style={{ display: 'flex', flexDirection: 'column', gap: '3px', height: `${labelHeight + 3 + rowHeight}px`, touchAction: 'pan-y', ...rowDragStyle(idx) }}
               >
                 {stationLabel && !isDrivingRow && (
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', height: `${labelHeight}px` }}>
+                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${labelHeight}px`, fontWeight: 700, color: '#ffffff', lineHeight: `${labelHeight}px`, whiteSpace: 'nowrap' }}>
                       {stationLabel}
                     </span>
                     {isEditMode && (
