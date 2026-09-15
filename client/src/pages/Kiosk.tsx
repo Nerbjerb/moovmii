@@ -614,7 +614,7 @@ export default function Kiosk() {
                 style={{ height: '28px', padding: '0 14px', backgroundColor: '#2D2C31' }}
               >
                 <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', fontWeight: 600, color: '#ffffff' }}>
-                  Cancel
+                  Done
                 </span>
               </div>
             </button>
@@ -650,7 +650,7 @@ export default function Kiosk() {
                 onPointerMove={onRowPointerMove(idx)}
                 onPointerUp={onRowPointerUp(idx)}
                 onPointerCancel={onRowPointerUp(idx)}
-                style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginLeft: idx === 2 ? '250px' : '0', touchAction: 'pan-y', ...rowDragStyle(idx) }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '3px', height: `${labelHeight + 3 + rowHeight}px`, marginLeft: idx === 2 ? '250px' : '0', touchAction: 'pan-y', ...rowDragStyle(idx) }}
               >
                 {stationLabel && !isDrivingRow && (
                   <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -713,7 +713,7 @@ export default function Kiosk() {
                 onPointerMove={onRowPointerMove(idx)}
                 onPointerUp={onRowPointerUp(idx)}
                 onPointerCancel={onRowPointerUp(idx)}
-                style={{ display: 'flex', flexDirection: 'column', gap: '3px', touchAction: 'pan-y', ...rowDragStyle(idx) }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '3px', height: `${labelHeight + 3 + rowHeight}px`, touchAction: 'pan-y', ...rowDragStyle(idx) }}
               >
                 {stationLabel && !isDrivingRow && (
                   <div style={{ display: 'flex', alignItems: 'center' }}>

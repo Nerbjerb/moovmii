@@ -86,6 +86,7 @@ export default function DrivingSettings() {
   const [pendingTo, setPendingTo] = useState<DrivingLocation | null>(null);
   const [query, setQuery] = useState("");
   const [isNumMode, setIsNumMode] = useState(false);
+  const [isShift, setIsShift] = useState(true);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectionMade = useRef(false);
@@ -117,13 +118,24 @@ export default function DrivingSettings() {
     setSuggestions([]);
   };
 
+  // On-screen letters honor shift; shift is single-shot like a phone keyboard
+  const handleLetter = (k: string) => {
+    handleKey(isShift ? k : k.toLowerCase());
+    if (isShift) setIsShift(false);
+  };
+
+  // Fresh entry fields start capitalized
+  useEffect(() => {
+    if (isTypingView) setIsShift(true);
+  }, [view]);
+
   useEffect(() => {
     if (!isTypingView) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Backspace") { e.preventDefault(); handleKey("⌫"); }
       else if (e.key === " ") { e.preventDefault(); handleKey("SPACE"); }
       else if (e.key === "Enter") { /* handled by Next button */ }
-      else if (e.key.length === 1) { handleKey(e.key.toUpperCase()); }
+      else if (e.key.length === 1) { handleKey(e.key); }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -395,14 +407,14 @@ export default function DrivingSettings() {
                 {!isNumMode ? (
                   <>
                     <div style={{ display: "flex", gap: KG, justifyContent: "center" }}>
-                      {QWERTY[0].map((k) => <Key key={k} label={k} onPress={() => handleKey(k)} />)}
+                      {QWERTY[0].map((k) => <Key key={k} label={isShift ? k : k.toLowerCase()} onPress={() => handleLetter(k)} />)}
                     </div>
                     <div style={{ display: "flex", gap: KG, justifyContent: "center" }}>
-                      {QWERTY[1].map((k) => <Key key={k} label={k} onPress={() => handleKey(k)} />)}
+                      {QWERTY[1].map((k) => <Key key={k} label={isShift ? k : k.toLowerCase()} onPress={() => handleLetter(k)} />)}
                     </div>
                     <div style={{ display: "flex", gap: KG, justifyContent: "center" }}>
-                      <Key label="⇧" wide onPress={() => {}} />
-                      {QWERTY[2].map((k) => <Key key={k} label={k} onPress={() => handleKey(k)} />)}
+                      <Key label="⇧" wide yellow={isShift} onPress={() => setIsShift((s) => !s)} />
+                      {QWERTY[2].map((k) => <Key key={k} label={isShift ? k : k.toLowerCase()} onPress={() => handleLetter(k)} />)}
                       <Key label="⌫" wide onPress={() => handleKey("⌫")} />
                     </div>
                     <div style={{ display: "flex", gap: KG }}>
@@ -425,6 +437,9 @@ export default function DrivingSettings() {
                       <Key label="ABC" wide onPress={() => handleKey("ABC")} />
                       <button onPointerDown={(e) => { e.preventDefault(); handleKey("SPACE"); }} style={{ flex: 1, height: KH, backgroundColor: "#2D2C31", borderRadius: 5, border: "none", cursor: "pointer", color: "#888", fontSize: 13, fontFamily: "Helvetica, Arial, sans-serif" }}>space</button>
                       <Key label="⌫" wide onPress={() => handleKey("⌫")} />
+                      <button onPointerDown={(e) => { e.preventDefault(); handleNext(query); }} disabled={!query.trim()} style={{ width: KWide, height: KH, backgroundColor: query.trim() ? "#4ade80" : "#1a1a1a", borderRadius: 5, border: "none", cursor: query.trim() ? "pointer" : "default", color: query.trim() ? "#000" : "#333", fontSize: 13, fontWeight: 700, fontFamily: "Helvetica, Arial, sans-serif" }}>
+                        {view === "address" ? "Next" : editingLocId ? "Save" : "Done"}
+                      </button>
                     </div>
                   </>
                 )}

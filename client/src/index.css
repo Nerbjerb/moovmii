@@ -16,7 +16,6 @@
   width: 2px;
   height: 15px;
   background: #FFFFFF;
-  margin-left: 2px;
   vertical-align: middle;
   animation: cursor-blink 1s step-end infinite;
 }

@@ -156,7 +156,7 @@ function SingleDrivingCard({ slot, rowHeight, labelHeight, labelOverride }: Driv
           <span style={{ ...font, fontSize: "13px", color: "#555" }}>Loading...</span>
         )}
         {isError && (
-          <span style={{ ...font, fontSize: "12px", color: "#555" }}>API key required</span>
+          <span style={{ ...font, fontSize: "12px", color: "#555" }}>Route unavailable</span>
         )}
         {data && time && (
           <div style={{ display: "flex", alignItems: "stretch", gap: "10px", height: "100%" }}>

@@ -288,7 +288,7 @@ export default function CitibikeSettings() {
               </div>
 
               {/* Results */}
-              <div className="show-scrollbar" style={{ position: "absolute", top: "140px", left: "20px", right: "20px", bottom: "204px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "5px" }}>
+              <div className="show-scrollbar" style={{ position: "absolute", top: "140px", left: "20px", right: "20px", bottom: "204px", overflowY: "auto", touchAction: "pan-y", display: "flex", flexDirection: "column", gap: "5px" }}>
                 {filteredStations.length === 0 ? (
                   <div style={{ ...font, fontSize: "14px", color: "#444", textAlign: "center", paddingTop: "16px" }}>
                     {searchQuery ? "No docks found" : "Loading stations..."}
@@ -297,7 +297,7 @@ export default function CitibikeSettings() {
                   filteredStations.map((station) => (
                     <button
                       key={station.station_id}
-                      onPointerDown={(e) => { e.preventDefault(); setSelectedStation(station); setView("slotPicker"); }}
+                      onClick={() => { setSelectedStation(station); setView("slotPicker"); }}
                       style={{ minHeight: "40px", backgroundColor: "#2D2C31", borderRadius: "6px", display: "flex", alignItems: "center", padding: "0 14px", border: "none", cursor: "pointer", textAlign: "left" }}
                       className="hover:opacity-80 transition-opacity"
                     >
