@@ -17,5 +17,14 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Kiosk self-heal: if the app bundle failed to boot (e.g. a reload raced
+      // a deploy and the assets 404'd), keep retrying — unattended devices
+      // must never stay stuck on a blank screen
+      setTimeout(function retryIfBlank() {
+        var root = document.getElementById("root");
+        if (!root || root.childElementCount === 0) location.reload();
+      }, 20000);
+    </script>
   </body>
 </html>

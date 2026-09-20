@@ -281,6 +281,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect(302, `https://github.com/Nerbjerb/moovmii/releases/latest/download/${encodeURIComponent(req.params.file)}`);
   });
 
+  // Bare /downloads: send to the release page listing all APKs
+  app.get(["/downloads", "/download"], (_req, res) => {
+    res.redirect(302, "https://github.com/Nerbjerb/moovmii/releases/latest");
+  });
+
   // Preferences API - Get all preferences for a kiosk
   app.get("/api/preferences", async (req, res) => {
     try {
