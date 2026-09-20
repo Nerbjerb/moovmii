@@ -1883,6 +1883,209 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // NJT arrivals in the same {destination, subtitle, arrivalMinutes} format as subway/LIRR
+  // ── NJ Transit BUS (BUSDV2 API — same credentials as rail, different host) ──
+  const njtBusTokenCache: { token: string; dateKey: string } = { token: "", dateKey: "" };
+  const njtBusCache = new Map<string, { data: unknown; fetchedAt: number }>();
+
+  async function getNjtBusToken(): Promise<string> {
+    const today = new Date().toISOString().slice(0, 10);
+    if (njtBusTokenCache.token && njtBusTokenCache.dateKey === today) return njtBusTokenCache.token;
+    const username = process.env.NJTransit_Username;
+    const password = process.env.NJTransit_Password;
+    if (!username || !password) throw new Error("NJT credentials not configured");
+    const form = new FormData();
+    form.append("username", username);
+    form.append("password", password);
+    const res = await fetch("https://pcsdata.njtransit.com/api/BUSDV2/authenticateUser", { method: "POST", body: form });
+    const json = await res.json() as { Authenticated: string; UserToken: string };
+    if (json.Authenticated !== "True" || !json.UserToken) throw new Error("NJT bus authentication failed");
+    njtBusTokenCache.token = json.UserToken;
+    njtBusTokenCache.dateKey = today;
+    return json.UserToken;
+  }
+
+  async function njtBusPost(method: string, fields: Record<string, string>): Promise<unknown> {
+    const token = await getNjtBusToken();
+    const form = new FormData();
+    form.append("token", token);
+    for (const [k, v] of Object.entries(fields)) form.append(k, v);
+    const res = await fetch(`https://pcsdata.njtransit.com/api/BUSDV2/${method}`, { method: "POST", body: form });
+    return res.json();
+  }
+
+  // Route list for the settings picker (cached 24h)
+  app.get("/api/njtbus/routes", async (_req, res) => {
+    try {
+      const cached = njtBusCache.get("routes");
+      if (cached && Date.now() - cached.fetchedAt < 24 * 3600_000) return res.json(cached.data);
+      const raw = await njtBusPost("getBusRoutes", {}) as Array<{ BusRouteID: string; BusRouteDescription: string }>;
+      const routes = raw.map(r => ({ route: r.BusRouteID, description: r.BusRouteDescription }));
+      njtBusCache.set("routes", { data: routes, fetchedAt: Date.now() });
+      res.json(routes);
+    } catch (error) {
+      console.error("Error fetching NJT bus routes:", error);
+      res.status(500).json({ error: "Failed to fetch NJT bus routes" });
+    }
+  });
+
+  // Stops served by a route (cached 24h per route)
+  app.get("/api/njtbus/stops", async (req, res) => {
+    try {
+      const route = (req.query.route as string || "").trim();
+      if (!route) return res.status(400).json({ error: "route query param required" });
+      const key = `stops-${route}`;
+      const cached = njtBusCache.get(key);
+      if (cached && Date.now() - cached.fetchedAt < 24 * 3600_000) return res.json(cached.data);
+      const raw = await njtBusPost("getStops", { route }) as Array<{ busstopdescription: string; busstopnumber: string }>;
+      const stops = raw.map(s => ({ name: s.busstopdescription, stop: s.busstopnumber }));
+      njtBusCache.set(key, { data: stops, fetchedAt: Date.now() });
+      res.json(stops);
+    } catch (error) {
+      console.error("Error fetching NJT bus stops:", error);
+      res.status(500).json({ error: "Failed to fetch NJT bus stops" });
+    }
+  });
+
+  // Direction discovery: BUSDV2 has no direction-listing method, so we derive
+  // candidates from live departure headsigns and validate each against
+  // getStops. Matching is exact and case-sensitive, and invalid values fall
+  // back to the first direction's stops — so we group candidates by the
+  // DISTINCT stop-set each returns rather than trusting labels directly.
+  app.get("/api/njtbus/directions", async (req, res) => {
+    try {
+      const route = (req.query.route as string || "").trim();
+      if (!route) return res.status(400).json({ error: "route query param required" });
+      const key = `dirs-${route}`;
+      const cached = njtBusCache.get(key);
+      if (cached && Date.now() - cached.fetchedAt < 24 * 3600_000) return res.json(cached.data);
+
+      type RawStop = { busstopdescription: string; busstopnumber: string };
+      const allStops = await njtBusPost("getStops", { route }) as RawStop[];
+      const toStops = (raw: RawStop[]) => raw.map(s => ({ name: s.busstopdescription, stop: s.busstopnumber }));
+      const setKey = (raw: RawStop[]) => raw.map(s => s.busstopnumber).sort().join(",");
+
+      // Sample live headsigns at a spread of the route's stops
+      const titleCase = (s: string) => s.toLowerCase().replace(/(^|[\s\-\/])[a-z]/g, (c) => c.toUpperCase());
+      const fullPhrases = new Set<string>();
+      const segments = new Set<string>();
+      const sampleIdxs = Array.from(new Set([0, Math.floor(allStops.length / 3), Math.floor((2 * allStops.length) / 3), allStops.length - 1]))
+        .filter(i => i >= 0 && i < allStops.length);
+      for (const i of sampleIdxs) {
+        try {
+          const dv = await njtBusPost("getBusDV", { stop: allStops[i].busstopnumber }) as { DVTrip?: Array<{ public_route: string; header: string }> };
+          for (const t of dv.DVTrip || []) {
+            if (t.public_route !== route || !t.header) continue;
+            const phrase = t.header.replace(new RegExp(`^${route}\\s+`), "").trim();
+            if (!phrase) continue;
+            fullPhrases.add(titleCase(phrase));
+            for (const part of phrase.split(/[\-\/]/)) {
+              const p = part.trim();
+              if (p.length >= 3) segments.add(titleCase(p));
+            }
+          }
+        } catch {}
+      }
+
+      // The route description's dash-separated tokens name its endpoints —
+      // NJT uses those as direction values, and unlike live headsigns they
+      // don't disappear during off-hours
+      const descTokens = new Set<string>();
+      try {
+        const routesRaw = (njtBusCache.get("routes")?.data
+          ?? await njtBusPost("getBusRoutes", {})) as Array<{ route?: string; description?: string; BusRouteID?: string; BusRouteDescription?: string }>;
+        const entry = routesRaw.find(r => (r.route ?? r.BusRouteID) === route);
+        const desc = entry?.description ?? entry?.BusRouteDescription ?? "";
+        for (const part of desc.split(/\s+-\s+/)) {
+          const p = part.trim();
+          if (p.length >= 3) descTokens.add(titleCase(p));
+        }
+      } catch {}
+
+      // Full headsign phrases, then description endpoints, then headsign
+      // fragments — so a fragment can't claim a stop-set's label
+      const bySet = new Map<string, { direction: string; stops: { name: string; stop: string }[] }>();
+      const seen = new Set<string>();
+      const ordered = [...Array.from(fullPhrases), ...Array.from(descTokens), ...Array.from(segments)]
+        .filter(c => !seen.has(c) && (seen.add(c), true))
+        .slice(0, 12);
+      for (const cand of ordered) {
+        try {
+          const raw = await njtBusPost("getStops", { route, direction: cand }) as RawStop[];
+          if (!raw.length) continue;
+          const k = setKey(raw);
+          if (!bySet.has(k)) bySet.set(k, { direction: cand, stops: toStops(raw) });
+        } catch {}
+      }
+
+      const directions = Array.from(bySet.values());
+      // If only one direction got labeled, offer the remaining stops as the
+      // other choice rather than collapsing to a flat list
+      if (directions.length === 1) {
+        const labeled = new Set(directions[0].stops.map(s => s.stop));
+        const rest = allStops.filter(s => !labeled.has(s.busstopnumber));
+        if (rest.length >= 3) directions.push({ direction: "Other Direction", stops: toStops(rest) });
+      }
+      const data = directions.length >= 2
+        ? { directions }
+        : { directions: [{ direction: "All Stops", stops: toStops(allStops) }] };
+      njtBusCache.set(key, { data, fetchedAt: Date.now() });
+      res.json(data);
+    } catch (error) {
+      console.error("Error deriving NJT bus directions:", error);
+      res.status(500).json({ error: "Failed to derive NJT bus directions" });
+    }
+  });
+
+  // Live departures at a stop — every route serving it, interleaved by time
+  app.get("/api/njtbus/arrivals", async (req, res) => {
+    try {
+      const stop = (req.query.stop as string || "").trim();
+      const stopName = (req.query.stopName as string || "").trim();
+      if (!stop) return res.status(400).json({ error: "stop query param required" });
+
+      const key = `dv-${stop}`;
+      const cached = njtBusCache.get(key);
+      let trips: Array<{ public_route: string; header: string; departurestatus: string; sched_dep_time: string }>;
+      if (cached && Date.now() - cached.fetchedAt < 60_000) {
+        trips = cached.data as typeof trips;
+      } else {
+        const raw = await njtBusPost("getBusDV", { stop }) as { DVTrip?: typeof trips };
+        trips = raw.DVTrip || [];
+        njtBusCache.set(key, { data: trips, fetchedAt: Date.now() });
+      }
+
+      const now = Date.now();
+      const parsed: { mins: number; line: string; headsign: string }[] = [];
+      for (const t of trips) {
+        let mins: number | null = null;
+        const inMatch = (t.departurestatus || "").match(/in\s+(\d+)\s*min/i);
+        if (inMatch) mins = parseInt(inMatch[1]);
+        else {
+          const sched = new Date(t.sched_dep_time);
+          if (!isNaN(sched.getTime())) mins = Math.round((sched.getTime() - now) / 60000);
+        }
+        if (mins !== null && mins >= 0) {
+          parsed.push({ mins, line: `NJB-${t.public_route}`, headsign: t.header || "" });
+        }
+      }
+      parsed.sort((a, b) => a.mins - b.mins);
+      const top = parsed.slice(0, 3);
+
+      res.json({
+        line: top[0]?.line || "NJB",
+        direction: "bus",
+        destination: top[0]?.headsign?.replace(/^\S+\s+/, "") || "NJ Transit",
+        subtitle: stopName || `Stop ${stop}`,
+        arrivalMinutes: top.map(d => d.mins),
+        arrivalLines: top.map(d => d.line),
+        isBus: true,
+      });
+    } catch (error) {
+      console.error("Error fetching NJT bus departures:", error);
+      res.status(500).json({ error: "Failed to fetch NJT bus departures" });
+    }
+  });
+
   app.get("/api/njt/arrivals", async (req, res) => {
     try {
       const { stop, direction, line } = req.query as { stop?: string; direction?: string; line?: string };

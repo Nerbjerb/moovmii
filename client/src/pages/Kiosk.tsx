@@ -39,7 +39,7 @@ function favoriteWord(line?: string): string {
   if (!line) return "Subway";
   if (line.startsWith("FERRY-")) return "Ferry";
   if (line.startsWith("LIRR-") || line.startsWith("MNR-") || line.startsWith("NJT-") || line.startsWith("PATH-")) return "Train";
-  if (line.startsWith("MTA NYCT_") || line.startsWith("MTABC_") || line.startsWith("BUS-")) return "Bus";
+  if (line.startsWith("MTA NYCT_") || line.startsWith("MTABC_") || line.startsWith("BUS-") || line.startsWith("NJB-")) return "Bus";
   return "Subway";
 }
 
@@ -374,6 +374,11 @@ export default function Kiosk() {
     const isPATH = pref.line.startsWith('PATH-');
 
     // Check if this is a bus line (bus lines start with "MTA NYCT_" or "MTABC_")
+    // NJ Transit bus: stop number in pref.stop, stop name stashed in pref.direction
+    if (pref.line.startsWith('NJB-')) {
+      return ['/api/njtbus/arrivals', { stop: pref.stop, direction: pref.direction, line: pref.line, isNJB: true }];
+    }
+
     const isBus = pref.line.startsWith('MTA NYCT_') || pref.line.startsWith('MTABC_') || pref.line.startsWith('BUS-');
 
     if (isBus) {
@@ -440,13 +445,19 @@ export default function Kiosk() {
   };
 
   const makeArrivalQueryFn = (queryKey: any[]) => async () => {
-    const params = queryKey[1] as { stopId?: string; stop?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; routeIds?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean; isFerry?: boolean; isNJT?: boolean };
+    const params = queryKey[1] as { stopId?: string; stop?: string; station?: string; direction?: string; lines?: string; line?: string; routeId?: string; routeIds?: string; isPATH?: boolean; isBus?: boolean; isCitibike?: boolean; isFerry?: boolean; isNJT?: boolean; isNJB?: boolean };
     if (params.isCitibike) return null as unknown as SubwayArrival;
     if (params.isBus) return transformBusArrivals(params);
     if (params.isFerry) {
       const url = `/api/ferry/arrivals?routeIds=${encodeURIComponent(params.routeIds || '')}&stopId=${encodeURIComponent(params.stopId || '')}&direction=${encodeURIComponent(params.direction || 'Inbound')}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch ferry arrivals');
+      return res.json();
+    }
+    if (params.isNJB) {
+      const url = `/api/njtbus/arrivals?stop=${encodeURIComponent(params.stop || '')}&stopName=${encodeURIComponent(params.direction || '')}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch NJT bus arrivals');
       return res.json();
     }
     if (params.isNJT) {

@@ -366,13 +366,18 @@ export default function TrackCard({
   
   // Check if a line is a bus (should show route number badge)
   const isBusLine = (lineName: string) => 
-    isBus || lineName.startsWith('MTA NYCT_') || lineName.startsWith('MTABC_') || lineName.startsWith('BUS-');
+    isBus || lineName.startsWith('MTA NYCT_') || lineName.startsWith('MTABC_') || lineName.startsWith('BUS-') || lineName.startsWith('NJB-');
+
+  // NJ Transit buses wear a black NJT-branded badge; MTA buses the blue one
+  const busBadgeColor = (lineName: string) => lineName.startsWith('NJB-') ? '#000000' : '#1C7ED6';
+  const busBadgeBorder = (lineName: string) => lineName.startsWith('NJB-') ? '1px solid #666' : '1px solid transparent';
   
   // Extract bus route number from line ID (e.g., "MTA NYCT_M31" -> "M31")
   const getBusRouteNumber = (lineName: string): string => {
     if (lineName.startsWith('MTA NYCT_')) return lineName.replace('MTA NYCT_', '');
     if (lineName.startsWith('MTABC_')) return lineName.replace('MTABC_', '');
     if (lineName.startsWith('BUS-')) return lineName.replace('BUS-', '');
+    if (lineName.startsWith('NJB-')) return lineName.replace('NJB-', '');
     return lineName;
   };
 
@@ -601,7 +606,7 @@ export default function TrackCard({
                 transform: 'translate(-35px, -10px)',
                 minWidth: '50px',
                 height: '50px',
-                backgroundColor: '#1C7ED6',
+                backgroundColor: busBadgeColor(line), border: busBadgeBorder(line),
                 borderRadius: '8px',
                 padding: '4px 10px'
               }}
@@ -802,7 +807,7 @@ export default function TrackCard({
                     transform: 'translate(-32px, 45px)',
                     minWidth: '30px',
                     height: '30px',
-                    backgroundColor: '#1C7ED6',
+                    backgroundColor: busBadgeColor(secondLine), border: busBadgeBorder(secondLine),
                     borderRadius: '5px',
                     padding: '2px 6px'
                   }}
@@ -893,7 +898,7 @@ export default function TrackCard({
                     transform: 'translate(-32px, 45px)',
                     minWidth: '30px',
                     height: '30px',
-                    backgroundColor: '#1C7ED6',
+                    backgroundColor: busBadgeColor(thirdLine), border: busBadgeBorder(thirdLine),
                     borderRadius: '5px',
                     padding: '2px 6px'
                   }}

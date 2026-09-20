@@ -1370,6 +1370,10 @@ export default function Settings() {
   const [selectedBusBorough, setSelectedBusBorough] = useState<string | null>(null);
   const [selectedBusRoute, setSelectedBusRoute] = useState<string | null>(null);
   const [selectedBusDirection, setSelectedBusDirection] = useState<string | null>(null);
+  const [busAgency, setBusAgency] = useState<'select' | 'mta' | 'njt' | null>(null);
+  const [selectedNjbRoute, setSelectedNjbRoute] = useState<{ route: string; description: string } | null>(null);
+  const [selectedNjbStopName, setSelectedNjbStopName] = useState<string | null>(null);
+  const [selectedNjbDirection, setSelectedNjbDirection] = useState<{ direction: string; stops: { name: string; stop: string }[] } | null>(null);
   const [selectedStop, setSelectedStop] = useState<string | null>(null);
   const [row1Station, setRow1Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
   const [row2Station, setRow2Station] = useState<{ stop: string; direction: 'Uptown' | 'Downtown'; line: string } | null>(null);
@@ -1402,6 +1406,20 @@ export default function Settings() {
   const { data: busRoutesData, isLoading: busRoutesLoading } = useQuery<{ routes: { id: string; shortName: string; longName: string; description: string }[] }>({
     queryKey: [`/api/bus/routes/${selectedBusBorough || ''}`],
     enabled: !!selectedBusBorough && selectedBusBorough !== 'select',
+  });
+
+  // NJ Transit bus routes + stops (BUSDV2 API via our server)
+  const { data: njbRoutes, isLoading: njbRoutesLoading } = useQuery<{ route: string; description: string }[]>({
+    queryKey: ['njtbus-routes'],
+    queryFn: async () => { const r = await fetch('/api/njtbus/routes'); if (!r.ok) throw new Error('Failed'); return r.json(); },
+    enabled: busAgency === 'njt',
+    staleTime: 24 * 3600_000,
+  });
+  const { data: njbDirectionsData, isLoading: njbDirectionsLoading } = useQuery<{ directions: { direction: string; stops: { name: string; stop: string }[] }[] }>({
+    queryKey: ['njtbus-directions', selectedNjbRoute?.route],
+    queryFn: async () => { const r = await fetch(`/api/njtbus/directions?route=${encodeURIComponent(selectedNjbRoute!.route)}`); if (!r.ok) throw new Error('Failed'); return r.json(); },
+    enabled: !!selectedNjbRoute,
+    staleTime: 24 * 3600_000,
   });
 
   // Load bus stops for selected route
@@ -1505,6 +1523,26 @@ export default function Settings() {
   };
 
   const handleBack = () => {
+    // NJ Transit bus back navigation
+    if (busAgency === 'njt' && selectedStop) {
+      setSelectedStop(null);
+      setSelectedNjbStopName(null);
+      setSelectedDirection(null);
+      if (!isEditMode) setSelectedRow(null);
+      return;
+    }
+    if (selectedNjbDirection) {
+      setSelectedNjbDirection(null);
+      return;
+    }
+    if (selectedNjbRoute) {
+      setSelectedNjbRoute(null);
+      return;
+    }
+    if (busAgency === 'njt') {
+      setBusAgency('select');
+      return;
+    }
     // Handle bus selection back navigation
     if (selectedStop && selectedBusDirection) {
       // Go back from stop selection to direction selection
@@ -1537,8 +1575,13 @@ export default function Settings() {
       return;
     }
     if (selectedBusBorough === 'select') {
-      // Go back from borough selection to main menu
+      // Go back from borough selection to the agency picker
       setSelectedBusBorough(null);
+      setBusAgency('select');
+      return;
+    }
+    if (busAgency === 'select') {
+      setBusAgency(null);
       return;
     }
     
@@ -1691,7 +1734,7 @@ export default function Settings() {
           </div>
           <img src={njTransitIcon} alt="NJ Transit" className="h-[11px] object-contain" style={{ transform: 'translateX(10px)' }} />
         </div>
-        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => setSelectedBusBorough('select')} data-testid="card-settings-13">
+        <div className="rounded-[6px] flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" style={{ width: '246px', height: '58px', backgroundColor: '#2D2C31' }} onClick={() => setBusAgency('select')} data-testid="card-settings-13">
           <img src={njTransitBusIcon} alt="NJ Transit" style={{ height: '40px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
           <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '13.5px', fontWeight: 600, color: '#ffffff', marginLeft: '-8px' }}>Bus</span>
           <div style={{ overflow: 'hidden', height: '24px', marginLeft: '13px' }}>
@@ -1727,8 +1770,140 @@ export default function Settings() {
     { id: 'queens', name: 'Queens' },
     { id: 'bronx', name: 'Bronx' },
     { id: 'staten_island', name: 'Staten Island' },
-    { id: 'new_jersey', name: 'New Jersey' },
   ];
+
+  const renderBusAgencyView = () => (
+    <div className="flex items-center justify-center" style={{ width: '760px', height: '370px', margin: 'auto' }}>
+      <div className="flex gap-[14px]">
+        <div
+          className="rounded-[10px] flex flex-col items-center justify-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
+          style={{ width: '250px', height: '170px', backgroundColor: '#2D2C31' }}
+          onClick={() => { setBusAgency('mta'); setSelectedBusBorough('select'); }}
+          data-testid="card-bus-agency-mta"
+        >
+          <div style={{ overflow: 'hidden', height: '32px' }}>
+            <img src={mtaBusIcon} alt="MTA NYC Bus" style={{ height: '66px', objectFit: 'contain', marginTop: '-34px', filter: 'brightness(0) invert(1)' }} />
+          </div>
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#ffffff' }}>MTA NYC Bus</span>
+        </div>
+        <div
+          className="rounded-[10px] flex flex-col items-center justify-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
+          style={{ width: '250px', height: '170px', backgroundColor: '#2D2C31' }}
+          onClick={() => setBusAgency('njt')}
+          data-testid="card-bus-agency-njt"
+        >
+          <img src={njTransitBusIcon} alt="NJ Transit Bus" style={{ height: '52px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '15px', fontWeight: 600, color: '#ffffff' }}>NJ Transit Bus</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderNjbRoutesView = () => {
+    if (njbRoutesLoading) {
+      return (
+        <div className="flex items-center justify-center" style={{ width: '760px', height: '370px', margin: 'auto' }}>
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', color: '#FFFFFF' }}>Loading routes...</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center justify-center" style={{ width: '760px', height: '370px', margin: 'auto' }}>
+        <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: '350px', width: '480px', scrollbarWidth: 'none', msOverflowStyle: 'none', touchAction: 'pan-y' }}>
+          <div className="flex flex-col gap-[6px]" data-testid="njb-routes-container">
+            {(njbRoutes || []).map((r) => (
+              <div
+                key={r.route}
+                className="rounded-[6px] flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ width: '480px', minHeight: '52px', backgroundColor: '#2D2C31', paddingLeft: '14px', paddingRight: '14px', gap: '12px', flexShrink: 0 }}
+                onClick={() => setSelectedNjbRoute(r)}
+                data-testid={`card-njb-route-${r.route}`}
+              >
+                <div className="flex items-center justify-center" style={{ minWidth: '46px', height: '28px', backgroundColor: '#000000', border: '1px solid #666', borderRadius: '5px', padding: '0 6px', flexShrink: 0 }}>
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>{r.route}</span>
+                </div>
+                <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '13px', color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderNjbDirectionView = () => {
+    if (njbDirectionsLoading) {
+      return (
+        <div className="flex items-center justify-center" style={{ width: '760px', height: '370px', margin: 'auto' }}>
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '18px', color: '#FFFFFF' }}>Finding directions...</span>
+        </div>
+      );
+    }
+    const directions = njbDirectionsData?.directions || [];
+    return (
+      <div className="flex flex-col items-center justify-center gap-[12px]" style={{ width: '760px', height: '370px', margin: 'auto' }}>
+        <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', color: '#888' }}>Which direction?</span>
+        {directions.map((d) => (
+          <div
+            key={d.direction}
+            className="rounded-[8px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ width: '400px', height: '64px', backgroundColor: '#2D2C31' }}
+            onClick={() => setSelectedNjbDirection(d)}
+            data-testid={`card-njb-direction-${d.direction}`}
+          >
+            <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '17px', fontWeight: 600, color: '#FFFFFF' }}>{d.direction}</span>
+          </div>
+        ))}
+        {directions.length === 0 && (
+          <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', color: '#666' }}>No directions found — try again shortly</span>
+        )}
+      </div>
+    );
+  };
+
+  const renderNjbStopsView = () => {
+    const njbStops = selectedNjbDirection?.stops || [];
+    return (
+      <div className="flex items-center justify-center" style={{ width: '760px', height: '370px', margin: 'auto' }}>
+        <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: '350px', width: '480px', scrollbarWidth: 'none', msOverflowStyle: 'none', touchAction: 'pan-y' }}>
+          <div className="flex flex-col gap-[6px]" data-testid="njb-stops-container">
+            {njbStops.map((s, i) => {
+              const isSelected = selectedStop === s.stop;
+              return (
+                <div
+                  key={`${s.stop}-${i}`}
+                  className="rounded-[6px] flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{
+                    width: '480px', minHeight: '52px', flexShrink: 0,
+                    backgroundColor: isSelected ? '#3D3C41' : '#2D2C31',
+                    border: isSelected ? '2px solid #FFFFFF' : '2px solid transparent',
+                    paddingLeft: '16px', paddingRight: '16px', gap: '10px',
+                  }}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedStop(null);
+                      setSelectedNjbStopName(null);
+                      setSelectedDirection(null);
+                      if (!isEditMode) setSelectedRow(null);
+                    } else {
+                      setSelectedStop(s.stop);
+                      setSelectedNjbStopName(s.name);
+                      setSelectedDirection('Uptown');
+                      setSelectedRow(isEditMode ? (editRow || 1) : 1);
+                    }
+                  }}
+                  data-testid={`card-njb-stop-${s.stop}`}
+                >
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '14px', color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{s.name}</span>
+                  <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '11px', color: '#777', flexShrink: 0 }}>#{s.stop}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderBusBoroughView = () => (
     <div 
@@ -1740,13 +1915,13 @@ export default function Settings() {
           <div key={row} className="flex gap-[10px]">
             {[0, 1].map((col) => {
               const borough = busBoroughs[row * 2 + col];
-              const isPlaceholder = borough.id === 'new_jersey';
+              if (!borough) return null;
               return (
                 <div 
                   key={borough.id}
-                  className={`rounded-[6px] flex items-center justify-center gap-3 ${!isPlaceholder ? 'cursor-pointer hover:opacity-80' : ''} transition-opacity`}
+                  className="rounded-[6px] flex items-center justify-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
                   style={{ width: '375px', height: '58px', backgroundColor: '#2D2C31' }}
-                  onClick={() => !isPlaceholder && setSelectedBusBorough(borough.id)}
+                  onClick={() => setSelectedBusBorough(borough.id)}
                   data-testid={`card-bus-borough-${borough.id}`}
                 >
                   <span 
@@ -1759,21 +1934,6 @@ export default function Settings() {
                   >
                     {borough.name}
                   </span>
-                  {isPlaceholder && (
-                    <span 
-                      className="rounded-full px-2 py-0.5"
-                      style={{ 
-                        backgroundColor: '#FFD200',
-                        fontFamily: 'Helvetica, Arial, sans-serif',
-                        fontSize: '10px',
-                        fontWeight: 600,
-                        color: '#000000',
-                        textTransform: 'uppercase'
-                      }}
-                    >
-                      Coming Soon
-                    </span>
-                  )}
                 </div>
               );
             })}
@@ -2745,6 +2905,12 @@ export default function Settings() {
       return renderSubView();
     } else if (selectedGroup) {
       return renderSubView();
+    } else if (busAgency === 'njt' && selectedNjbRoute && selectedNjbDirection) {
+      return renderNjbStopsView();
+    } else if (busAgency === 'njt' && selectedNjbRoute) {
+      return renderNjbDirectionView();
+    } else if (busAgency === 'njt') {
+      return renderNjbRoutesView();
     } else if (selectedBusRoute && selectedBusDirection) {
       // Show stops for the selected direction
       return renderBusStopsView();
@@ -2753,6 +2919,8 @@ export default function Settings() {
       return renderBusDirectionView();
     } else if (selectedBusBorough === 'select') {
       return renderBusBoroughView();
+    } else if (busAgency === 'select') {
+      return renderBusAgencyView();
     } else if (selectedBusBorough) {
       return renderBusRoutesView();
     } else {
@@ -2768,7 +2936,7 @@ export default function Settings() {
           style={{ width: '800px', height: '480px', padding: '15px 20px' }}
           data-testid="settings-main"
         >
-          {(selectedGroup || selectedLine || selectedRegionalService || selectedBusBorough || selectedBusRoute) && (
+          {(selectedGroup || selectedLine || selectedRegionalService || selectedBusBorough || selectedBusRoute || busAgency) && (
             <div className="absolute top-[5px] left-[5px] z-30">
               <button 
                 onClick={handleBack}
@@ -2819,14 +2987,16 @@ export default function Settings() {
           </div>
 
           <div className="absolute bottom-[-2px] right-[5px]">
-            {selectedDirection !== null && selectedRow !== null && (selectedLine || selectedBusRoute) ? (
+            {selectedDirection !== null && selectedRow !== null && (selectedLine || selectedBusRoute || selectedNjbRoute) ? (
               <Link 
                 href="/" 
                 className="block p-4" 
                 data-testid="link-save"
                 onClick={() => {
                   // Use selectedBusRoute as line for bus, otherwise use selectedLine
-                  const lineToSave = selectedBusRoute || selectedLine;
+                  const lineToSave = selectedNjbRoute ? `NJB-${selectedNjbRoute.route}` : (selectedBusRoute || selectedLine);
+                  // NJ bus rows stash the stop NAME in the direction field (shown as the card subtitle)
+                  const directionToSave = selectedNjbRoute ? (selectedNjbStopName || 'NJ Transit') : selectedDirection;
                   if (selectedStop && selectedDirection && lineToSave && selectedRow) {
                     console.log(`Saving Row ${selectedRow} ${selectedDirection}:`, selectedStop, 'Line:', lineToSave);
                     if (selectedRow === 1) {
@@ -2841,7 +3011,7 @@ export default function Settings() {
                     savePreferenceMutation.mutate({
                       row: selectedRow,
                       stop: selectedStop,
-                      direction: selectedDirection,
+                      direction: directionToSave as any,
                       line: lineToSave,
                     });
                   }
