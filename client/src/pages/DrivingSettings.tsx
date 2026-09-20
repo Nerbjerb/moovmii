@@ -12,6 +12,7 @@ import {
   deleteDrivingLocation,
   newLocationId,
 } from "@/lib/drivingLocations";
+import { pressFlash } from "@/lib/pressFlash";
 
 const font = { fontFamily: "Helvetica, Arial, sans-serif" };
 
@@ -240,10 +241,10 @@ export default function DrivingSettings() {
 
   const Key = ({ label, wide, yellow, onPress }: { label: string; wide?: boolean; yellow?: boolean; onPress: () => void }) => (
     <button
-      onPointerDown={(e) => { e.preventDefault(); onPress(); }}
+      onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); onPress(); }}
       style={{
         width: wide ? KWide : KW, height: KH,
-        backgroundColor: yellow ? "#FFD200" : wide ? "#484848" : "#2D2C31",
+        backgroundColor: yellow ? "#4ade80" : wide ? "#484848" : "#2D2C31",
         borderRadius: 5, border: "none", cursor: "pointer",
         color: yellow ? "#000" : "#fff", fontSize: 13, fontWeight: 600,
         fontFamily: "Helvetica, Arial, sans-serif", flexShrink: 0,
@@ -344,7 +345,7 @@ export default function DrivingSettings() {
                   <div style={{ position: "absolute", top: "140px", left: "20px", right: "20px", bottom: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px" }}>
                     {locations.map((loc) => (
                       <div key={loc.id} style={{ minHeight: "48px", backgroundColor: "#2D2C31", borderRadius: "8px", display: "flex", alignItems: "center", padding: "0 14px", gap: "12px", flexShrink: 0 }}>
-                        <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#FFD200" }} />
+                        <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#4ade80" }} />
                         <button onClick={() => handleRenameLocation(loc)} style={{ flex: 1, minWidth: 0, background: "none", border: "none", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: "1px", padding: 0 }}>
                           <span style={{ ...font, fontSize: "14px", fontWeight: 700, color: "#ffffff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {loc.name === loc.address ? "Tap to name this place" : loc.name}
@@ -366,14 +367,14 @@ export default function DrivingSettings() {
             <>
               {/* Search/entry bar */}
               <div style={{ position: "absolute", top: "62px", left: "20px", right: "20px", height: "44px", backgroundColor: "#2D2C31", borderRadius: "8px", display: "flex", alignItems: "center", padding: "0 14px", gap: "10px" }}>
-                <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: view === "nickname" ? "#FFD200" : "#4ade80" }} />
+                <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#4ade80" }} />
                 <span style={{ ...font, fontSize: "15px", color: query ? "#fff" : "#555", flex: 1, overflow: "hidden", whiteSpace: "nowrap" }}>
                   {!query && <span className="search-cursor" />}
                   {query || (view === "nickname" ? "Nickname (e.g. Home, Work)..." : "Street address...")}
                   {query && <span className="search-cursor" />}
                 </span>
                 {query && (
-                  <button onPointerDown={(e) => { e.preventDefault(); setQuery(""); setSuggestions([]); }} style={{ color: "#666", fontSize: "20px", lineHeight: 1, border: "none", background: "none", cursor: "pointer" }}>×</button>
+                  <button onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); setQuery(""); setSuggestions([]); }} style={{ color: "#666", fontSize: "20px", lineHeight: 1, border: "none", background: "none", cursor: "pointer" }}>×</button>
                 )}
               </div>
 
@@ -381,8 +382,8 @@ export default function DrivingSettings() {
               {view === "nickname" && (
                 <div style={{ position: "absolute", top: "114px", left: "20px", right: "20px", display: "flex", gap: "7px", flexWrap: "wrap" }}>
                   {NICKNAME_PRESETS.map((preset) => (
-                    <button key={preset} onPointerDown={(e) => { e.preventDefault(); setQuery(preset); }}
-                      style={{ height: "32px", backgroundColor: query === preset ? "#FFD200" : "#2D2C31", borderRadius: "16px", border: "none", cursor: "pointer", padding: "0 16px" }}>
+                    <button key={preset} onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); setQuery(preset); }}
+                      style={{ height: "32px", backgroundColor: query === preset ? "#4ade80" : "#2D2C31", borderRadius: "16px", border: "none", cursor: "pointer", padding: "0 16px" }}>
                       <span style={{ ...font, fontSize: "13px", fontWeight: 600, color: query === preset ? "#000" : "#fff" }}>{preset}</span>
                     </button>
                   ))}
@@ -393,7 +394,7 @@ export default function DrivingSettings() {
               {view === "address" && suggestions.length > 0 && (
                 <div style={{ position: "absolute", top: "112px", left: "20px", right: "20px", zIndex: 20, display: "flex", flexDirection: "column", gap: "3px" }}>
                   {suggestions.map((s, i) => (
-                    <button key={i} onPointerDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
+                    <button key={i} onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); handleSelectSuggestion(s); }}
                       style={{ height: "36px", backgroundColor: "#3a3a3a", borderRadius: "6px", border: "none", cursor: "pointer", padding: "0 14px", textAlign: "left", display: "flex", alignItems: "center", gap: "8px" }}>
                       <Search className="w-3 h-3 flex-shrink-0" style={{ color: "#888" }} />
                       <span style={{ ...font, fontSize: "13px", color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s}</span>
@@ -419,8 +420,8 @@ export default function DrivingSettings() {
                     </div>
                     <div style={{ display: "flex", gap: KG }}>
                       <Key label="123" wide onPress={() => handleKey("123")} />
-                      <button onPointerDown={(e) => { e.preventDefault(); handleKey("SPACE"); }} style={{ flex: 1, height: KH, backgroundColor: "#2D2C31", borderRadius: 5, border: "none", cursor: "pointer", color: "#888", fontSize: 13, fontFamily: "Helvetica, Arial, sans-serif" }}>space</button>
-                      <button onPointerDown={(e) => { e.preventDefault(); handleNext(query); }} disabled={!query.trim()} style={{ width: KWide, height: KH, backgroundColor: query.trim() ? "#4ade80" : "#1a1a1a", borderRadius: 5, border: "none", cursor: query.trim() ? "pointer" : "default", color: query.trim() ? "#000" : "#333", fontSize: 13, fontWeight: 700, fontFamily: "Helvetica, Arial, sans-serif" }}>
+                      <button onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); handleKey("SPACE"); }} style={{ flex: 1, height: KH, backgroundColor: "#2D2C31", borderRadius: 5, border: "none", cursor: "pointer", color: "#888", fontSize: 13, fontFamily: "Helvetica, Arial, sans-serif" }}>space</button>
+                      <button onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); handleNext(query); }} disabled={!query.trim()} style={{ width: KWide, height: KH, backgroundColor: query.trim() ? "#4ade80" : "#1a1a1a", borderRadius: 5, border: "none", cursor: query.trim() ? "pointer" : "default", color: query.trim() ? "#000" : "#333", fontSize: 13, fontWeight: 700, fontFamily: "Helvetica, Arial, sans-serif" }}>
                         {view === "address" ? "Next" : editingLocId ? "Save" : "Done"}
                       </button>
                     </div>
@@ -435,9 +436,9 @@ export default function DrivingSettings() {
                     </div>
                     <div style={{ display: "flex", gap: KG, justifyContent: "center" }}>
                       <Key label="ABC" wide onPress={() => handleKey("ABC")} />
-                      <button onPointerDown={(e) => { e.preventDefault(); handleKey("SPACE"); }} style={{ flex: 1, height: KH, backgroundColor: "#2D2C31", borderRadius: 5, border: "none", cursor: "pointer", color: "#888", fontSize: 13, fontFamily: "Helvetica, Arial, sans-serif" }}>space</button>
+                      <button onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); handleKey("SPACE"); }} style={{ flex: 1, height: KH, backgroundColor: "#2D2C31", borderRadius: 5, border: "none", cursor: "pointer", color: "#888", fontSize: 13, fontFamily: "Helvetica, Arial, sans-serif" }}>space</button>
                       <Key label="⌫" wide onPress={() => handleKey("⌫")} />
-                      <button onPointerDown={(e) => { e.preventDefault(); handleNext(query); }} disabled={!query.trim()} style={{ width: KWide, height: KH, backgroundColor: query.trim() ? "#4ade80" : "#1a1a1a", borderRadius: 5, border: "none", cursor: query.trim() ? "pointer" : "default", color: query.trim() ? "#000" : "#333", fontSize: 13, fontWeight: 700, fontFamily: "Helvetica, Arial, sans-serif" }}>
+                      <button onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); handleNext(query); }} disabled={!query.trim()} style={{ width: KWide, height: KH, backgroundColor: query.trim() ? "#4ade80" : "#1a1a1a", borderRadius: 5, border: "none", cursor: query.trim() ? "pointer" : "default", color: query.trim() ? "#000" : "#333", fontSize: 13, fontWeight: 700, fontFamily: "Helvetica, Arial, sans-serif" }}>
                         {view === "address" ? "Next" : editingLocId ? "Save" : "Done"}
                       </button>
                     </div>

@@ -25,7 +25,7 @@ function EditOverlay({ label, borderRadius = "12px", style }: { label: string; b
   return (
     <div
       className="absolute inset-0 flex items-center justify-center pointer-events-none"
-      style={{ backgroundColor: "rgba(0, 0, 0, 0.55)", borderRadius, zIndex: 50, ...style }}
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.7)", borderRadius, zIndex: 50, ...style }}
     >
       <span style={{ fontFamily: "Helvetica, Arial, sans-serif", fontSize: "16px", fontWeight: 700, color: "#ffffff" }}>
         {label}
@@ -166,6 +166,20 @@ export default function Kiosk() {
       arrivalMinutes: filtered.map(f => f.mins),
       arrivalLines: filtered.map(f => f.line),
     };
+  };
+
+  // Pad every row to 3 arrival cards; the 99 sentinel renders as a dash in
+  // TrackCard (same convention buses already use), keeping layouts uniform
+  // when a mode's feed offers fewer than 3 upcoming arrivals (PATH, ferry...)
+  const padArrivals = (arrival: SubwayArrival): SubwayArrival => {
+    const mins = [...arrival.arrivalMinutes];
+    const lines = [...arrival.arrivalLines];
+    const fallbackLine = lines[lines.length - 1] || arrival.line;
+    while (mins.length < 3) {
+      mins.push(99);
+      lines.push(fallbackLine);
+    }
+    return { ...arrival, arrivalMinutes: mins, arrivalLines: lines };
   };
 
   // Get preferences for each row
@@ -539,10 +553,10 @@ export default function Kiosk() {
     arrivalLines: [],
   });
   const subwayData: SubwayArrival[] = [
-    applyCommuteFilter(row1Arrivals || fallback(row1Pref, "N")),
-    applyCommuteFilter(row2Arrivals || fallback(row2Pref, "W")),
-    ...(transportRows >= 3 ? [applyCommuteFilter(row3Arrivals || fallback(row3Pref, "N"))] : []),
-    ...(transportRows >= 4 ? [applyCommuteFilter(row4Arrivals || fallback(row4Pref, "W"))] : []),
+    padArrivals(applyCommuteFilter(row1Arrivals || fallback(row1Pref, "N"))),
+    padArrivals(applyCommuteFilter(row2Arrivals || fallback(row2Pref, "W"))),
+    ...(transportRows >= 3 ? [padArrivals(applyCommuteFilter(row3Arrivals || fallback(row3Pref, "N")))] : []),
+    ...(transportRows >= 4 ? [padArrivals(applyCommuteFilter(row4Arrivals || fallback(row4Pref, "W")))] : []),
   ];
 
   // Heights account for the station label rendered above each card

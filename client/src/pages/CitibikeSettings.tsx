@@ -6,6 +6,7 @@ import { queryClient } from "@/lib/queryClient";
 import { getDeviceId } from "@/lib/deviceId";
 import { savePreference, getPreferences } from "@/lib/localStorageDB";
 import type { CitibikeStation, CitibikeSlot } from "@/components/CitibikeDockRow";
+import { pressFlash } from "@/lib/pressFlash";
 
 const font = { fontFamily: "Helvetica, Arial, sans-serif" };
 
@@ -164,7 +165,7 @@ export default function CitibikeSettings() {
 
   const Key = ({ label, wide, yellow, onPress }: { label: string; wide?: boolean; yellow?: boolean; onPress: () => void }) => (
     <button
-      onPointerDown={(e) => { e.preventDefault(); onPress(); }}
+      onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); onPress(); }}
       style={{
         width: wide ? KWide : KW,
         height: KH,
@@ -283,7 +284,7 @@ export default function CitibikeSettings() {
                   {searchQuery && <span className="search-cursor" />}
                 </span>
                 {searchQuery.length > 0 && (
-                  <button onPointerDown={(e) => { e.preventDefault(); setSearchQuery(""); }} style={{ color: "#666", fontSize: "20px", lineHeight: 1, border: "none", background: "none", cursor: "pointer" }}>×</button>
+                  <button onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); setSearchQuery(""); }} style={{ color: "#666", fontSize: "20px", lineHeight: 1, border: "none", background: "none", cursor: "pointer" }}>×</button>
                 )}
               </div>
 
@@ -325,7 +326,7 @@ export default function CitibikeSettings() {
                     <div style={{ display: "flex", gap: KG }}>
                       <Key label="123" wide onPress={() => handleKey("123")} />
                       <button
-                        onPointerDown={(e) => { e.preventDefault(); handleKey("SPACE"); }}
+                        onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); handleKey("SPACE"); }}
                         style={{ flex: 1, height: KH, backgroundColor: "#2D2C31", borderRadius: 5, border: "none", cursor: "pointer", color: "#888", fontSize: 13, fontFamily: "Helvetica, Arial, sans-serif" }}
                       >
                         space
@@ -344,7 +345,7 @@ export default function CitibikeSettings() {
                     <div style={{ display: "flex", gap: KG, justifyContent: "center" }}>
                       <Key label="ABC" wide onPress={() => handleKey("ABC")} />
                       <button
-                        onPointerDown={(e) => { e.preventDefault(); handleKey("SPACE"); }}
+                        onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); handleKey("SPACE"); }}
                         style={{ flex: 1, height: KH, backgroundColor: "#2D2C31", borderRadius: 5, border: "none", cursor: "pointer", color: "#888", fontSize: 13, fontFamily: "Helvetica, Arial, sans-serif" }}
                       >
                         space
