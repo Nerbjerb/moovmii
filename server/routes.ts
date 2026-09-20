@@ -281,9 +281,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect(302, `https://github.com/Nerbjerb/moovmii/releases/latest/download/${encodeURIComponent(req.params.file)}`);
   });
 
-  // Bare /downloads: send to the release page listing all APKs
+  // Bare /downloads: a zero-JS listing page — must render on the ancient
+  // stock browsers of the tablets being provisioned (GitHub's release page won't)
   app.get(["/downloads", "/download"], (_req, res) => {
-    res.redirect(302, "https://github.com/Nerbjerb/moovmii/releases/latest");
+    res.type("html").send(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>moovmii Downloads</title>
+<style>body{font-family:Helvetica,Arial,sans-serif;background:#0b0b0b;color:#fff;margin:0;padding:32px}
+h1{font-size:22px}a{display:block;background:#2D2C31;color:#FFD200;text-decoration:none;padding:16px;border-radius:8px;margin:10px 0;font-size:16px}
+p{color:#888;font-size:13px}</style></head>
+<body><h1>moovmii Kiosk Downloads</h1>
+<a href="/downloads/app-armeabi-v7a-debug.apk">Kiosk shell &mdash; 32-bit ARM (armeabi-v7a)</a>
+<a href="/downloads/app-arm64-v8a-debug.apk">Kiosk shell &mdash; 64-bit ARM (arm64-v8a)</a>
+<p>Not sure which? Batch 1 tablets use the 32-bit ARM version. If install fails with a parse error, try the other.</p>
+</body></html>`);
   });
 
   // Preferences API - Get all preferences for a kiosk
