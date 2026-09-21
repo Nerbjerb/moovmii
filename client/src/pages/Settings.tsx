@@ -2821,9 +2821,10 @@ export default function Settings() {
                                   {(settings?.transportRows ?? 2) >= 3 && (
                                     <button
                                       onClick={() => setSelectedRow(3)}
-                                      className="flex-1 rounded-[6px] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
+                                      className="rounded-[6px] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
                                       style={{
-                                        height: '44px',
+                                        width: '70px',
+                                        height: '26px',
                                         backgroundColor: selectedRow === 3 ? '#FFFFFF' : '#2D2C31'
                                       }}
                                     >
@@ -2831,7 +2832,7 @@ export default function Settings() {
                                         className="font-medium"
                                         style={{
                                           fontFamily: 'Helvetica, Arial, sans-serif',
-                                          fontSize: '16px',
+                                          fontSize: '11px',
                                           color: selectedRow === 3 ? '#000000' : '#FFFFFF'
                                         }}
                                       >
@@ -2842,9 +2843,10 @@ export default function Settings() {
                                   {(settings?.transportRows ?? 2) >= 4 && (
                                     <button
                                       onClick={() => setSelectedRow(4)}
-                                      className="flex-1 rounded-[6px] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
+                                      className="rounded-[6px] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
                                       style={{
-                                        height: '44px',
+                                        width: '70px',
+                                        height: '26px',
                                         backgroundColor: selectedRow === 4 ? '#FFFFFF' : '#2D2C31'
                                       }}
                                     >
@@ -2852,7 +2854,7 @@ export default function Settings() {
                                         className="font-medium"
                                         style={{
                                           fontFamily: 'Helvetica, Arial, sans-serif',
-                                          fontSize: '16px',
+                                          fontSize: '11px',
                                           color: selectedRow === 4 ? '#000000' : '#FFFFFF'
                                         }}
                                       >

@@ -676,7 +676,7 @@ export default function Kiosk() {
                 onPointerMove={onRowPointerMove(idx)}
                 onPointerUp={onRowPointerUp(idx)}
                 onPointerCancel={onRowPointerUp(idx)}
-                style={{ display: 'flex', flexDirection: 'column', gap: '3px', height: `${labelHeight + 3 + rowHeight}px`, marginLeft: idx === 2 ? '250px' : '0', touchAction: 'pan-y', ...rowDragStyle(idx) }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '3px', height: `${labelHeight + 3 + rowHeight}px`, touchAction: 'pan-y', ...rowDragStyle(idx) }}
               >
                 {stationLabel && !isDrivingRow && (
                   <div style={{ display: 'flex', alignItems: 'center', height: `${labelHeight}px` }}>

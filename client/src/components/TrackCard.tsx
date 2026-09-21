@@ -178,6 +178,7 @@ export default function TrackCard({
   const [isExpanded, setIsExpanded] = useState(false);
   const iconSrc = lineIcons[line];
   const cardHeight = rowHeight ?? 115;
+  const hs = Math.min(1, cardHeight / 92); // text scale for shorter cards
   const iconSize = Math.round(cardHeight * 96 / 115);
   const iconTop = Math.round(cardHeight * 18 / 115);
   const [firstArrival, secondArrival, thirdArrival] = arrivalMinutes;
@@ -203,7 +204,7 @@ export default function TrackCard({
       while (el.scrollWidth > 270 && size > 9) { size -= 0.5; el.style.fontSize = `${size}px`; }
       return size;
     };
-    const shared = Math.min(shrinkToFit(destEl, 35), shrinkToFit(subEl, 20));
+    const shared = Math.min(shrinkToFit(destEl, Math.round(35 * hs)), shrinkToFit(subEl, Math.round(20 * hs)));
     destEl.style.fontSize = `${shared}px`;
     subEl.style.fontSize = `${shared}px`;
   }, [destination, subtitle, line]);
@@ -390,6 +391,7 @@ export default function TrackCard({
   // PATH: To NY (Uptown), To NJ (Downtown)
   // Buses: Show empty direction (headsign shown in destination)
   const getDisplayDirection = () => {
+    if (line.startsWith('NJB-')) return 'Bus';
     if (isBusLine(line)) {
       // For buses, show the destination in proper case (e.g., "Astoria", "Sunnyside")
       return busDestination || 'Bus';
@@ -443,7 +445,7 @@ export default function TrackCard({
     return { fontSize: `${baseSize}px` };
   };
   
-  const getSubtitleTop = () => '58px';
+  const getSubtitleTop = () => `${Math.round(58 * hs)}px`;
   
   // Canonical direction labels that should never wrap - show on single line
   const CANONICAL_DIRECTIONS = ['Downtown', 'Uptown', 'Inbound', 'Outbound', 'To NY', 'To NJ'];
@@ -689,13 +691,13 @@ export default function TrackCard({
 
         {/* Destination - absolute positioned (hidden when expanded) */}
         {!isExpanded && (
-          <div className="absolute" style={{ left: '130px', top: '18px', lineHeight: '1.1' }}>
+          <div className="absolute" style={{ left: '130px', top: `${Math.round(18 * hs)}px`, lineHeight: '1.1' }}>
             {isBusLine(line) ? (
-              <div ref={busDestRef} className="font-bold text-white" style={{ fontSize: '35px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <div ref={busDestRef} className="font-bold text-white" style={{ fontSize: `${Math.round(35 * hs)}px`, whiteSpace: 'nowrap', overflow: 'hidden' }}>
                 {`To: ${busDestination}`}
               </div>
             ) : (
-              <ShrinkText text={displayDestination} maxWidth={270} fontSize={35} className="font-bold text-white" />
+              <ShrinkText text={displayDestination} maxWidth={270} fontSize={Math.round(35 * hs)} className="font-bold text-white" />
             )}
           </div>
         )}
@@ -704,11 +706,11 @@ export default function TrackCard({
         {!isExpanded && (
           <div className="absolute" style={{ left: '130px', top: getSubtitleTop(), lineHeight: '1.2' }}>
             {isBusLine(line) ? (
-              <div ref={busSubRef} className="text-white" style={{ fontSize: '20px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <div ref={busSubRef} className="text-white" style={{ fontSize: `${Math.round(20 * hs)}px`, whiteSpace: 'nowrap', overflow: 'hidden' }}>
                 {`Stop: ${shortenSelectBus(toProperCase(subtitle))}`}
               </div>
             ) : (
-              <ShrinkText text={subtitle} maxWidth={270} fontSize={20} className="text-white" />
+              <ShrinkText text={subtitle} maxWidth={270} fontSize={Math.round(20 * hs)} className="text-white" />
             )}
           </div>
         )}
@@ -717,12 +719,12 @@ export default function TrackCard({
         {!isExpanded && (
           <div 
             className="absolute w-[140px] text-center flex flex-col" 
-            style={{ right: '4px', top: '18px', transform: 'translateY(-10px)' }}
+            style={{ right: '4px', top: `${Math.round(18 * hs)}px`, transform: `translateY(${Math.round(-10 - (1 - hs) * 15)}px)` }}
           >
-            <div className="font-bold leading-[0.8] text-white" style={{ fontSize: rowHeight ? '64px' : '85px' }}>
+            <div className="font-bold leading-[0.8] text-white" style={{ fontSize: rowHeight ? `${Math.round(64 * hs)}px` : '85px' }}>
               {firstArrivalData.value}
             </div>
-            <div className="text-xl mt-1 text-white">{firstArrivalData.unit}</div>
+            <div className="text-white" style={{ fontSize: `${Math.round(20 * hs)}px`, marginTop: `${Math.round(4 * hs)}px` }}>{firstArrivalData.unit}</div>
           </div>
         )}
 
@@ -848,7 +850,7 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{secondLine}</span>
               )}
             </div>
-            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(23px, -25px)' }}>
+            <div className="font-medium text-white" style={{ fontSize: `${Math.round(50 * hs)}px`, transform: `translate(23px, ${Math.round(-25 * hs)}px)` }}>
               {secondArrivalData.value}
             </div>
             <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(23px, -25px)' }}>{secondArrivalData.unit}</div>
@@ -939,7 +941,7 @@ export default function TrackCard({
                 <span className="text-sm font-bold text-primary-foreground">{thirdLine}</span>
               )}
             </div>
-            <div className="text-[50px] font-medium text-white" style={{ transform: 'translate(23px, -25px)' }}>
+            <div className="font-medium text-white" style={{ fontSize: `${Math.round(50 * hs)}px`, transform: `translate(23px, ${Math.round(-25 * hs)}px)` }}>
               {thirdArrivalData.value}
             </div>
             <div className="text-xs -mt-1 text-white" style={{ transform: 'translate(23px, -25px)' }}>{thirdArrivalData.unit}</div>
