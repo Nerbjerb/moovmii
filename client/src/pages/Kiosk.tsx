@@ -86,10 +86,10 @@ export default function Kiosk() {
     setIsDimmed(false);
   };
 
-  // Auto-update: kiosks run this page indefinitely, so poll for new deploys.
-  // Every 10 min, re-fetch index.html and compare its hashed bundle filename
-  // against the one this page loaded with; on mismatch, reload to pick up the
-  // new build. No-op in dev (no hashed bundle) and deferred during edit mode.
+  // Auto-update: kiosks run this page indefinitely, so poll /api/version every
+  // minute and reload when the served bundle changes (a deploy) or the server's
+  // FORCE_RELOAD epoch changes (manual fleet-wide refresh from the Render
+  // dashboard). No-op in dev (no hashed bundle); deferred during edit mode.
   const editModeRef = useRef(isEditMode);
   editModeRef.current = isEditMode;
   useEffect(() => {
@@ -97,18 +97,18 @@ export default function Kiosk() {
       .querySelector('script[type="module"][src*="assets/index"]')
       ?.getAttribute("src");
     if (!currentBundle) return;
+    let baselineEpoch: string | null = null;
     const id = setInterval(async () => {
       if (editModeRef.current) return; // don't reload mid-interaction; retry next tick
       try {
-        const res = await fetch(`/?update-check=${Date.now()}`, { cache: "no-store" });
+        const res = await fetch(`/api/version?t=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) return;
-        const html = await res.text();
-        const latest = html.match(/\/assets\/index-[^"]+\.js/)?.[0];
-        if (latest && !currentBundle.endsWith(latest)) {
-          window.location.reload();
-        }
+        const v = (await res.json()) as { bundle?: string; epoch?: string };
+        if (baselineEpoch === null) baselineEpoch = v.epoch ?? "";
+        else if ((v.epoch ?? "") !== baselineEpoch) return window.location.reload();
+        if (v.bundle && !currentBundle.endsWith(v.bundle)) window.location.reload();
       } catch {} // offline or server mid-deploy — try again next tick
-    }, 10 * 60 * 1000);
+    }, 60 * 1000);
     return () => clearInterval(id);
   }, []);
   const [, setLocation] = useLocation();

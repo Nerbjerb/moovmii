@@ -72,7 +72,8 @@ export default function CitibikeDockRow({ slots, stations, rowHeight, labelHeigh
   const renderCard = (slot: CitibikeSlot | null, index: number) => {
     const station = slot ? stationMap[slot.id] : null;
     const ebikes = station?.ebikes_available ?? 0;
-    const bikes = station?.bikes_available ?? 0;
+    // GBFS num_bikes_available INCLUDES e-bikes; show classic bikes like the official app
+    const bikes = Math.max(0, (station?.bikes_available ?? 0) - ebikes);
     const docks = station?.docks_available ?? 0;
     const name = slot?.name ?? "";
     const isEmpty = !slot;

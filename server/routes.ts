@@ -274,6 +274,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Version endpoint for the kiosk auto-updater: devices poll this every
+  // minute and reload when the served bundle changes (a deploy) or when the
+  // FORCE_RELOAD env var is changed in Render (a manual fleet-wide refresh)
+  let servedBundle = "";
+  try {
+    const fs = await import("fs");
+    const path = await import("path");
+    const idx = fs.readFileSync(path.resolve(import.meta.dirname, "public", "index.html"), "utf-8");
+    servedBundle = idx.match(/\/assets\/index-[^"]+\.js/)?.[0] ?? "";
+  } catch {} // dev mode has no built index.html
+  app.get("/api/version", (_req, res) => {
+    res.json({ bundle: servedBundle, epoch: process.env.FORCE_RELOAD || "" });
+  });
+
   // APK downloads: redirect to GitHub Release assets — the shell APKs are too
   // large for the git repo (>100MB), so releases host the binaries and this
   // route keeps a stable app.moovmii.com/downloads/... URL for tablets/QR provisioning
@@ -1409,8 +1423,8 @@ p{color:#888;font-size:13px}</style></head>
       }
 
       const [infoRes, statusRes] = await Promise.all([
-        fetch("https://gbfs.citibikenyc.com/gbfs/en/station_information.json"),
-        fetch("https://gbfs.citibikenyc.com/gbfs/en/station_status.json"),
+        fetch("https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_information.json"),
+        fetch("https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_status.json"),
       ]);
 
       if (!infoRes.ok || !statusRes.ok) {

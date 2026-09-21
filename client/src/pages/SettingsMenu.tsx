@@ -28,6 +28,32 @@ export default function SettingsMenu() {
   const deviceId = getDeviceId();
 
   const [view, setView] = useState<View>("home");
+  const [syncState, setSyncState] = useState<"idle" | "checking" | "current" | "updating">("idle");
+
+  // User-triggered update check: reload onto the new build if the server is
+  // serving one, otherwise reassure that this device is already current
+  const handleSync = async () => {
+    if (syncState !== "idle") return;
+    setSyncState("checking");
+    try {
+      const currentBundle = document.querySelector('script[type="module"][src*="assets/index"]')?.getAttribute("src") || "";
+      const res = await fetch(`/api/version?t=${Date.now()}`, { cache: "no-store" });
+      const v = (await res.json()) as { bundle?: string };
+      if (v.bundle && currentBundle && !currentBundle.endsWith(v.bundle)) {
+        setSyncState("updating");
+        setTimeout(() => window.location.reload(), 400);
+        return;
+      }
+    } catch {}
+    setSyncState("current");
+    setTimeout(() => setSyncState("idle"), 2500);
+  };
+
+  const syncLabel =
+    syncState === "checking" ? "Checking..." :
+    syncState === "current" ? "You're up to date" :
+    syncState === "updating" ? "Updating..." :
+    "Sync For Latest Updates";
   const [transportRows, setTransportRows] = useState<2 | 3 | 4>(2);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedResolution, setSelectedResolution] = useState(() => localStorage.getItem("kioskResolution") || "800x480");
@@ -178,6 +204,14 @@ export default function SettingsMenu() {
                 style={{ height: "64px", backgroundColor: "#2D2C31", padding: "0 24px" }}
               >
                 <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: "#ffffff" }}>Weather Settings</span>
+              </button>
+              <button
+                onClick={handleSync}
+                className="flex items-center gap-4 rounded-[8px] hover:opacity-80 transition-opacity"
+                style={{ height: "64px", backgroundColor: "#2D2C31", padding: "0 24px" }}
+                data-testid="button-sync-updates"
+              >
+                <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: syncState === "current" ? "#4ade80" : "#ffffff" }}>{syncLabel}</span>
               </button>
             </div>
           )}
