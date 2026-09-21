@@ -26,7 +26,12 @@ import android.widget.TextView
  * MainActivity swaps this view out for the GeckoView the moment the network
  * validates, so "connecting" only needs to wait or time out.
  */
-class WifiSetupView(context: Context, private val wifi: WifiController) : FrameLayout(context) {
+class WifiSetupView(
+    context: Context,
+    private val wifi: WifiController,
+    private val hasLocationPermission: () -> Boolean,
+    private val requestLocationPermission: () -> Unit,
+) : FrameLayout(context) {
 
     private val handler = Handler(Looper.getMainLooper())
     private var selected: WifiNetwork? = null
@@ -184,7 +189,41 @@ class WifiSetupView(context: Context, private val wifi: WifiController) : FrameL
     private fun refreshNetworks() {
         if (listScreen.visibility != VISIBLE) return
         networkList.removeAllViews()
-        for (network in wifi.scanNetworks()) {
+        val networks = wifi.scanNetworks()
+        if (networks.isEmpty()) {
+            if (!hasLocationPermission()) {
+                // Android gates WiFi scanning behind the Location permission —
+                // explain it in our own words before the system popup
+                networkList.addView(
+                    text(13f, Color.parseColor("#888888"), value = "moovmii uses Location permission to find nearby WiFi networks").apply {
+                        gravity = Gravity.CENTER_HORIZONTAL
+                    },
+                    LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(28) }
+                )
+                networkList.addView(
+                    Button(context).apply {
+                        text = "Allow"
+                        isAllCaps = false
+                        textSize = 15f
+                        typeface = Typeface.DEFAULT_BOLD
+                        setTextColor(Color.BLACK)
+                        background = rounded(Color.WHITE, 8)
+                        setPadding(dp(28), dp(10), dp(28), dp(10))
+                        setOnClickListener { requestLocationPermission() }
+                    },
+                    lpWrap().apply { gravity = Gravity.CENTER_HORIZONTAL; topMargin = dp(14) }
+                )
+            } else {
+                networkList.addView(
+                    text(13f, Color.parseColor("#666666"), value = "Scanning for networks...").apply {
+                        gravity = Gravity.CENTER_HORIZONTAL
+                    },
+                    LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(28) }
+                )
+            }
+            return
+        }
+        for (network in networks) {
             networkList.addView(networkRow(network),
                 LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(58)).apply { bottomMargin = dp(8) })
         }

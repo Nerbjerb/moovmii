@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -35,6 +36,23 @@ class MainActivity : Activity() {
     companion object {
         // GeckoRuntime must be created exactly once per process
         private var geckoRuntime: GeckoRuntime? = null
+        private const val REQ_LOCATION = 1001
+    }
+
+    // WiFi scanning requires the Location permission. Device Owner installs
+    // self-grant it; plain installs (the beta units) ask the user once.
+    private fun hasLocationPermission(): Boolean =
+        checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+    private fun requestLocationPermission() {
+        requestPermissions(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), REQ_LOCATION)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_LOCATION && wifiSetupView.visibility == View.VISIBLE) {
+            wifiSetupView.startScanning()
+        }
     }
 
     private lateinit var geckoView: GeckoView
@@ -77,7 +95,7 @@ class MainActivity : Activity() {
         geckoView = GeckoView(this)
         geckoView.setSession(session)
 
-        wifiSetupView = WifiSetupView(this, WifiController(this))
+        wifiSetupView = WifiSetupView(this, WifiController(this), ::hasLocationPermission, ::requestLocationPermission)
 
         val root = FrameLayout(this)
         root.addView(geckoView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
@@ -85,6 +103,9 @@ class MainActivity : Activity() {
         setContentView(root)
 
         if (isOnline()) showApp() else showWifiSetup()
+
+        // Ask once on first launch so the WiFi list works whenever it's needed
+        if (!hasLocationPermission()) requestLocationPermission()
     }
 
     override fun onResume() {
