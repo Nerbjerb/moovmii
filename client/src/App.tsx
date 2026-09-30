@@ -18,6 +18,7 @@ import FerrySettings from "@/pages/FerrySettings";
 import DrivingSettings from "@/pages/DrivingSettings";
 import CitibikeSettings from "@/pages/CitibikeSettings";
 import CitibikePreferences from "@/pages/CitibikePreferences";
+import Onboarding from "@/pages/Onboarding";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/driving-settings" component={DrivingSettings} />
       <Route path="/citibike-settings" component={CitibikeSettings} />
       <Route path="/citibike-preferences" component={CitibikePreferences} />
+      <Route path="/onboarding" component={Onboarding} />
     </Switch>
   );
 }

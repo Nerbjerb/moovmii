@@ -13,6 +13,8 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -60,20 +62,53 @@ class MainActivity : Activity() {
     private lateinit var wifiSetupView: WifiSetupView
     private var showingApp = false
     private var appLoaded = false
+    private var appEverLoaded = false // true once the web app has loaded successfully at least once
+
+    private val handler = Handler(Looper.getMainLooper())
 
     private val dpm by lazy { getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager }
     private val adminComponent by lazy { ComponentName(this, KioskDeviceAdminReceiver::class.java) }
     private val connectivityManager by lazy { getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        // Do NOT gate on NET_CAPABILITY_VALIDATED: on Android 7 that validation
+        // (a background check to a Google endpoint) can silently never complete
+        // on a perfectly working network, stranding the unit on the WiFi screen.
+        // Any network claiming INTERNET is worth an attempt — the real test is
+        // whether the web app actually loads (see the ProgressDelegate below).
         override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
-            if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
-                runOnUiThread { showApp() }
+            if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                runOnUiThread { attemptShowApp() }
             }
         }
 
         override fun onLost(network: Network) {
-            runOnUiThread { showWifiSetup() }
+            runOnUiThread { if (!hasNetwork()) showWifiSetup() }
+        }
+    }
+
+    // While on the WiFi screen, keep retrying so a late-arriving or slow-to-
+    // validate connection is picked up without any user action.
+    private val retryRunnable = object : Runnable {
+        override fun run() {
+            if (!showingApp && hasNetwork()) attemptShowApp()
+            handler.postDelayed(this, 8000)
+        }
+    }
+
+    // Load-outcome signal from GeckoView: the authoritative "are we really online"
+    private val progressDelegate = object : GeckoSession.ProgressDelegate {
+        override fun onPageStop(sess: GeckoSession, success: Boolean) {
+            if (success) {
+                appEverLoaded = true
+            } else if (showingApp && !appEverLoaded) {
+                // Initial handoff failed (WiFi connected but no real internet yet)
+                // — fall back to the WiFi screen; the retry loop will try again.
+                // Once the app has loaded once, the web layer's own self-heal owns
+                // reload failures, so we don't yank back to WiFi after that.
+                appLoaded = false
+                runOnUiThread { showWifiSetup() }
+            }
         }
     }
 
@@ -91,18 +126,19 @@ class MainActivity : Activity() {
         ).also { geckoRuntime = it }
 
         session = GeckoSession()
+        session.progressDelegate = progressDelegate
         session.open(runtime)
         geckoView = GeckoView(this)
         geckoView.setSession(session)
 
-        wifiSetupView = WifiSetupView(this, WifiController(this), ::hasLocationPermission, ::requestLocationPermission)
+        wifiSetupView = WifiSetupView(this, WifiController(this), ::hasLocationPermission, ::requestLocationPermission, ::attemptShowApp)
 
         val root = FrameLayout(this)
         root.addView(geckoView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         root.addView(wifiSetupView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
         setContentView(root)
 
-        if (isOnline()) showApp() else showWifiSetup()
+        if (hasNetwork()) showApp() else showWifiSetup()
 
         // Ask once on first launch so the WiFi list works whenever it's needed
         if (!hasLocationPermission()) requestLocationPermission()
@@ -117,11 +153,13 @@ class MainActivity : Activity() {
                 .build(),
             networkCallback
         )
+        handler.postDelayed(retryRunnable, 8000)
     }
 
     override fun onPause() {
         super.onPause()
         runCatching { connectivityManager.unregisterNetworkCallback(networkCallback) }
+        handler.removeCallbacks(retryRunnable)
     }
 
     override fun onDestroy() {
@@ -134,9 +172,18 @@ class MainActivity : Activity() {
         // Swallow back: the kiosk experience is the only experience
     }
 
-    fun isOnline(): Boolean {
+    // "Connected to a network claiming internet" — deliberately NOT requiring
+    // NET_CAPABILITY_VALIDATED (see networkCallback). The web app's load success
+    // is the real online test.
+    private fun hasNetwork(): Boolean {
         val caps = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork) ?: return false
-        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    // Try to hand off to the app if there's any network; safe to call repeatedly
+    private fun attemptShowApp() {
+        if (showingApp) return
+        if (hasNetwork()) showApp()
     }
 
     private fun showApp() {

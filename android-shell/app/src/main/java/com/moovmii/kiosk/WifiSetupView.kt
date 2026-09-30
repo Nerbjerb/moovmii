@@ -31,6 +31,7 @@ class WifiSetupView(
     private val wifi: WifiController,
     private val hasLocationPermission: () -> Boolean,
     private val requestLocationPermission: () -> Unit,
+    private val retryConnection: () -> Unit,
 ) : FrameLayout(context) {
 
     private val handler = Handler(Looper.getMainLooper())
@@ -78,7 +79,18 @@ class WifiSetupView(
                 topMargin = dp(4); bottomMargin = dp(20)
             })
             addView(ScrollView(context).apply { addView(networkList) },
-                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT))
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+            // Escape hatch: if already on a working network, skip straight to the app
+            addView(Button(context).apply {
+                text = "Already connected? Retry"
+                isAllCaps = false
+                textSize = 14f
+                setTextColor(Color.parseColor("#888888"))
+                setBackgroundColor(Color.TRANSPARENT)
+                setOnClickListener { retryConnection() }
+            }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.CENTER_HORIZONTAL; topMargin = dp(8)
+            })
         }
 
         // --- Screen: password entry ---
