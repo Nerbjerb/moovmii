@@ -14,7 +14,7 @@ const NUMS = [
 ];
 const KW = 71, KH = 34, KG = 5, KWide = 111;
 
-export default function OnScreenKeyboard({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export default function OnScreenKeyboard({ value, onChange, accent = "#4ade80" }: { value: string; onChange: (v: string) => void; accent?: string }) {
   const [isNumMode, setIsNumMode] = useState(false);
   const [isShift, setIsShift] = useState(true);
 
@@ -36,7 +36,7 @@ export default function OnScreenKeyboard({ value, onChange }: { value: string; o
       onPointerDown={(e) => { e.preventDefault(); pressFlash(e.currentTarget); onPress(); }}
       style={{
         width: wide ? KWide : KW, height: KH,
-        backgroundColor: yellow ? "#4ade80" : wide ? "#484848" : "#2D2C31",
+        backgroundColor: yellow ? accent : wide ? "#484848" : "#2D2C31",
         borderRadius: 5, border: "none", cursor: "pointer",
         color: yellow ? "#000" : "#fff", fontSize: 13, fontWeight: 600,
         fontFamily: "Helvetica, Arial, sans-serif", flexShrink: 0,

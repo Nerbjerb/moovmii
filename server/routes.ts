@@ -2319,6 +2319,27 @@ p{color:#888;font-size:13px}</style></head>
     }
   });
 
+  // Geocode an address to coordinates (for the onboarding geospatial suggester)
+  app.get("/api/geocode", async (req, res) => {
+    const address = (req.query.address as string || "").trim();
+    if (!address) return res.status(400).json({ error: "address query param required" });
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey || apiKey === "YOUR_KEY_HERE") return res.status(503).json({ error: "Google Maps API key not configured" });
+    try {
+      const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+      url.searchParams.set("address", address);
+      url.searchParams.set("key", apiKey);
+      const r = await fetch(url.toString());
+      const data = await r.json() as any;
+      const loc = data.results?.[0]?.geometry?.location;
+      if (!loc) return res.status(404).json({ error: "No geocode result" });
+      res.json({ lat: loc.lat, lon: loc.lng });
+    } catch (error) {
+      console.error("Error geocoding address:", error);
+      res.status(500).json({ error: "Failed to geocode address" });
+    }
+  });
+
   // Driving autocomplete suggestions (proxies Google Places Autocomplete)
   app.get("/api/driving/autocomplete", async (req, res) => {
     const { input } = req.query as { input?: string };

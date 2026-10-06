@@ -77,6 +77,23 @@ export function getFavorites(deviceId?: string): KioskFavorite[] {
   return [];
 }
 
+// Append configs to the favorites pool in order, skipping any already present.
+// Used when onboarding commits its accumulated selections at Finish.
+export function addFavorites(
+  configs: { line: string; stop: string; direction: string }[],
+  deviceId?: string
+): KioskFavorite[] {
+  const id = deviceId || getDeviceId();
+  const favs = getFavorites(id);
+  for (const c of configs) {
+    if (!favs.some((f) => f.line === c.line && f.stop === c.stop && f.direction === c.direction)) {
+      favs.push({ id: `${id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, kioskId: id, ...c });
+    }
+  }
+  localStorage.setItem(`kiosk_favorites_${id}`, JSON.stringify(favs));
+  return favs;
+}
+
 export function toggleFavorite(
   config: { line: string; stop: string; direction: string },
   deviceId?: string

@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Home, Briefcase, ShoppingBag, UtensilsCrossed, MoreHorizontal, MapPin, Search, Car, TrainFront, Check } from "lucide-react";
+import { ArrowLeft, Home, Briefcase, ShoppingBag, UtensilsCrossed, MoreHorizontal, MapPin, Search, Car, Check } from "lucide-react";
 import { getDeviceId } from "@/lib/deviceId";
 import { getOnboardingProfile, saveOnboardingProfile } from "@/lib/onboarding";
+import { getNearestSubwayPlatforms, getPlatformsForLines, type SuggestedPlatform } from "@/lib/subwaySuggest";
+import { getFavorites, addFavorites, savePreference } from "@/lib/localStorageDB";
 import OnScreenKeyboard from "@/components/OnScreenKeyboard";
-import lirrIcon from "@assets/moovmii/MTA Icons/src/svg/LIRR_logo_white.png";
-import metroNorthIcon from "@assets/moovmii/MTA Icons/src/svg/Metro-North_logo_white.png";
 import sirIcon from "@assets/moovmii/MTA Icons/src/svg/sir.svg";
 import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
 import njTransitIcon from "@assets/moovmii/MTA Icons/src/svg/New_Jersey_Transit_white_cropped_trimmed.png";
 import njTransitBusIcon from "@assets/njt vertical logo.png";
-import mtaBusIcon from "@assets/MTA_Regional_Bus_logo.svg_1768100704004.png";
 import nycFerryIcon from "@assets/NYC_Ferry_Horizontal_White_1768103579529.png";
 import citibikeIcon from "@assets/citibike logo.png";
+import mtaLogo from "@assets/MTA-logo-white.png";
+import nyWaterwayLogo from "@assets/NY Waterway.png";
+import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import train1 from "@assets/moovmii/MTA Icons/src/svg/1.svg";
 import train2 from "@assets/moovmii/MTA Icons/src/svg/2.svg";
 import train3 from "@assets/moovmii/MTA Icons/src/svg/3.svg";
@@ -63,35 +65,22 @@ const MODE_SHORT: Record<string, string> = {
   nycbus: "NYC Bus", njtbus: "NJT Bus", nycferry: "Ferry", citibike: "Citibike", driving: "Driving", nywaterway: "NY Waterway",
 };
 
-// Placeholder suggestions until the geospatial suggester lands
-type Platform = { station: string; direction: string; lines: string[] };
-const SAMPLE_SUBWAY_PLATFORMS: Platform[] = [
-  { station: "Broadway", direction: "Uptown Platform", lines: ["N", "W"] },
-  { station: "Queensboro Plaza", direction: "Inbound Platform", lines: ["7"] },
-  { station: "Steinway St", direction: "Uptown Platform", lines: ["E", "F", "R"] },
-  { station: "Broadway", direction: "Downtown Platform", lines: ["N", "W"] },
-  { station: "Queensboro Plaza", direction: "Outbound Platform", lines: ["7"] },
-  { station: "Steinway St", direction: "Downtown Platform", lines: ["E", "F", "R"] },
-  { station: "36 Av", direction: "Uptown Platform", lines: ["N", "W"] },
-  { station: "36 Av", direction: "Downtown Platform", lines: ["N", "W"] },
-  { station: "39 Av", direction: "Uptown Platform", lines: ["N", "W"] },
-];
 
 // Transportation modes (two columns, matching the mockup order). `img` is a
 // brand logo asset; `Icon` is a lucide fallback where no brand asset exists;
 // `placeholder` = listed but not yet wired to real data (NY Waterway).
 type ModeDef = { id: string; label: string; img?: string; Icon?: any; placeholder?: boolean };
 const LEFT_MODES: ModeDef[] = [
-  { id: "subway", label: "Subway", Icon: TrainFront },
-  { id: "lirr", label: "Long Island Railroad", img: lirrIcon },
-  { id: "nycbus", label: "NYC Busses", img: mtaBusIcon },
+  { id: "subway", label: "Subway", img: mtaLogo },
+  { id: "lirr", label: "Long Island Railroad", img: mtaLogo },
+  { id: "nycbus", label: "NYC Busses", img: mtaLogo },
   { id: "citibike", label: "Citibike", img: citibikeIcon },
   { id: "njt", label: "NJ Transit", img: njTransitIcon },
-  { id: "nywaterway", label: "NY Waterway (NY/NJ)", placeholder: true },
+  { id: "nywaterway", label: "NY Waterway (NY/NJ)", img: nyWaterwayLogo, placeholder: true },
 ];
 const RIGHT_MODES: ModeDef[] = [
   { id: "sir", label: "Staten Island Railroad", img: sirIcon },
-  { id: "mnr", label: "Metro-North Railroad", img: metroNorthIcon },
+  { id: "mnr", label: "Metro-North Railroad", img: mtaLogo },
   { id: "nycferry", label: "NYC Ferry", img: nycFerryIcon },
   { id: "path", label: "PATH Train", img: pathIcon },
   { id: "njtbus", label: "NJ Transit Bus", img: njTransitBusIcon },
@@ -200,32 +189,90 @@ export default function Onboarding() {
   const configModes = MODE_ORDER.filter((id) => selectedModes.includes(id));
   const [configIndex, setConfigIndex] = useState(0);
   const currentConfigMode = configModes[configIndex];
+  // Selected platform keys, in click order (= swipe order; first two become visible rows)
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const platformKey = (p: Platform) => `${p.station}|${p.direction}`;
-  const togglePlatform = (p: Platform) =>
-    setSelectedPlatforms((prev) => (prev.includes(platformKey(p)) ? prev.filter((k) => k !== platformKey(p)) : [...prev, platformKey(p)]));
+  const togglePlatform = (p: SuggestedPlatform) =>
+    setSelectedPlatforms((prev) => (prev.includes(p.key) ? prev.filter((k) => k !== p.key) : [...prev, p.key]));
 
-  // Manual "add additional platforms" sub-view (line-group picker → tree, scaffolded)
-  const [showManualAdd, setShowManualAdd] = useState(false);
+  // Real nearest-platform suggestions (geocode the address, then rank by distance)
+  const [realPlatforms, setRealPlatforms] = useState<SuggestedPlatform[] | null>(null);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const suggestedRef = useRef(false); // compute once per entry into subway config
+  useEffect(() => {
+    if (step !== "configure" || currentConfigMode !== "subway" || suggestedRef.current) return;
+    suggestedRef.current = true;
+    const addr = addressQuery.trim() || savedProfile.address || "";
+    if (!addr) { setRealPlatforms([]); setAddMore(true); setManualStep("groups"); return; }
+    setSuggestLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`/api/geocode?address=${encodeURIComponent(addr)}`);
+        if (!res.ok) throw new Error("geocode failed");
+        const { lat, lon } = await res.json();
+        saveOnboardingProfile({ lat, lon }, deviceId);
+        const platforms = getNearestSubwayPlatforms(lat, lon, 9);
+        setRealPlatforms(platforms);
+        // Pre-check platforms already in favorites (re-run setup)
+        const favs = getFavorites(deviceId);
+        const pre = platforms
+          .filter((p) => p.saveConfigs.every((c) => favs.some((f) => f.line === c.line && f.stop === c.stop && f.direction === c.direction)))
+          .map((p) => p.key);
+        if (pre.length) setSelectedPlatforms((prev) => Array.from(new Set([...prev, ...pre])));
+        if (platforms.length === 0) { setAddMore(true); setManualStep("groups"); }
+      } catch {
+        setRealPlatforms([]);
+        setAddMore(true); setManualStep("groups"); // no coords → manual picker
+      } finally {
+        setSuggestLoading(false);
+      }
+    })();
+  }, [step, currentConfigMode]);
+
+  // Manual "add additional platforms" drill-down: groups → lines → platforms.
+  // addMore toggles on the suggested screen; Continue there opens the drill.
+  const [addMore, setAddMore] = useState(false);
+  const [manualStep, setManualStep] = useState<"" | "groups" | "lines" | "platforms">("");
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [selectedLines, setSelectedLines] = useState<string[]>([]);
+  const [manualPlatforms, setManualPlatforms] = useState<SuggestedPlatform[]>([]);
   const toggleGroup = (id: string) =>
     setSelectedGroups((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const toggleLine = (l: string) =>
+    setSelectedLines((prev) => (prev.includes(l) ? prev.filter((x) => x !== l) : [...prev, l]));
+  const groupLines = SUBWAY_GROUPS.filter((g) => selectedGroups.includes(g.id)).flatMap((g) => g.lines);
+
+  // Platforms already in the persisted favorites (for the ★ notation on the drill)
+  const favoritedKeys = new Set(
+    getFavorites(deviceId).map((f) => `${f.stop}|${f.direction}|${f.line}`)
+  );
+  const isAlreadyFavorited = (p: SuggestedPlatform) =>
+    p.saveConfigs.some((c) => favoritedKeys.has(`${c.stop}|${c.direction}|${c.line}`));
 
   const layoutStepIndex = STEPS.findIndex((s) => s.id === "layout");
   const modesStepIndex = STEPS.findIndex((s) => s.id === "modes");
 
   const configBack = () => {
-    if (showManualAdd) { setShowManualAdd(false); return; }
+    if (manualStep === "platforms") { setManualStep("lines"); return; }
+    if (manualStep === "lines") { setManualStep("groups"); return; }
+    if (manualStep === "groups") { setManualStep(""); return; }
     if (configIndex > 0) setConfigIndex((i) => i - 1);
     else setStepIndex(modesStepIndex);
   };
   const configContinue = () => {
-    // NOTE: persisting selected platforms as favorites/rows wires up with the
-    // real geospatial suggester (next task) once configs carry real stop/line ids.
-    // The manual-add group→line→station→direction drill-down is also scaffolded.
-    setShowManualAdd(false);
+    setManualStep(""); setAddMore(false);
     if (configIndex < configModes.length - 1) setConfigIndex((i) => i + 1);
     else setStepIndex(layoutStepIndex);
+  };
+  // Continue from the suggested-platforms screen: branch on the add-more toggle
+  const suggestedContinue = () => {
+    if (addMore) setManualStep("groups");
+    else configContinue();
+  };
+  const manualContinue = () => {
+    if (manualStep === "groups") { if (selectedGroups.length) setManualStep("lines"); }
+    else if (manualStep === "lines") {
+      if (selectedLines.length) { setManualPlatforms(getPlatformsForLines(selectedLines)); setManualStep("platforms"); }
+    } else { configContinue(); }
   };
 
   const goBack = () => {
@@ -247,7 +294,23 @@ export default function Onboarding() {
       saveOnboardingProfile({ modes: selectedModes }, deviceId);
     }
     if (stepIndex < STEPS.length - 1) setStepIndex((i) => i + 1);
-    else setLocation("/");
+    else finishOnboarding();
+  };
+
+  // Commit accumulated selections at the end of the wizard: write favorites in
+  // click order (= swipe order), and make the first two selected platforms the
+  // initial visible rows.
+  const finishOnboarding = () => {
+    const byKey = new Map<string, SuggestedPlatform>();
+    for (const p of [...(realPlatforms ?? []), ...manualPlatforms]) byKey.set(p.key, p);
+    const selectedPFs = selectedPlatforms.map((k) => byKey.get(k)).filter(Boolean) as SuggestedPlatform[];
+    if (selectedPFs.length) {
+      addFavorites(selectedPFs.flatMap((p) => p.saveConfigs), deviceId);
+      selectedPFs.slice(0, 2).forEach((p, i) =>
+        savePreference({ row: i + 1, stop: p.saveConfigs[0].stop, direction: p.saveConfigs[0].direction, line: p.saveConfigs[0].line }, deviceId)
+      );
+    }
+    setLocation("/");
   };
 
   const selectLocation = (id: string) => {
@@ -296,23 +359,23 @@ export default function Onboarding() {
     );
   };
 
-  const PlatformCard = ({ p }: { p: Platform }) => {
-    const selected = selectedPlatforms.includes(platformKey(p));
+  const PlatformCard = ({ p }: { p: SuggestedPlatform }) => {
+    const selected = selectedPlatforms.includes(p.key);
     return (
       <button
         onClick={() => togglePlatform(p)}
         className="hover:opacity-90 transition-opacity"
         style={{
-          width: "244px", height: "58px", borderRadius: "10px",
+          width: "244px", height: "68px", borderRadius: "10px",
           backgroundColor: selected ? "#ffffff" : "#2D2C31",
           border: "2px solid transparent",
           display: "flex", alignItems: "center", padding: "0 14px", gap: "8px", cursor: "pointer",
         }}
-        data-testid={`platform-${p.station}-${p.direction}`}
+        data-testid={`platform-${p.key}`}
       >
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "2px", textAlign: "left" }}>
           <span style={{ ...font, fontSize: "17px", fontWeight: 700, color: selected ? "#000" : "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.station}</span>
-          <span style={{ ...font, fontSize: "11px", color: selected ? "#555" : "#999", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.direction}</span>
+          <span style={{ ...font, fontSize: "11px", color: selected ? "#555" : "#999", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.directionLabel}</span>
         </div>
         <div style={{ display: "flex", gap: "3px", flexShrink: 0 }}>
           {p.lines.map((l) => LINE_ICONS[l] ? (
@@ -350,39 +413,58 @@ export default function Onboarding() {
           className="bg-[#0b0b0b] shadow-[0_6px_20px_rgba(0,0,0,0.25)] relative"
           style={{ width: "800px", height: "480px", overflow: "hidden" }}
         >
-          {/* Back (hidden during config — that step has its own bottom Back) */}
-          {step !== "configure" && (
-            <div className="absolute top-[5px] left-[5px] z-10">
-              <button className="block p-4" onClick={goBack}>
-                <ArrowLeft className="w-6 h-6 text-white cursor-pointer" />
-              </button>
-            </div>
-          )}
+          {/* Back — top-left arrow on every step (configure uses configBack to handle its drill-down) */}
+          <div className="absolute top-[5px] left-[5px] z-10">
+            <button className="block p-4" onClick={step === "configure" ? configBack : goBack}>
+              <ArrowLeft className="w-6 h-6 text-white cursor-pointer" />
+            </button>
+          </div>
 
           {/* Config phase: "pizza tracker" of the selected modes instead of dots */}
           {step === "configure" && (
             <>
-              <div className="absolute top-[8px] left-0 right-0 flex justify-center">
-                <span style={{ ...font, fontSize: "16px", fontWeight: 700, color: "#ffffff" }}>moovmii Setup Progress</span>
+              <div className="absolute top-[6px] left-0 right-0 flex justify-center">
+                <img src={moovmiiLogoV2} alt="moovmii Setup Progress" style={{ height: "22px", width: "auto" }} />
               </div>
-              <div style={{ position: "absolute", top: "36px", left: "16px", right: "16px", height: "32px", border: "1px solid #555", borderRadius: "999px", display: "flex", alignItems: "center", padding: "0 6px", gap: "2px" }}>
-                {configModes.map((id, i) => (
-                  <div key={id} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                    {i > 0 && <span style={{ ...font, fontSize: "13px", color: "#555", margin: "0 8px" }}>/</span>}
-                    <span style={{
-                      ...font, fontSize: "14px", fontWeight: 600,
-                      color: i === configIndex ? "#000" : i < configIndex ? "#4ade80" : "#aaa",
-                      backgroundColor: i === configIndex ? "#ffffff" : "transparent",
-                      borderRadius: "999px", padding: i === configIndex ? "4px 16px" : "0",
-                    }}>{MODE_SHORT[id]}</span>
-                  </div>
-                ))}
+              {/* Domino's-style 2D chevron tracker: equal widths, white = current+completed */}
+              <div style={{ position: "absolute", top: "38px", left: "16px", right: "16px", height: "30px", display: "flex", alignItems: "stretch", gap: "3px" }}>
+                {configModes.map((id, i) => {
+                  const done = i <= configIndex;
+                  const first = i === 0;
+                  const last = i === configModes.length - 1;
+                  const CH = 12;
+                  const clip = configModes.length === 1
+                    ? undefined
+                    : first
+                      ? `polygon(0 0, calc(100% - ${CH}px) 0, 100% 50%, calc(100% - ${CH}px) 100%, 0 100%)`
+                      : last
+                        ? `polygon(0 0, 100% 0, 100% 100%, 0 100%, ${CH}px 50%)`
+                        : `polygon(0 0, calc(100% - ${CH}px) 0, 100% 50%, calc(100% - ${CH}px) 100%, 0 100%, ${CH}px 50%)`;
+                  return (
+                    <div key={id} style={{
+                      flex: 1, clipPath: clip,
+                      backgroundColor: done ? "#ffffff" : "#2D2C31",
+                      borderRadius: configModes.length === 1 ? "6px" : "0",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <span style={{
+                        ...font, fontSize: "13px", fontWeight: 700, letterSpacing: "0.5px",
+                        textTransform: "uppercase",
+                        color: done ? "#000" : "#888",
+                        paddingLeft: first ? "0" : `${CH}px`,
+                        paddingRight: last ? "0" : `${CH}px`,
+                      }}>{MODE_SHORT[id]}</span>
+                    </div>
+                  );
+                })}
               </div>
+              {/* Separator: divides overall progress (logo + chevrons) from the current setup below */}
+              <div style={{ position: "absolute", top: "74px", left: "16px", right: "16px", height: "1px", backgroundColor: "#333" }} />
             </>
           )}
 
-          {/* Progress dots (non-config steps) */}
-          {step !== "configure" && (
+          {/* Progress dots — omitted on the intro/selection screens (location, address, modes) and the config step (which uses the mode tracker) */}
+          {step === "layout" && (
           <div style={{ position: "absolute", top: "22px", left: 0, right: 0, display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
             {STEPS.map((s, i) => (
               <div key={s.id} style={{
@@ -464,7 +546,7 @@ export default function Onboarding() {
                 <span style={{ ...font, fontSize: "21px", fontWeight: 700, color: "#ffffff", textAlign: "center" }}>{addressPrompt()}</span>
               </div>
               <div style={{ position: "absolute", top: "98px", left: "100px", right: "100px", height: "44px", backgroundColor: "#2D2C31", borderRadius: "8px", display: "flex", alignItems: "center", padding: "0 14px", gap: "10px" }}>
-                <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#4ade80" }} />
+                <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#FFD200" }} />
                 <span style={{ ...font, fontSize: "15px", color: addressQuery ? "#fff" : "#555", flex: 1, overflow: "hidden", whiteSpace: "nowrap" }}>
                   {addressQuery || "Start typing an address..."}
                   <span className="search-cursor" />
@@ -485,7 +567,7 @@ export default function Onboarding() {
                 </div>
               )}
               <div style={{ position: "absolute", bottom: "64px", left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-                <OnScreenKeyboard value={addressQuery} onChange={(v) => { setAddressQuery(v); }} />
+                <OnScreenKeyboard value={addressQuery} onChange={(v) => { setAddressQuery(v); }} accent="#FFD200" />
               </div>
             </>
           )}
@@ -514,20 +596,48 @@ export default function Onboarding() {
             <>
               {/* Mode header */}
               <div className="absolute top-[78px] left-0 right-0 flex items-center justify-center gap-2">
-                {currentConfigMode === "subway" && <TrainFront className="w-6 h-6" style={{ color: "#4d92fb" }} />}
+                {currentConfigMode === "subway" && <img src={mtaLogo} alt="MTA" style={{ height: "26px", width: "auto" }} />}
                 <span style={{ ...font, fontSize: "20px", fontWeight: 700, color: "#ffffff" }}>{MODE_SHORT[currentConfigMode]} Setup</span>
               </div>
 
-              {currentConfigMode === "subway" && !showManualAdd ? (
+              {currentConfigMode !== "subway" ? (
+                <div style={{ position: "absolute", top: "120px", left: "20px", right: "20px", bottom: "70px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ ...font, fontSize: "15px", color: "#555" }}>{MODE_SHORT[currentConfigMode]} setup — coming next</span>
+                </div>
+              ) : manualStep === "" ? (
                 <>
                   <div className="absolute top-[112px] left-0 right-0 flex justify-center">
                     <span style={{ ...font, fontSize: "17px", color: "#ddd" }}>Select platforms to add to your favorites</span>
                   </div>
-                  <div style={{ position: "absolute", top: "148px", left: "24px", right: "24px", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", justifyItems: "center" }}>
-                    {SAMPLE_SUBWAY_PLATFORMS.map((p) => <PlatformCard key={platformKey(p)} p={p} />)}
-                  </div>
+                  {suggestLoading || realPlatforms === null ? (
+                    <div style={{ position: "absolute", top: "148px", left: "24px", right: "24px", bottom: "70px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ ...font, fontSize: "15px", color: "#555" }}>Finding nearby platforms…</span>
+                    </div>
+                  ) : (
+                    <div style={{ position: "absolute", top: "148px", left: "24px", right: "24px", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", justifyItems: "center" }}>
+                      {realPlatforms.map((p) => <PlatformCard key={p.key} p={p} />)}
+                      {/* 10th cell: "Add additional platforms" styled as a platform card. Full 9-box grid →
+                          centered under the bottom-center box; otherwise flows as the next cell in sequence. */}
+                      <button
+                        onClick={() => setAddMore((v) => !v)}
+                        className="hover:opacity-90 transition-opacity"
+                        style={{
+                          width: "244px", height: "68px", borderRadius: "10px",
+                          gridColumn: realPlatforms.length === 9 ? "2" : undefined,
+                          backgroundColor: addMore ? "#ffffff" : "#2D2C31",
+                          border: "2px solid transparent",
+                          display: "flex", alignItems: "center", justifyContent: "center", padding: "0 14px", cursor: "pointer",
+                        }}
+                        data-testid="button-add-platforms"
+                      >
+                        <span style={{ ...font, fontSize: "14px", fontWeight: 600, lineHeight: 1.25, color: addMore ? "#000" : "#ddd", textAlign: "center" }}>
+                          Add additional platforms to favorites
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </>
-              ) : currentConfigMode === "subway" && showManualAdd ? (
+              ) : manualStep === "groups" ? (
                 <>
                   <div className="absolute top-[108px] left-0 right-0 flex justify-center px-6">
                     <span style={{ ...font, fontSize: "17px", color: "#ddd", textAlign: "center" }}>
@@ -540,35 +650,67 @@ export default function Onboarding() {
                     </div>
                   </div>
                 </>
+              ) : manualStep === "lines" ? (
+                <>
+                  <div className="absolute top-[112px] left-0 right-0 flex justify-center">
+                    <span style={{ ...font, fontSize: "17px", color: "#ddd" }}>Which lines do you use?</span>
+                  </div>
+                  <div style={{ position: "absolute", top: "150px", left: "40px", right: "40px", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center" }}>
+                    {groupLines.map((l) => {
+                      const sel = selectedLines.includes(l);
+                      return (
+                        <button key={l} onClick={() => toggleLine(l)} className="hover:opacity-90 transition-opacity"
+                          style={{ width: "58px", height: "58px", borderRadius: "10px", backgroundColor: "#2D2C31", border: `2px solid ${sel ? "#FFD200" : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          data-testid={`line-${l}`}>
+                          {LINE_ICONS[l] ? <img src={LINE_ICONS[l]} alt={l} style={{ width: "40px", height: "40px" }} /> : <span style={{ ...font, color: "#fff" }}>{l}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
               ) : (
-                <div style={{ position: "absolute", top: "120px", left: "20px", right: "20px", bottom: "70px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ ...font, fontSize: "15px", color: "#555" }}>{MODE_SHORT[currentConfigMode]} setup — coming next</span>
-                </div>
+                <>
+                  <div className="absolute top-[112px] left-0 right-0 flex justify-center">
+                    <span style={{ ...font, fontSize: "17px", color: "#ddd" }}>Select platforms to add to your favorites</span>
+                  </div>
+                  <div className="show-scrollbar" style={{ position: "absolute", top: "148px", left: "40px", right: "40px", bottom: "70px", overflowY: "auto", touchAction: "pan-y", display: "flex", flexDirection: "column", gap: "7px" }}>
+                    {manualPlatforms.map((p) => {
+                      const sel = selectedPlatforms.includes(p.key);
+                      const star = isAlreadyFavorited(p);
+                      return (
+                        <button key={p.key} onClick={() => togglePlatform(p)} className="hover:opacity-90 transition-opacity"
+                          style={{ minHeight: "50px", borderRadius: "10px", backgroundColor: sel ? "#ffffff" : "#2D2C31", border: "2px solid transparent", display: "flex", alignItems: "center", padding: "0 16px", gap: "10px", cursor: "pointer", flexShrink: 0 }}
+                          data-testid={`manual-${p.key}`}>
+                          <span style={{ ...font, fontSize: "15px", fontWeight: 700, color: sel ? "#000" : "#fff", flexShrink: 0 }}>{p.station}</span>
+                          <span style={{ ...font, fontSize: "12px", color: sel ? "#555" : "#999", flex: 1, textAlign: "left" }}>
+                            {p.directionLabel.replace(" Platform", "")}{star ? " ★" : ""}
+                          </span>
+                          <div style={{ display: "flex", gap: "3px", flexShrink: 0 }}>
+                            {p.lines.map((l) => LINE_ICONS[l] && <img key={l} src={LINE_ICONS[l]} alt={l} style={{ width: "24px", height: "24px" }} />)}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
               )}
 
-              {/* Config bottom bar: Back · Add additional · Continue */}
-              <div className="absolute bottom-[16px] left-[20px]">
-                <button onClick={configBack} className="rounded-[8px] hover:opacity-80 transition-opacity" style={{ height: "44px", padding: "0 22px", backgroundColor: "#2D2C31", border: "none", cursor: "pointer" }}>
-                  <span style={{ ...font, fontSize: "15px", fontWeight: 600, color: "#fff" }}>Back</span>
-                </button>
-              </div>
-              {currentConfigMode === "subway" && !showManualAdd && (
-                <div className="absolute bottom-[16px] left-1/2 -translate-x-1/2">
-                  <button
-                    onClick={() => setShowManualAdd(true)}
-                    className="rounded-[8px] hover:opacity-80 transition-opacity"
-                    style={{ height: "44px", padding: "0 22px", backgroundColor: "#2D2C31", border: "none", cursor: "pointer" }}
-                    data-testid="button-add-platforms"
-                  >
-                    <span style={{ ...font, fontSize: "14px", fontWeight: 600, color: "#ddd" }}>Add additional platforms to favorites</span>
-                  </button>
-                </div>
-              )}
-              <div className="absolute bottom-[16px] right-[20px]">
-                <button onClick={configContinue} className="rounded-[8px] hover:opacity-80 transition-opacity" style={{ height: "44px", padding: "0 28px", backgroundColor: "#FFD200", border: "none", cursor: "pointer" }} data-testid="button-config-continue">
-                  <span style={{ ...font, fontSize: "15px", fontWeight: 700, color: "#000" }}>Continue</span>
-                </button>
-              </div>
+              {/* Config bottom bar: Continue (Back is the top-left arrow, freeing the bottom-left for the Add card) */}
+              {(() => {
+                const manualGate = currentConfigMode === "subway" &&
+                  ((manualStep === "groups" && selectedGroups.length === 0) || (manualStep === "lines" && selectedLines.length === 0));
+                const onContinue = currentConfigMode !== "subway" ? configContinue : (manualStep === "" ? suggestedContinue : manualContinue);
+                return (
+                  <div className="absolute bottom-[16px] right-[20px]">
+                    <button onClick={onContinue} disabled={manualGate}
+                      className="rounded-[8px] hover:opacity-80 transition-opacity"
+                      style={{ height: "44px", padding: "0 28px", backgroundColor: manualGate ? "#2D2C31" : "#FFD200", border: "none", cursor: manualGate ? "default" : "pointer", opacity: manualGate ? 0.5 : 1 }}
+                      data-testid="button-config-continue">
+                      <span style={{ ...font, fontSize: "15px", fontWeight: 700, color: manualGate ? "#666" : "#000" }}>Continue</span>
+                    </button>
+                  </div>
+                );
+              })()}
             </>
           )}
 

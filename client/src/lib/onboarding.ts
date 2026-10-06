@@ -6,6 +6,8 @@ export type OnboardingProfile = {
   locationType?: string; // Home | Workplace | Retail Space | Restaurant or Bar | Other
   otherLabel?: string;   // free text when locationType === "Other"
   address?: string;      // display location's address (optional); anchors the stop suggester later
+  lat?: number;          // geocoded address coordinates (for the geospatial suggester)
+  lon?: number;
   modes?: string[];      // selected transportation mode ids; drives the config step
 };
 
