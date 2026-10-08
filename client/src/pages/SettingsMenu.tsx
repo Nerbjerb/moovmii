@@ -58,6 +58,10 @@ export default function SettingsMenu() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedResolution, setSelectedResolution] = useState(() => localStorage.getItem("kioskResolution") || "800x480");
   const [dimSettings, setDimSettings] = useState<ScreenDimSettings>(getScreenDimSettings);
+  // Which dim-time dropdown is open. Native <select> popups don't render in the
+  // GeckoView kiosk, so the time pickers are custom in-app dropdowns.
+  const [openPicker, setOpenPicker] = useState<"start" | "end" | null>(null);
+  useEffect(() => { setOpenPicker(null); }, [view]);
 
   const updateDimSettings = (patch: Partial<ScreenDimSettings>) => {
     const next = { ...dimSettings, ...patch };
@@ -334,22 +338,62 @@ export default function SettingsMenu() {
                       { label: "Dim at", key: "start" as const },
                       { label: "Full brightness at", key: "end" as const },
                     ]).map(({ label, key }) => (
-                      <div key={key} className="flex-1 flex flex-col gap-1">
+                      <div key={key} className="flex-1 flex flex-col gap-1" style={{ position: "relative" }}>
                         <span style={{ ...font, fontSize: "12px", color: "#888" }}>{label}</span>
-                        <select
-                          value={dimSettings[key]}
-                          onChange={(e) => updateDimSettings({ [key]: e.target.value })}
+                        {/* Custom dropdown (native <select> popups don't open in GeckoView kiosk) */}
+                        <button
+                          onClick={() => setOpenPicker(openPicker === key ? null : key)}
                           style={{
                             ...font, height: "44px", backgroundColor: "#2D2C31", color: "#ffffff",
                             borderRadius: "6px", border: "none", fontSize: "15px", fontWeight: 600,
-                            padding: "0 12px", cursor: "pointer",
+                            padding: "0 12px", cursor: "pointer", width: "100%",
+                            display: "flex", alignItems: "center", justifyContent: "space-between",
                           }}
                           data-testid={`select-dim-${key}`}
                         >
-                          {TIME_OPTIONS.map((t) => (
-                            <option key={t} value={t}>{formatTime12(t)}</option>
-                          ))}
-                        </select>
+                          <span>{formatTime12(dimSettings[key])}</span>
+                          <span style={{ color: "#888", fontSize: "11px", marginLeft: "6px" }}>▾</span>
+                        </button>
+                        {openPicker === key && (
+                          <>
+                            {/* backdrop: tap outside to dismiss */}
+                            <div onClick={() => setOpenPicker(null)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                            <div
+                              className="show-scrollbar"
+                              ref={(el) => {
+                                if (!el) return;
+                                const sel = el.querySelector('[data-selected="true"]') as HTMLElement | null;
+                                if (sel) el.scrollTop = Math.max(0, sel.offsetTop - 72);
+                              }}
+                              style={{
+                                position: "absolute", bottom: "calc(100% + 4px)", left: 0, right: 0,
+                                maxHeight: "188px", overflowY: "auto", touchAction: "pan-y",
+                                backgroundColor: "#1e1e1e", border: "1px solid #444", borderRadius: "8px",
+                                zIndex: 50, boxShadow: "0 6px 20px rgba(0,0,0,0.5)",
+                              }}
+                            >
+                              {TIME_OPTIONS.map((t) => {
+                                const selected = dimSettings[key] === t;
+                                return (
+                                  <button
+                                    key={t}
+                                    data-selected={selected ? "true" : undefined}
+                                    onClick={() => { updateDimSettings({ [key]: t }); setOpenPicker(null); }}
+                                    style={{
+                                      ...font, display: "block", width: "100%", height: "36px",
+                                      backgroundColor: selected ? "#ffffff" : "transparent",
+                                      color: selected ? "#000000" : "#ffffff",
+                                      border: "none", cursor: "pointer", fontSize: "14px",
+                                      fontWeight: selected ? 700 : 500, textAlign: "left", padding: "0 12px",
+                                    }}
+                                  >
+                                    {formatTime12(t)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
