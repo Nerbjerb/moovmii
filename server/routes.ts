@@ -410,8 +410,8 @@ p{color:#888;font-size:13px}</style></head>
   // Dynamic subway arrivals API - fetches arrivals for any station
   app.get("/api/subway/arrivals", async (req, res) => {
     try {
-      const { stopId, direction, lines } = req.query;
-      
+      const { stopId, direction, lines, line } = req.query;
+
       if (!stopId || !direction || !lines) {
         return res.status(400).json({ 
           error: "Missing required parameters: stopId, direction, lines" 
@@ -847,8 +847,11 @@ p{color:#888;font-size:13px}</style></head>
         return { station: headsign || "Unknown", borough: "New York" };
       };
 
-      // Get terminal info for the first arriving train
-      const firstLine = topArrivals[0]?.line || lineList[0];
+      // Get terminal info for the first arriving train. With no live arrivals,
+      // fall back to the row's OWN saved line (not lineList[0], which is the
+      // alphabetically-first same-color sibling — e.g. "A" for a blue-trunk E
+      // row, which would mislabel an empty Queens Plaza E card as A/Far Rockaway).
+      const firstLine = topArrivals[0]?.line || (line as string) || lineList[0];
       const firstHeadsign = topArrivals[0]?.headsign || "";
       
       let terminalInfo = firstHeadsign

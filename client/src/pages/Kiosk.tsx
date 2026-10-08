@@ -13,7 +13,7 @@ import WeatherTile from "@/components/WeatherTile";
 import type { SubwayArrival, KioskPreference, KioskSettings, KioskFavorite } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 import type { WeatherIconName } from "@shared/weatherIconMapper";
-import { getStopId, getSameColorLines } from "@shared/stopMetadata";
+import { getStopId, getSameColorLines, lineServesStop } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
 import { savePreference, toggleFavorite as toggleStoredFavorite } from "@/lib/localStorageDB";
@@ -387,8 +387,12 @@ export default function Kiosk() {
     }
     
     const stopId = getStopId(pref.stop, pref.line);
-    const sameColorLines = getSameColorLines(pref.line);
-    
+    // Only merge same-color lines that actually serve THIS platform. Otherwise an
+    // empty row could borrow a non-serving sibling's identity — e.g. an E row at
+    // Queens Plaza mislabeling itself as the A to Far Rockaway (A is express here).
+    const serving = getSameColorLines(pref.line).filter((l) => lineServesStop(pref.stop, l));
+    const sameColorLines = serving.length ? serving : [pref.line];
+
     // If stop ID not found in metadata, fall back to defaults
     if (!stopId) {
       console.warn(`Stop ID not found for ${pref.stop} on ${pref.line}, using default`);
@@ -402,7 +406,7 @@ export default function Kiosk() {
       return ['/api/path/arrivals', { station: stopId, direction: pathDirection, line: pref.line, isPATH: true, isBus: false }];
     }
     
-    return ['/api/subway/arrivals', { stopId, direction: pref.direction, lines: sameColorLines.join(','), isPATH: false, isBus: false }];
+    return ['/api/subway/arrivals', { stopId, direction: pref.direction, lines: sameColorLines.join(','), line: pref.line, isPATH: false, isBus: false }];
   };
 
   // Fetch real weather data from OpenWeatherMap
@@ -468,7 +472,7 @@ export default function Kiosk() {
     }
     const url = params.isPATH
       ? `/api/path/arrivals?station=${params.station}&direction=${encodeURIComponent(params.direction || '')}&line=${params.line}`
-      : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}`;
+      : `/api/subway/arrivals?stopId=${params.stopId}&direction=${params.direction}&lines=${encodeURIComponent(params.lines || '')}&line=${encodeURIComponent(params.line || '')}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch arrivals');
     return res.json();

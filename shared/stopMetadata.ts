@@ -533,8 +533,15 @@ export function getStopId(stationName: string, line: string): string | null {
       return stops[stationName];
     }
   }
-  
+
   return null;
+}
+
+// Does this specific line actually serve this station? Used to avoid merging
+// same-color siblings that don't stop here (e.g. the express A/C don't stop at
+// an E-only platform like Queens Plaza).
+export function lineServesStop(stationName: string, line: string): boolean {
+  return !!(stopIdMap[line] && stopIdMap[line][stationName]);
 }
 
 // Copy stop mappings for same-color lines that share stations
@@ -655,7 +662,7 @@ stopIdMap["E"] = {
   "Grand Av-Newtown": "G15",
   "Elmhurst Av": "G16",
   "Jackson Hts-Roosevelt Av": "G18",
-  "Queens Plaza": "G19",
+  "Queens Plaza": "G21",
   "Court Sq-23 St": "G20",
   "Lexington Av/53 St": "B10",
   "5 Av/53 St": "B11",
@@ -857,7 +864,7 @@ stopIdMap["F"] = {
   "Grand Av-Newtown": "G15",
   "Elmhurst Av": "G16",
   "Jackson Hts-Roosevelt Av": "G18",
-  "Queens Plaza": "G19",
+  "Queens Plaza": "G21",
   "21 St-Queensbridge": "F05",
   "Roosevelt Island": "F06",
   "Lexington Av/63 St": "B08",
@@ -929,7 +936,7 @@ stopIdMap["R"] = {
   "Northern Blvd": "G21",
   "46 St": "G20",
   "Steinway St": "G19",
-  "Queens Plaza": "G19",
+  "Queens Plaza": "G21",
   // Shared with N/W
   "Lexington Av/59 St": "R11",
   "5 Av/59 St": "R13",
