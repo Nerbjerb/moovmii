@@ -1,6 +1,8 @@
 // MTA GTFS Stop ID Mapping
 // Maps station names to their GTFS stop IDs and serving lines
 
+import { subwayStopIdCorrections } from "./subwayStopIdCorrections";
+
 export type StopMetadata = {
   name: string;
   stopId: string; // Base stop ID (without N/S suffix)
@@ -1405,6 +1407,12 @@ stopIdMap["PATH-HOB-33"] = {
   "23rd Street": "26723",
   "33rd Street": "26724",
 };
+
+// Apply GTFS-verified stop_id corrections over the hand-entered subway maps
+// (fixes systematic off-by-one / mis-assigned ids). See subwayStopIdCorrections.ts.
+for (const [line, fixes] of Object.entries(subwayStopIdCorrections)) {
+  if (stopIdMap[line]) Object.assign(stopIdMap[line], fixes);
+}
 
 // NJ Transit: station name → 2-char API station code
 export const njtStationCodeMap: Record<string, string> = {
