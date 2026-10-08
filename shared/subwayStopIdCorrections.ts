@@ -45,6 +45,7 @@ export const subwayStopIdCorrections: Record<string, Record<string, string>> = {
   "4": {
     "125 St": "621",
     "138 St-Grand Concourse": "416",
+    "149 St-Grand Concourse": "415",
     "161 St-Yankee Stadium": "414",
     "167 St": "413",
     "170 St": "412",
@@ -326,4 +327,27 @@ export const subwayStopIdCorrections: Record<string, Record<string, string>> = {
     "Van Siclen Av": "J23",
     "Woodhaven Blvd": "J15",
   },
+};
+
+// Membership removals — stations listed on a line that the line does NOT serve
+// (the M map inherited F's Hillside/Culver/Rutgers branches; the B express map
+// included Brighton local stops; the Z inherited J-only skip-stops). Curated by
+// hand against GTFS geography — NOT auto-derived from a single feed snapshot,
+// because service reroutes (e.g. M via 63 St) make one snapshot unreliable.
+// Queens Plaza is deliberately KEPT on M (the M normally serves it).
+export const subwayStopIdRemovals: Record<string, string[]> = {
+  "M": [
+    "Jamaica-179 St", "169 St", "Parsons Blvd", "Sutphin Blvd", "Briarwood",
+    "Kew Gardens-Union Tpke", "75 Av", "2 Av", "East Broadway", "York St",
+    "Jay St-MetroTech", "Bergen St", "Carroll St", "Smith-9 Sts", "4 Av-9 St",
+    "15 St-Prospect Park", "Fort Hamilton Pkwy", "Church Av", "Ditmas Av", "18 Av",
+    "Avenue I", "Bay Pkwy", "Avenue N", "Avenue P", "Kings Hwy", "Avenue U",
+    "Avenue X", "Neptune Av", "Coney Island-Stillwell Av",
+  ],
+  "B": ["Beverley Rd", "Cortelyou Rd", "Avenue H", "Avenue J", "Avenue M", "Avenue U", "Neck Rd"],
+  "J": ["Jamaica-Van Wyck"], // phantom: the J serves 121 St (J12), not the E/F's Van Wyck
+  "Z": [
+    "Jamaica-Van Wyck", "111 St", "85 St-Forest Pkwy", "Cypress Hills", "Cleveland St",
+    "Halsey St", "Kosciuszko St", "Flushing Av", "Lorimer St", "Hewes St",
+  ],
 };
