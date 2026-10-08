@@ -664,9 +664,11 @@ p{color:#888;font-size:13px}</style></head>
         }
       }
 
-      // Sort by arrival time and take first 3
+      // Sort by arrival time. Return a deep list (not just 3) so the client's
+      // commute-time filter can still surface catchable trains on frequent
+      // services instead of blanking when the nearest few are all too soon.
       arrivals.sort((a, b) => a.minutes - b.minutes);
-      const topArrivals = arrivals.slice(0, 3);
+      const topArrivals = arrivals.slice(0, 12);
 
       // Terminal station names with their boroughs
       const terminalStations: Record<string, Record<string, { station: string; borough: string }>> = {
@@ -1006,7 +1008,7 @@ p{color:#888;font-size:13px}</style></head>
         })
         .filter(a => a.minutes >= 0)
         .sort((a, b) => a.minutes - b.minutes)
-        .slice(0, 3);
+        .slice(0, 12); // deep list so the client commute filter has catchable trains to show
 
       // Main card follows the soonest train: its destination and its route badge
       const firstHeadsign = arrivals[0]?.headsign || "";

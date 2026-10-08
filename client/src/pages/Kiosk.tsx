@@ -155,16 +155,21 @@ export default function Kiosk() {
     return stored !== null ? parseInt(stored, 10) : 0;
   });
 
-  // Filter out arrivals that depart sooner than the user's commute time
+  // Keep only trains the rider can still catch (>= commute time), then the
+  // nearest 3 of those. The server now returns a deep list, so frequent
+  // services (e.g. PATH every few minutes) surface the next catchable trains
+  // instead of blanking when the nearest few are all inside the commute window.
   const applyCommuteFilter = (arrival: SubwayArrival): SubwayArrival => {
-    if (commuteMinutes === 0) return arrival;
-    const filtered = arrival.arrivalMinutes
-      .map((mins, i) => ({ mins, line: arrival.arrivalLines[i] }))
-      .filter(({ mins }) => mins >= commuteMinutes);
+    const mapped = arrival.arrivalMinutes.map((mins, i) => ({ mins, line: arrival.arrivalLines[i] }));
+    const catchable = mapped.filter(({ mins }) => mins >= commuteMinutes); // commuteMinutes 0 keeps all
+    // Fall back to the nearest trains when none are catchable, so a row never
+    // blanks — e.g. PATH publishes only ~2 trains, which can all sit inside the
+    // commute window even though service is every few minutes.
+    const kept = (catchable.length ? catchable : mapped).slice(0, 3);
     return {
       ...arrival,
-      arrivalMinutes: filtered.map(f => f.mins),
-      arrivalLines: filtered.map(f => f.line),
+      arrivalMinutes: kept.map(f => f.mins),
+      arrivalLines: kept.map(f => f.line),
     };
   };
 
