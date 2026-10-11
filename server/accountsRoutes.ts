@@ -3,10 +3,39 @@
 // Tablet requests use requireDevice (device token, X-Device-Token header).
 import type { Express, Request, Response, NextFunction } from "express";
 import crypto from "crypto";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "./db";
 import { requireAuth } from "./auth";
-import { devices, pairingCodes } from "@shared/authSchema";
+import {
+  devices, pairingCodes,
+  deviceSettings, deviceOnboarding, deviceFavorites, devicePreferences,
+} from "@shared/authSchema";
+
+// Full config for a device (by internal uuid). Shape mirrors the kiosk's needs.
+async function loadDeviceConfig(deviceUuid: string) {
+  const [dev] = await db.select().from(devices).where(eq(devices.id, deviceUuid)).limit(1);
+  if (!dev) return null;
+  const [settings] = await db.select().from(deviceSettings).where(eq(deviceSettings.deviceId, deviceUuid)).limit(1);
+  const [onboarding] = await db.select().from(deviceOnboarding).where(eq(deviceOnboarding.deviceId, deviceUuid)).limit(1);
+  const favorites = await db
+    .select({ line: deviceFavorites.line, stop: deviceFavorites.stop, direction: deviceFavorites.direction, position: deviceFavorites.position })
+    .from(deviceFavorites).where(eq(deviceFavorites.deviceId, deviceUuid)).orderBy(deviceFavorites.position);
+  const preferences = await db
+    .select({ row: devicePreferences.row, line: devicePreferences.line, stop: devicePreferences.stop, direction: devicePreferences.direction })
+    .from(devicePreferences).where(eq(devicePreferences.deviceId, deviceUuid)).orderBy(devicePreferences.row);
+  return {
+    device: { id: dev.id, deviceId: dev.deviceId, name: dev.name, pairedAt: dev.pairedAt },
+    configVersion: dev.configVersion,
+    settings: settings
+      ? { temperatureUnit: settings.temperatureUnit, clockFormat: settings.clockFormat, transportRows: settings.transportRows }
+      : null,
+    onboarding: onboarding
+      ? { locationType: onboarding.locationType, otherLabel: onboarding.otherLabel, address: onboarding.address, lat: onboarding.lat, lon: onboarding.lon, modes: onboarding.modes, completedAt: onboarding.completedAt }
+      : null,
+    favorites,
+    preferences,
+  };
+}
 
 // --- tablet auth: a device presents its token ---
 export async function requireDevice(req: Request, res: Response, next: NextFunction) {
@@ -110,9 +139,95 @@ export function registerAccountRoutes(app: Express) {
     res.json({ code, expiresAt });
   });
 
-  // Poll ownership state (device-token auth) — the tablet waits here until a
-  // phone claims it, then advances past the pairing screen.
+  // Poll ownership + config version (device-token auth). The tablet waits here
+  // until it's claimed, then re-fetches config whenever configVersion changes.
   app.get("/api/device/state", requireDevice, (req, res) => {
-    res.json({ deviceId: req.device!.deviceId, name: req.device!.name, paired: !!req.device!.accountId });
+    res.json({
+      deviceId: req.device!.deviceId,
+      name: req.device!.name,
+      paired: !!req.device!.accountId,
+      configVersion: req.device!.configVersion,
+    });
+  });
+
+  // Tablet reads its own full config (device-token auth).
+  app.get("/api/device/config", requireDevice, async (req, res) => {
+    res.json(await loadDeviceConfig(req.device!.id));
+  });
+
+  // ---- Config read/write for a device the signed-in user owns ----
+
+  // Resolve a device the account owns, else 404 (don't leak existence).
+  const ownedDevice = async (req: Request, res: Response) => {
+    const [dev] = await db.select().from(devices).where(eq(devices.id, req.params.id)).limit(1);
+    if (!dev || dev.accountId !== req.account!.id) {
+      res.status(404).json({ error: "Device not found" });
+      return null;
+    }
+    return dev;
+  };
+
+  app.get("/api/devices/:id/config", requireAuth, async (req, res) => {
+    const dev = await ownedDevice(req, res);
+    if (!dev) return;
+    res.json(await loadDeviceConfig(dev.id));
+  });
+
+  // Partial write: any of { name, settings, onboarding, favorites, preferences }.
+  // settings/onboarding merge (only provided fields change); favorites/preferences
+  // replace the whole list. Bumps configVersion so the tablet re-fetches.
+  app.put("/api/devices/:id/config", requireAuth, async (req, res) => {
+    const dev = await ownedDevice(req, res);
+    if (!dev) return;
+    const { name, settings, onboarding, favorites, preferences } = req.body || {};
+    try {
+      await db.transaction(async (tx) => {
+        if (name !== undefined) {
+          await tx.update(devices).set({ name: String(name).trim() || null }).where(eq(devices.id, dev.id));
+        }
+        if (settings && typeof settings === "object") {
+          const set: Record<string, any> = {};
+          for (const k of ["temperatureUnit", "clockFormat", "transportRows"] as const) {
+            if (settings[k] !== undefined) set[k] = settings[k];
+          }
+          if (Object.keys(set).length) {
+            await tx.insert(deviceSettings).values({ deviceId: dev.id, ...set })
+              .onConflictDoUpdate({ target: deviceSettings.deviceId, set: { ...set, updatedAt: new Date() } });
+          }
+        }
+        if (onboarding && typeof onboarding === "object") {
+          const set: Record<string, any> = {};
+          for (const k of ["locationType", "otherLabel", "address", "lat", "lon", "modes"] as const) {
+            if (onboarding[k] !== undefined) set[k] = onboarding[k];
+          }
+          if (onboarding.completedAt !== undefined) set.completedAt = onboarding.completedAt ? new Date(onboarding.completedAt) : null;
+          if (Object.keys(set).length) {
+            await tx.insert(deviceOnboarding).values({ deviceId: dev.id, ...set })
+              .onConflictDoUpdate({ target: deviceOnboarding.deviceId, set: { ...set, updatedAt: new Date() } });
+          }
+        }
+        if (Array.isArray(favorites)) {
+          await tx.delete(deviceFavorites).where(eq(deviceFavorites.deviceId, dev.id));
+          if (favorites.length) {
+            await tx.insert(deviceFavorites).values(favorites.map((f: any, i: number) => ({
+              deviceId: dev.id, line: f.line, stop: f.stop, direction: f.direction, position: f.position ?? i,
+            })));
+          }
+        }
+        if (Array.isArray(preferences)) {
+          await tx.delete(devicePreferences).where(eq(devicePreferences.deviceId, dev.id));
+          if (preferences.length) {
+            await tx.insert(devicePreferences).values(preferences.map((p: any) => ({
+              deviceId: dev.id, row: p.row, line: p.line, stop: p.stop, direction: p.direction,
+            })));
+          }
+        }
+        await tx.update(devices).set({ configVersion: sql`${devices.configVersion} + 1` }).where(eq(devices.id, dev.id));
+      });
+      res.json(await loadDeviceConfig(dev.id));
+    } catch (e) {
+      console.error("[config put] error:", e);
+      res.status(500).json({ error: "Save failed" });
+    }
   });
 }
