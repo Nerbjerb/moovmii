@@ -54,10 +54,8 @@ export async function requireDevice(req: Request, res: Response, next: NextFunct
   }
 }
 
-// Pairing codes: short, unambiguous (no 0/O/1/I/L), single-use, 10-min TTL.
-const PAIR_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-const genCode = (n = 6) =>
-  Array.from({ length: n }, () => PAIR_ALPHABET[crypto.randomInt(PAIR_ALPHABET.length)]).join("");
+// Pairing codes: 6-digit numeric (easy to read/type), single-use, 10-min TTL.
+const genCode = () => String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
 const genDeviceToken = () => crypto.randomBytes(32).toString("base64url");
 const PAIR_TTL_MS = 10 * 60 * 1000;
 
