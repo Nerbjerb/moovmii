@@ -5,14 +5,11 @@ import { mapOWMCodeToIcon } from "@shared/weatherIconMapper";
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import { feedUrls, lineToFeedGroup, getSameColorLines, getStopId, getFeedUrlsForLines, njtStationCodeMap } from "@shared/stopMetadata";
 import { insertKioskPreferenceSchema, insertKioskSettingsSchema } from "@shared/schema";
-import { requireAuth } from "./auth";
+import { registerAccountRoutes } from "./accountsRoutes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // --- Accounts (phone / mobile web), authenticated via Supabase ---
-  // Returns the signed-in user's moovmii account, creating it on first sign-in.
-  app.get("/api/me", requireAuth, async (req, res) => {
-    res.json({ account: req.account });
-  });
+  // Account / device / pairing routes (phone + tablet)
+  registerAccountRoutes(app);
 
   // Weather API route - fetches current and 3-hour forecast for NYC
   app.get("/api/weather", async (req, res) => {

@@ -7,13 +7,14 @@ import type { Request, Response, NextFunction } from "express";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 import { supabase } from "./supabase";
-import { accounts, type Account } from "@shared/authSchema";
+import { accounts, type Account, type Device } from "@shared/authSchema";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      account?: Account;
+      account?: Account; // set by requireAuth (phone, Supabase user)
+      device?: Device;   // set by requireDevice (tablet, device token)
     }
   }
 }
