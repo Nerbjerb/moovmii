@@ -12,6 +12,9 @@ const font = { fontFamily: "Helvetica, Arial, sans-serif" };
 const scaleMap: Record<string, number> = { "800x480": 1, "1024x600": 1.25, "1280x800": 1.6, "1920x1080": 2.25 };
 const TOKEN_KEY = "moovmii_device_token";
 const PAIR_WEB_URL = "https://app.moovmii.com/pair"; // QR deep-link target (phone)
+// Branded URL shown for manual entry. Today: pair.moovmii.com (GoDaddy subdomain
+// forward → app.moovmii.com/pair). Later, switch to "moovmii.com/pair".
+const PAIR_DISPLAY_URL = "pair.moovmii.com";
 
 export default function PairDevice() {
   const [, setLocation] = useLocation();
@@ -104,7 +107,7 @@ export default function PairDevice() {
           <div style={{ position: "absolute", left: "40px", top: "118px", width: "312px", textAlign: "center" }}>
             <div style={{ ...font, fontSize: "30px", fontWeight: 400, color: "#ffffff" }}>Use a Code</div>
             <div style={{ ...font, fontSize: "15px", color: "#b9b9b9", marginTop: "16px", lineHeight: 1.4 }}>
-              Enter the six-digit code<br />at moovmii.com/pair
+              Enter the six-digit code<br />at {PAIR_DISPLAY_URL}
             </div>
             <div style={{
               marginTop: "30px", height: "74px", borderRadius: "14px", backgroundColor: "#2b2b2e",
