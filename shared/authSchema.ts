@@ -10,6 +10,9 @@ import { pgTable, varchar, text, integer, real, jsonb, timestamp, uniqueIndex } 
 // row owns devices and their config.
 export const accounts = pgTable("accounts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  // The Supabase user id (UUID). Supabase owns identity + provider linking
+  // (Google/Apple → one Supabase user); this is our stable link to it.
+  supabaseUserId: text("supabase_user_id").notNull().unique(),
   email: text("email"),
   name: text("name"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
