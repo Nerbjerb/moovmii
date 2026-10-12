@@ -94,7 +94,12 @@ export default function Setup() {
       try {
         const r = await fetch(`/api/driving/autocomplete?input=${encodeURIComponent(address)}`);
         const j = await r.json();
-        setSuggestions(Array.isArray(j) ? j.slice(0, 4) : (j?.predictions ?? []).slice(0, 4));
+        const list = Array.isArray(j) ? j : (j?.predictions ?? []);
+        setSuggestions(
+          list.slice(0, 4)
+            .map((p: any) => (typeof p === "string" ? p : p?.description ?? p?.label ?? ""))
+            .filter((s: string) => !!s)
+        );
       } catch { setSuggestions([]); }
     }, 300);
     return () => clearTimeout(t);
