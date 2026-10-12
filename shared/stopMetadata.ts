@@ -1442,10 +1442,11 @@ export const pathStationCoords: Record<string, [number, number]> = {
   "33rd Street": [40.74865, -73.98814],
 };
 // Pure system terminals: NY-end stations only run To NJ; NJ-end stations only
-// run To NY. Everything else runs both directions. (Journal Square is a through
-// stop on PATH-NWK, so it is NOT a terminal here.)
+// run To NY. Everything else runs both directions. Journal Square and Hoboken
+// are through stops on PATH-NWK / PATH-JSQ respectively, so they are NOT pure
+// terminals here — only Newark is strictly NJ-end.
 export const pathTerminalsNY = ["33rd Street", "World Trade Center"]; // → To NJ only
-export const pathTerminalsNJ = ["Newark", "Hoboken"];                 // → To NY only
+export const pathTerminalsNJ = ["Newark"];                           // → To NY only
 
 // Apply GTFS-verified stop_id corrections over the hand-entered subway maps
 // (fixes systematic off-by-one / mis-assigned ids). See subwayStopIdCorrections.ts.

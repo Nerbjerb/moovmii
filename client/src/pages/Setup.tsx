@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "wouter";
 import { Home, Briefcase, ShoppingBag, UtensilsCrossed, MoreHorizontal, Car, Search, Check, Plus, Minus } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { LINE_ICONS, SUBWAY_LINE_ORDER } from "@/lib/lineIcons";
 import { getNearestSubwayPlatforms, getLineStations, getLinesAtStop, getStopDirections, type SuggestedPlatform } from "@/lib/subwaySuggest";
-import { lineToColor } from "@shared/stopMetadata";
+import { getNearestPathPlatforms, getPathRouteStations, getPathRoutesAtStop, getPathStopDirections, pathDirLabel } from "@/lib/pathSuggest";
+import { lineToColor, pathRouteOrder, pathRouteShort, pathRouteColors } from "@shared/stopMetadata";
 import moovmiiLogo from "@assets/moovmii logo v2 (White).png";
 import sirIcon from "@assets/moovmii/MTA Icons/src/svg/sir.svg";
 import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
@@ -54,6 +55,50 @@ type Step = "location" | "address" | "transit" | "subway" | "done";
 type SubPhase = "suggest" | "lines" | "stations";
 type StopCfg = { name: string; dirs: string[]; lines: string[] };
 
+// Modes that have a config sub-flow (suggest → routes → stations) on the phone.
+// Order here is the sequence modes are configured in.
+const CONFIG_MODES = ["subway", "path"];
+
+type RouteMeta = { id: string; label: string; color: string; icon?: string };
+// A mode adapter lets the shared config screens render different transit modes.
+type ModeAdapter = {
+  title: string;
+  getNearby: (lat: number, lon: number) => SuggestedPlatform[];
+  routes: RouteMeta[];
+  getRouteStations: (routeId: string) => { stopId: string; name: string }[];
+  getRoutesAtStop: (stopId: string) => string[];
+  getStopDirections: (stopId: string) => string[];
+  dirLabelFor: (dir: string, routeId: string) => string;
+  routeColor: (routeId: string) => string;
+  routeIcon: (routeId: string) => string | undefined;
+  routeMeta: (routeId: string) => RouteMeta;
+};
+const subwayAdapter = (): ModeAdapter => ({
+  title: "Subway Setup",
+  getNearby: (lat, lon) => getNearestSubwayPlatforms(lat, lon, 9),
+  routes: SUBWAY_LINE_ORDER.map((l) => ({ id: l, label: l, color: lineToColor[l] || "#8a8a8a", icon: LINE_ICONS[l] })),
+  getRouteStations: (line) => getLineStations(line),
+  getRoutesAtStop: (stopId) => getLinesAtStop(stopId),
+  getStopDirections: (stopId) => getStopDirections(stopId),
+  dirLabelFor: (dir, line) => dirLabel(dir, line),
+  routeColor: (line) => lineToColor[line] || "#8a8a8a",
+  routeIcon: (line) => LINE_ICONS[line],
+  routeMeta: (line) => ({ id: line, label: line, color: lineToColor[line] || "#8a8a8a", icon: LINE_ICONS[line] }),
+});
+const pathAdapter = (): ModeAdapter => ({
+  title: "PATH Setup",
+  getNearby: (lat, lon) => getNearestPathPlatforms(lat, lon, 8),
+  routes: pathRouteOrder.map((rk) => ({ id: rk, label: pathRouteShort[rk] || rk, color: pathRouteColors[rk] || "#8a8a8a" })),
+  getRouteStations: (rk) => getPathRouteStations(rk).map((name) => ({ stopId: name, name })),
+  getRoutesAtStop: (name) => getPathRoutesAtStop(name),
+  getStopDirections: (name) => getPathStopDirections(name),
+  dirLabelFor: (dir) => pathDirLabel(dir as "Uptown" | "Downtown"),
+  routeColor: (rk) => pathRouteColors[rk] || "#8a8a8a",
+  routeIcon: () => undefined,
+  routeMeta: (rk) => ({ id: rk, label: pathRouteShort[rk] || rk, color: pathRouteColors[rk] || "#8a8a8a" }),
+});
+const ADAPTERS: Record<string, () => ModeAdapter> = { subway: subwayAdapter, path: pathAdapter };
+
 export default function Setup() {
   const params = useParams();
   const deviceUuid = (params as Record<string, string>).id;
@@ -70,9 +115,9 @@ export default function Setup() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [modes, setModes] = useState<string[]>([]);
 
-  // Subway setup
+  // Per-mode config (subway, PATH, …)
+  const [modeStep, setModeStep] = useState(0); // index into the selected config-capable modes
   const [subPhase, setSubPhase] = useState<SubPhase>("suggest");
-  const [realPlatforms, setRealPlatforms] = useState<SuggestedPlatform[] | null>(null);
   const [selectedLines, setSelectedLines] = useState<string[]>([]);
   const [lineStep, setLineStep] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null); // stopId
@@ -81,6 +126,18 @@ export default function Setup() {
   const [addOther, setAddOther] = useState(false); // "Add other platforms" selected → Next goes to the lines picker
 
   const locWord = (locationType === "Other" ? otherLabel : locationType) || "space";
+
+  // The selected modes that actually have a config flow, in configure order.
+  const activeModes = MODES.filter((m) => modes.includes(m.id) && CONFIG_MODES.includes(m.id)).map((m) => m.id);
+  const activeMode = activeModes[modeStep] ?? CONFIG_MODES[0];
+  const adapter = useMemo(() => (ADAPTERS[activeMode] || subwayAdapter)(), [activeMode]);
+  // Nearby suggestions are derived from the active mode + coords, so they're
+  // always correct for the current mode (even after Back crosses mode boundaries).
+  const realPlatforms = useMemo<SuggestedPlatform[] | null>(() => {
+    if (step !== "subway") return null;
+    if (!coords) return [];
+    return adapter.getNearby(coords.lat, coords.lon);
+  }, [step, adapter, coords?.lat, coords?.lon]);
 
   useEffect(() => {
     apiFetch(`/api/devices/${deviceUuid}/config`)
@@ -122,9 +179,13 @@ export default function Setup() {
   // re-advances.
   const navKey = step !== "subway"
     ? step
-    : `subway:${subPhase}${subPhase === "stations" ? `:${lineStep}` : ""}`;
+    : `subway:${modeStep}:${subPhase}${subPhase === "stations" ? `:${lineStep}` : ""}`;
   const popping = useRef(false);
   const prevNavKey = useRef(navKey);
+  // Remember each mode's selected routes so Back/Forward across mode boundaries
+  // restores the right ones (selectedLines is shared working state).
+  const modeSnapshots = useRef<Record<number, string[]>>({});
+  useEffect(() => { modeSnapshots.current[modeStep] = selectedLines; }, [modeStep, selectedLines]);
 
   // Tag the entry we arrived on so Back from step 1 restores "location".
   useEffect(() => {
@@ -148,9 +209,12 @@ export default function Setup() {
       popping.current = true;
       setExpanded(null);
       if (key.startsWith("subway:")) {
-        const [, sp, ls] = key.split(":");
+        const [, ms, sp, ls] = key.split(":");
+        const m = Number(ms) || 0;
         setStep("subway");
+        setModeStep(m);
         setSubPhase(sp as SubPhase);
+        setSelectedLines(modeSnapshots.current[m] || []);
         if (sp === "stations") setLineStep(Number(ls) || 0);
       } else {
         setStep(key as Step);
@@ -167,21 +231,34 @@ export default function Setup() {
   };
 
   // ---- navigation ----
-  const enterSubway = async () => {
+  // Reset the per-mode sub-flow to its first screen (suggestions if we have an
+  // address, else straight to the route picker).
+  const startMode = (c: { lat: number; lon: number } | null) => {
+    setStep("subway");
+    setAddOther(false);
+    setSelectedLines([]);
+    setLineStep(0);
+    setExpanded(null);
+    setSubPhase(c ? "suggest" : "lines");
+  };
+  const enterConfig = async () => {
     let c = coords;
     if (address.trim() && !c) {
       try { const r = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`); if (r.ok) { const j = await r.json(); if (j?.lat != null) { c = { lat: j.lat, lon: j.lon }; setCoords(c); } } } catch {}
     }
     await saveOnboarding({ locationType, otherLabel: locationType === "Other" ? otherLabel : null, address: address || null, lat: c?.lat ?? null, lon: c?.lon ?? null, modes });
-    if (!modes.includes("subway")) { finish(); return; }
-    setStep("subway");
-    if (c) {
-      const plats = getNearestSubwayPlatforms(c.lat, c.lon, 9);
-      setRealPlatforms(plats);
-      setSubPhase("suggest");
+    const seq = MODES.filter((m) => modes.includes(m.id) && CONFIG_MODES.includes(m.id)).map((m) => m.id);
+    if (seq.length === 0) { finish(); return; }
+    setModeStep(0);
+    startMode(c);
+  };
+  // Finish the current mode: advance to the next selected mode, or complete setup.
+  const advanceMode = () => {
+    if (modeStep < activeModes.length - 1) {
+      setModeStep(modeStep + 1);
+      startMode(coords);
     } else {
-      setRealPlatforms([]);
-      setSubPhase("lines");
+      finish();
     }
   };
 
@@ -255,11 +332,11 @@ export default function Setup() {
   const stopConfigured = (stopId: string) => !!cfg[stopId] && cfg[stopId].dirs.length > 0 && cfg[stopId].lines.length > 0;
 
   const goToLines = () => {
-    // pre-select lines already chosen via suggestions
+    // pre-select this mode's routes already chosen via suggestions / manual picks
     const pre = new Set<string>();
     for (const card of Object.values(suggestSel)) card.lines.forEach((l) => pre.add(l));
     for (const sc of Object.values(cfg)) sc.lines.forEach((l) => pre.add(l));
-    setSelectedLines(SUBWAY_LINE_ORDER.filter((l) => pre.has(l)));
+    setSelectedLines(adapter.routes.map((r) => r.id).filter((l) => pre.has(l)));
     setSubPhase("lines");
   };
 
@@ -269,10 +346,10 @@ export default function Setup() {
   const curLine = selectedLines[lineStep];
 
   // Chevron "pizza tracker": one chevron per selected transit mode, in flow order.
-  // Only Subway has a config screen today, so it's the active one; the rest are
-  // placeholders until their screens are built.
+  // The active mode is highlighted; modes without a config screen yet are shown
+  // as placeholders and skipped during sequencing.
   const configModes = MODES.filter((m) => modes.includes(m.id)).map((m) => m.id);
-  const configIndex = configModes.indexOf("subway"); // current mode being configured
+  const configIndex = configModes.indexOf(activeMode); // current mode being configured
 
   return (
     <div style={{ ...font, height: "100svh", backgroundColor: "#0b0b0b", color: "#fff", display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -381,7 +458,7 @@ export default function Setup() {
         )}
 
         {step === "subway" && subPhase === "suggest" && (
-          <StepBody title="Subway Setup" subtitle="We recommend these stations based on your location">
+          <StepBody title={adapter.title} subtitle="We recommend these stations based on your location">
             <div style={{ display: "flex", flexDirection: "column", gap: "9px", overflowY: "auto" }}>
               {realPlatforms === null ? <Dim>Finding nearby platforms…</Dim> : realPlatforms.length === 0 ? <Dim>No suggestions — add platforms below.</Dim> :
                 realPlatforms.map((p) => {
@@ -392,7 +469,7 @@ export default function Setup() {
                         <div style={{ fontSize: "15px", fontWeight: 700 }}>{p.station}</div>
                         <div style={{ fontSize: "12px", color: on ? "#555" : "#999" }}>{p.directionLabel}</div>
                       </div>
-                      <LineBullets lines={p.lines} />
+                      <RouteBadges adapter={adapter} routes={p.lines} />
                     </button>
                   );
                 })}
@@ -405,29 +482,24 @@ export default function Setup() {
         )}
 
         {step === "subway" && subPhase === "lines" && (
-          <StepBody title="Subway Setup" subtitle="Which lines do you use? Lines from previous screens are selected.">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", justifyItems: "center" }}>
-              {SUBWAY_LINE_ORDER.map((l) => {
-                const sel = selectedLines.includes(l);
-                return (
-                  <button key={l} onClick={() => setSelectedLines((x) => x.includes(l) ? x.filter((i) => i !== l) : [...x, l])}
-                    style={{ width: "58px", height: "58px", borderRadius: "12px", backgroundColor: "#1c1c1f", border: `2px solid ${sel ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", opacity: sel ? 1 : 0.55 }}>
-                    {LINE_ICONS[l] ? <img src={LINE_ICONS[l]} alt={l} style={{ width: "38px", height: "38px" }} /> : <span style={{ ...font, color: "#fff" }}>{l}</span>}
-                  </button>
-                );
-              })}
+          <StepBody title={adapter.title} subtitle="Which lines do you use? Lines from previous screens are selected.">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center", overflowY: "auto" }}>
+              {adapter.routes.map((r) => (
+                <RouteButton key={r.id} meta={r} on={selectedLines.includes(r.id)} size={58}
+                  onClick={() => setSelectedLines((x) => x.includes(r.id) ? x.filter((i) => i !== r.id) : [...x, r.id])} />
+              ))}
             </div>
           </StepBody>
         )}
 
         {step === "subway" && subPhase === "stations" && curLine && (
-          <StepBody title="Subway Setup" subtitleNode={<><span>Select platform for</span><InlineBullet line={curLine} /></>}>
+          <StepBody title={adapter.title} subtitleNode={<><span>Select platform for</span><RouteInline meta={adapter.routeMeta(curLine)} /></>}>
             <div className="show-scrollbar" style={{ overflowY: "auto", flex: 1, minHeight: 0, paddingLeft: "4px" }}>
-              {getLineStations(curLine).map((st) => {
+              {adapter.getRouteStations(curLine).map((st) => {
                 const isOpen = expanded === st.stopId;
                 const configured = stopConfigured(st.stopId);
-                const dirs = getStopDirections(st.stopId);
-                const linesHere = getLinesAtStop(st.stopId);
+                const dirs = adapter.getStopDirections(st.stopId);
+                const linesHere = adapter.getRoutesAtStop(st.stopId);
                 const singleLine = linesHere.length === 1;
                 const hasDir = (cfg[st.stopId]?.dirs.length ?? 0) > 0; // lines are pickable only with a direction
                 return (
@@ -438,7 +510,7 @@ export default function Setup() {
                         the expanded options. */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "14px", flexShrink: 0 }}>
                       <div style={{ width: "2px", height: "13px", backgroundColor: "#3a3a3a" }} />
-                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: lineToColor[curLine] || "#8a8a8a" }} />
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: adapter.routeColor(curLine) }} />
                       <div style={{ width: "2px", flex: 1, backgroundColor: "#3a3a3a" }} />
                     </div>
                     <div style={{ flex: 1, paddingBottom: "6px" }}>
@@ -455,23 +527,20 @@ export default function Setup() {
                           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                             {dirs.map((d) => {
                               const on = cfg[st.stopId]?.dirs.includes(d);
-                              return <Pill key={d} on={!!on} label={dirLabel(d, curLine)}
+                              return <Pill key={d} on={!!on} label={adapter.dirLabelFor(d, curLine)}
                                 onClick={() => (singleLine ? pickDirSole(st.stopId, st.name, d, linesHere[0]) : toggleDir(st.stopId, st.name, d))} />;
                             })}
                           </div>
                           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                             {linesHere.map((l) => {
-                              // Lines are only pickable once a direction is chosen. Without one they're
-                              // dimmed & disabled. A lone line is locked (follows the direction pills).
+                              // Routes are only pickable once a direction is chosen. Without one they're
+                              // dimmed & disabled. A lone route is locked (follows the direction pills).
                               const on = singleLine ? hasDir : !!(hasDir && cfg[st.stopId]?.lines.includes(l));
                               const disabled = !hasDir;
                               const locked = singleLine;
                               return (
-                                <button key={l} disabled={disabled}
-                                  onClick={(disabled || locked) ? undefined : () => toggleLine(st.stopId, st.name, l)}
-                                  style={{ width: "42px", height: "42px", borderRadius: "10px", backgroundColor: "#1c1c1f", border: `2px solid ${on ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: (disabled || locked) ? "default" : "pointer", opacity: disabled ? 0.3 : (on ? 1 : 0.5) }}>
-                                  {LINE_ICONS[l] ? <img src={LINE_ICONS[l]} alt={l} style={{ width: "28px", height: "28px" }} /> : l}
-                                </button>
+                                <RouteButton key={l} meta={adapter.routeMeta(l)} on={on} size={42} disabled={disabled} locked={locked}
+                                  onClick={() => toggleLine(st.stopId, st.name, l)} />
                               );
                             })}
                           </div>
@@ -513,17 +582,20 @@ export default function Setup() {
   function next() {
     if (step === "location") setStep("address");
     else if (step === "address") setStep("transit");
-    else if (step === "transit") enterSubway();
+    else if (step === "transit") enterConfig();
     else if (step === "subway") {
-      if (subPhase === "suggest") { if (addOther) goToLines(); else finish(); }
+      if (subPhase === "suggest") { if (addOther) goToLines(); else advanceMode(); }
       else if (subPhase === "lines") { if (selectedLines.length) { setLineStep(0); setExpanded(null); setSubPhase("stations"); } }
-      else if (subPhase === "stations") { if (lineStep < selectedLines.length - 1) { setLineStep(lineStep + 1); setExpanded(null); } else finish(); }
+      else if (subPhase === "stations") { if (lineStep < selectedLines.length - 1) { setLineStep(lineStep + 1); setExpanded(null); } else advanceMode(); }
     }
   }
   function nextLabel() {
-    if (step === "subway" && subPhase === "stations" && lineStep >= selectedLines.length - 1) return "Finish";
-    if (step === "subway" && subPhase === "suggest") return addOther ? "Next" : "Finish";
-    return "Next";
+    if (step !== "subway") return "Next";
+    const isLastMode = modeStep >= activeModes.length - 1;
+    const endsMode =
+      (subPhase === "suggest" && !addOther) ||
+      (subPhase === "stations" && lineStep >= selectedLines.length - 1);
+    return endsMode && isLastMode ? "Finish" : "Next";
   }
   function nextDisabled() {
     if (saving) return true;
@@ -538,11 +610,47 @@ export default function Setup() {
 function rowStyle(selected: boolean, h = 54): React.CSSProperties {
   return { ...font, width: "100%", minHeight: `${h}px`, borderRadius: "14px", backgroundColor: selected ? "#2a2a2e" : "#1c1c1f", border: `2px solid ${selected ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", gap: "14px", padding: "0 16px", cursor: "pointer", color: "#fff" };
 }
-function LineBullets({ lines }: { lines: string[] }) {
-  return <div style={{ display: "flex", gap: "3px", flexShrink: 0 }}>{lines.map((l) => LINE_ICONS[l] && <img key={l} src={LINE_ICONS[l]} alt={l} style={{ width: "26px", height: "26px" }} />)}</div>;
+// A selectable route: a subway bullet icon, or a colored chip (PATH etc.).
+function RouteButton({ meta, on, size, disabled, locked, onClick }: { meta: RouteMeta; on: boolean; size: number; disabled?: boolean; locked?: boolean; onClick: () => void }) {
+  const inert = disabled || locked;
+  const common: React.CSSProperties = {
+    border: `2px solid ${on ? YELLOW : "transparent"}`, borderRadius: "10px",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: inert ? "default" : "pointer", opacity: disabled ? 0.3 : (on ? 1 : 0.55),
+  };
+  if (meta.icon) {
+    return (
+      <button disabled={disabled} onClick={inert ? undefined : onClick}
+        style={{ ...common, width: `${size}px`, height: `${size}px`, backgroundColor: "#1c1c1f" }}>
+        <img src={meta.icon} alt={meta.label} style={{ width: `${Math.round(size * 0.66)}px`, height: `${Math.round(size * 0.66)}px` }} />
+      </button>
+    );
+  }
+  return (
+    <button disabled={disabled} onClick={inert ? undefined : onClick}
+      style={{ ...common, height: `${size}px`, padding: "0 14px", backgroundColor: meta.color }}>
+      <span style={{ ...font, color: "#fff", fontWeight: 700, fontSize: "12px", whiteSpace: "nowrap", letterSpacing: "0.3px" }}>{meta.label}</span>
+    </button>
+  );
 }
-function InlineBullet({ line }: { line: string }) {
-  return LINE_ICONS[line] ? <img src={LINE_ICONS[line]} alt={line} style={{ width: "22px", height: "22px", verticalAlign: "middle", margin: "0 2px" }} /> : <span>{line}</span>;
+// Small route indicators shown on a suggestion card.
+function RouteBadges({ adapter, routes }: { adapter: ModeAdapter; routes: string[] }) {
+  return (
+    <div style={{ display: "flex", gap: "4px", flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end", maxWidth: "48%" }}>
+      {routes.map((r) => {
+        const m = adapter.routeMeta(r);
+        return m.icon
+          ? <img key={r} src={m.icon} alt={m.label} style={{ width: "26px", height: "26px" }} />
+          : <span key={r} style={{ ...font, backgroundColor: m.color, color: "#fff", fontWeight: 700, fontSize: "10px", borderRadius: "6px", padding: "3px 6px", whiteSpace: "nowrap" }}>{m.label}</span>;
+      })}
+    </div>
+  );
+}
+// Inline route badge used in a subtitle.
+function RouteInline({ meta }: { meta: RouteMeta }) {
+  return meta.icon
+    ? <img src={meta.icon} alt={meta.label} style={{ width: "22px", height: "22px", verticalAlign: "middle", margin: "0 2px" }} />
+    : <span style={{ ...font, backgroundColor: meta.color, color: "#fff", fontWeight: 700, fontSize: "12px", borderRadius: "6px", padding: "2px 8px", margin: "0 2px" }}>{meta.label}</span>;
 }
 function Pill({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
   return (
