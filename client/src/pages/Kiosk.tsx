@@ -16,7 +16,7 @@ import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines, lineServesStop } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
-import { syncDeviceConfig } from "@/lib/deviceConfigSync";
+import { syncDeviceConfig, getDeviceToken } from "@/lib/deviceConfigSync";
 import { savePreference, toggleFavorite as toggleStoredFavorite } from "@/lib/localStorageDB";
 import { getCitibikeShowParking } from "@/pages/CitibikePreferences";
 import { getScreenDimSettings, isDimActive } from "@/lib/screenDim";
@@ -148,6 +148,29 @@ export default function Kiosk() {
   const { data: preferences } = useQuery<KioskPreference[]>({
     queryKey: ['/api/preferences', deviceId],
   });
+
+  // Empty-state routing: a device with no configured rows shouldn't show the old
+  // Broadway N/W default. Unpaired + empty -> pairing screen; paired but not yet
+  // set up -> a "finish on your phone" screen (the sync fills it in); configured
+  // -> the kiosk. "checking" shows a neutral splash while we decide.
+  const [emptyScreen, setEmptyScreen] = useState<"none" | "checking" | "pair" | "waiting">("checking");
+  useEffect(() => {
+    if (preferences === undefined) { setEmptyScreen("checking"); return; }
+    if (preferences.length > 0) { setEmptyScreen("none"); return; }
+    let alive = true;
+    setEmptyScreen("checking");
+    (async () => {
+      const token = getDeviceToken();
+      if (!token) { if (alive) setEmptyScreen("pair"); return; }
+      try {
+        const r = await fetch("/api/device/state", { headers: { "x-device-token": token } });
+        const s = r.ok ? await r.json() : null;
+        if (alive) setEmptyScreen(s?.paired ? "waiting" : "pair");
+      } catch { if (alive) setEmptyScreen("pair"); }
+    })();
+    return () => { alive = false; };
+  }, [preferences]);
+  useEffect(() => { if (emptyScreen === "pair") setLocation("/pair-device"); }, [emptyScreen, setLocation]);
 
   // Fetch favorites pool (saved row configs) — used for the star boxes and swipe
   // cycling. Served from device localStorage (see queryClient) so deploys can't wipe it.
@@ -645,6 +668,33 @@ export default function Kiosk() {
       setLocation(`/settings?editRow=${rowNumber}`);
     }
   };
+
+  // Empty state (replaces the old Broadway N/W default): neutral splash while
+  // deciding / redirecting to pairing, or a "finish on your phone" screen.
+  if (emptyScreen === "checking" || emptyScreen === "pair") {
+    return (
+      <div className="min-h-screen bg-[#0b0b0b] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
+        <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: 'center center' }}>
+          <main className="bg-[#0b0b0b] relative flex items-center justify-center" style={{ width: '800px', height: '480px' }}>
+            <img src={moovmiiLogoV2} alt="moovmii" style={{ height: 42 }} />
+          </main>
+        </div>
+      </div>
+    );
+  }
+  if (emptyScreen === "waiting") {
+    return (
+      <div className="min-h-screen bg-[#0b0b0b] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
+        <div className="relative fullscreen-container" style={{ transform: `scale(${kioskScale})`, transformOrigin: 'center center' }}>
+          <main className="bg-[#0b0b0b] relative flex flex-col items-center justify-center" style={{ width: '800px', height: '480px', textAlign: 'center' }}>
+            <img src={moovmiiLogoV2} alt="moovmii" style={{ height: 34 }} />
+            <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: 24, fontWeight: 700, color: '#fff', marginTop: 20 }}>Finishing setup…</div>
+            <div style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: 15, color: '#9a9a9a', marginTop: 10 }}>Complete setup on your phone to see your trains.</div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0b0b0b] flex flex-col items-center justify-center p-8 fullscreen-wrapper">
