@@ -332,7 +332,7 @@ export default function Onboarding() {
         className="hover:opacity-90 transition-opacity"
         style={{
           width: "358px", height: "46px", borderRadius: "10px", backgroundColor: "#2D2C31",
-          border: `2px solid ${selected ? "#FFD200" : "transparent"}`,
+          border: `2px solid ${selected ? "#ffffff" : "transparent"}`,
           display: "flex", alignItems: "center", padding: "0 14px", gap: "12px", cursor: "pointer",
         }}
         data-testid={`mode-${m.id}`}
@@ -349,8 +349,8 @@ export default function Onboarding() {
         </span>
         <div style={{
           width: "24px", height: "24px", borderRadius: "5px", flexShrink: 0,
-          border: `2px solid ${selected ? "#FFD200" : "#666"}`,
-          backgroundColor: selected ? "#FFD200" : "transparent",
+          border: `2px solid ${selected ? "#ffffff" : "#666"}`,
+          backgroundColor: selected ? "#ffffff" : "transparent",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           {selected && <Check className="w-4 h-4" style={{ color: "#000" }} strokeWidth={3} />}
@@ -396,7 +396,7 @@ export default function Onboarding() {
         className="hover:opacity-90 transition-opacity"
         style={{
           width: "230px", height: "56px", borderRadius: "12px", backgroundColor: "#2D2C31",
-          border: `2px solid ${selected ? "#FFD200" : "transparent"}`,
+          border: `2px solid ${selected ? "#ffffff" : "transparent"}`,
           display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", cursor: "pointer",
         }}
         data-testid={`group-${g.id}`}
@@ -469,7 +469,7 @@ export default function Onboarding() {
             {STEPS.map((s, i) => (
               <div key={s.id} style={{
                 width: i === stepIndex ? "22px" : "8px", height: "8px", borderRadius: "999px",
-                backgroundColor: i === stepIndex ? "#FFD200" : i < stepIndex ? "#4ade80" : "#3a3a3a",
+                backgroundColor: i === stepIndex ? "#ffffff" : i < stepIndex ? "#4ade80" : "#3a3a3a",
                 transition: "all 0.2s",
               }} />
             ))}
@@ -493,20 +493,20 @@ export default function Onboarding() {
                       style={{
                         width: "360px", height: "52px", borderRadius: "999px",
                         backgroundColor: "#2D2C31",
-                        border: `2px solid ${selected ? "#FFD200" : "transparent"}`,
+                        border: `2px solid ${selected ? "#ffffff" : "transparent"}`,
                         display: "flex", alignItems: "center", padding: "0 20px", gap: "14px", cursor: "pointer",
                       }}
                       data-testid={`location-${id}`}
                     >
-                      <Icon className="w-5 h-5 flex-shrink-0" style={{ color: selected ? "#FFD200" : "#ffffff" }} />
+                      <Icon className="w-5 h-5 flex-shrink-0" style={{ color: selected ? "#ffffff" : "#ffffff" }} />
                       <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: "#ffffff", flex: 1, textAlign: "left" }}>
                         {id === "Other" && otherLabel ? otherLabel : id}
                       </span>
                       {/* Single-select indicator: filled square when chosen */}
                       <div style={{
                         width: "22px", height: "22px", borderRadius: "5px", flexShrink: 0,
-                        border: `2px solid ${selected ? "#FFD200" : "#666"}`,
-                        backgroundColor: selected ? "#FFD200" : "transparent",
+                        border: `2px solid ${selected ? "#ffffff" : "#666"}`,
+                        backgroundColor: selected ? "#ffffff" : "transparent",
                         display: "flex", alignItems: "center", justifyContent: "center",
                       }}>
                         {selected && <div style={{ width: "8px", height: "8px", borderRadius: "2px", backgroundColor: "#000" }} />}
@@ -546,7 +546,7 @@ export default function Onboarding() {
                 <span style={{ ...font, fontSize: "21px", fontWeight: 700, color: "#ffffff", textAlign: "center" }}>{addressPrompt()}</span>
               </div>
               <div style={{ position: "absolute", top: "98px", left: "100px", right: "100px", height: "44px", backgroundColor: "#2D2C31", borderRadius: "8px", display: "flex", alignItems: "center", padding: "0 14px", gap: "10px" }}>
-                <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#FFD200" }} />
+                <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#ffffff" }} />
                 <span style={{ ...font, fontSize: "15px", color: addressQuery ? "#fff" : "#555", flex: 1, overflow: "hidden", whiteSpace: "nowrap" }}>
                   {addressQuery || "Start typing an address..."}
                   <span className="search-cursor" />
@@ -567,7 +567,7 @@ export default function Onboarding() {
                 </div>
               )}
               <div style={{ position: "absolute", bottom: "64px", left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-                <OnScreenKeyboard value={addressQuery} onChange={(v) => { setAddressQuery(v); }} accent="#FFD200" />
+                <OnScreenKeyboard value={addressQuery} onChange={(v) => { setAddressQuery(v); }} accent="#ffffff" />
               </div>
             </>
           )}
@@ -660,7 +660,7 @@ export default function Onboarding() {
                       const sel = selectedLines.includes(l);
                       return (
                         <button key={l} onClick={() => toggleLine(l)} className="hover:opacity-90 transition-opacity"
-                          style={{ width: "58px", height: "58px", borderRadius: "10px", backgroundColor: "#2D2C31", border: `2px solid ${sel ? "#FFD200" : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          style={{ width: "58px", height: "58px", borderRadius: "10px", backgroundColor: "#2D2C31", border: `2px solid ${sel ? "#ffffff" : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                           data-testid={`line-${l}`}>
                           {LINE_ICONS[l] ? <img src={LINE_ICONS[l]} alt={l} style={{ width: "40px", height: "40px" }} /> : <span style={{ ...font, color: "#fff" }}>{l}</span>}
                         </button>
@@ -704,7 +704,7 @@ export default function Onboarding() {
                   <div className="absolute bottom-[16px] right-[20px]">
                     <button onClick={onContinue} disabled={manualGate}
                       className="rounded-[8px] hover:opacity-80 transition-opacity"
-                      style={{ height: "44px", padding: "0 28px", backgroundColor: manualGate ? "#2D2C31" : "#FFD200", border: "none", cursor: manualGate ? "default" : "pointer", opacity: manualGate ? 0.5 : 1 }}
+                      style={{ height: "44px", padding: "0 28px", backgroundColor: manualGate ? "#2D2C31" : "#ffffff", border: "none", cursor: manualGate ? "default" : "pointer", opacity: manualGate ? 0.5 : 1 }}
                       data-testid="button-config-continue">
                       <span style={{ ...font, fontSize: "15px", fontWeight: 700, color: manualGate ? "#666" : "#000" }}>Continue</span>
                     </button>
@@ -736,7 +736,7 @@ export default function Onboarding() {
                 onClick={goNext}
                 disabled={!canProceed}
                 className="rounded-[8px] flex items-center justify-center transition-opacity"
-                style={{ height: "44px", padding: "0 28px", backgroundColor: canProceed ? "#FFD200" : "#2D2C31", border: "none", cursor: canProceed ? "pointer" : "default", opacity: canProceed ? 1 : 0.5 }}
+                style={{ height: "44px", padding: "0 28px", backgroundColor: canProceed ? "#ffffff" : "#2D2C31", border: "none", cursor: canProceed ? "pointer" : "default", opacity: canProceed ? 1 : 0.5 }}
                 data-testid="button-next"
               >
                 <span style={{ ...font, fontSize: "15px", fontWeight: 700, color: canProceed ? "#000000" : "#666" }}>

@@ -15,7 +15,7 @@ import mtaLogo from "@assets/MTA-logo-white.png";
 import nyWaterwayLogo from "@assets/NY Waterway.png";
 
 const font = { fontFamily: "Helvetica, Arial, sans-serif" };
-const YELLOW = "#FFD200";
+const YELLOW = "#ffffff";
 const INOUT = new Set(["7", "L", "J", "Z"]);
 const dirLabel = (dir: string, line: string) =>
   INOUT.has(line) ? (dir === "Uptown" ? "Outbound" : "Inbound") : dir;
@@ -423,7 +423,7 @@ export default function Setup() {
 
 // --- small components / helpers ---
 function rowStyle(selected: boolean, h = 54): React.CSSProperties {
-  return { ...font, width: "100%", minHeight: `${h}px`, borderRadius: "14px", backgroundColor: selected ? "#242015" : "#1c1c1f", border: `2px solid ${selected ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", gap: "14px", padding: "0 16px", cursor: "pointer", color: "#fff" };
+  return { ...font, width: "100%", minHeight: `${h}px`, borderRadius: "14px", backgroundColor: selected ? "#2a2a2e" : "#1c1c1f", border: `2px solid ${selected ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", gap: "14px", padding: "0 16px", cursor: "pointer", color: "#fff" };
 }
 function LineBullets({ lines }: { lines: string[] }) {
   return <div style={{ display: "flex", gap: "3px", flexShrink: 0 }}>{lines.map((l) => LINE_ICONS[l] && <img key={l} src={LINE_ICONS[l]} alt={l} style={{ width: "26px", height: "26px" }} />)}</div>;

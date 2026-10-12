@@ -2966,7 +2966,7 @@ export default function Settings() {
                       width: '760px',
                       height: '58px',
                       backgroundColor: '#2D2C31',
-                      border: isSelected ? '2px solid #ffd200' : '2px solid transparent',
+                      border: isSelected ? '2px solid #ffffff' : '2px solid transparent',
                     }}
                     onClick={() => {
                       localStorage.setItem('kioskResolution', res);
@@ -2975,7 +2975,7 @@ export default function Settings() {
                     }}
                     data-testid={`button-resolution-${res}`}
                   >
-                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '20px', fontWeight: 700, color: isSelected ? '#ffd200' : '#ffffff' }}>
+                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '20px', fontWeight: 700, color: isSelected ? '#ffffff' : '#ffffff' }}>
                       {w} × {h}
                     </span>
                   </div>

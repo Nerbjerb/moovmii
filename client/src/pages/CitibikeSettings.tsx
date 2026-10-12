@@ -169,7 +169,7 @@ export default function CitibikeSettings() {
       style={{
         width: wide ? KWide : KW,
         height: KH,
-        backgroundColor: yellow ? "#FFD200" : wide ? "#484848" : "#2D2C31",
+        backgroundColor: yellow ? "#ffffff" : wide ? "#484848" : "#2D2C31",
         borderRadius: 5,
         border: "none",
         cursor: "pointer",

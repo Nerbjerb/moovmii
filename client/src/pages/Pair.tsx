@@ -105,7 +105,7 @@ export default function Pair() {
             />
             {error && <div style={{ color: "#ff8080", fontSize: "13px", marginTop: "-10px", textAlign: "center" }}>{error}</div>}
             <button onClick={onContinue} disabled={code.length !== 6}
-              style={{ height: "54px", borderRadius: "12px", backgroundColor: code.length === 6 ? "#FFD200" : "#2d2d31", color: code.length === 6 ? "#000" : "#777", border: "none", cursor: code.length === 6 ? "pointer" : "default", fontSize: "16px", fontWeight: 700 }}>
+              style={{ height: "54px", borderRadius: "12px", backgroundColor: code.length === 6 ? "#ffffff" : "#2d2d31", color: code.length === 6 ? "#000" : "#777", border: "none", cursor: code.length === 6 ? "pointer" : "default", fontSize: "16px", fontWeight: 700 }}>
               Enter Code To Continue
             </button>
           </>

@@ -154,7 +154,7 @@ export default function WiFiSetup() {
                   padding: "0 48px 0 16px",
                   outline: "none",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#FFD200")}
+                onFocus={(e) => (e.target.style.borderColor = "#ffffff")}
                 onBlur={(e) => (e.target.style.borderColor = "#444")}
               />
               <button
@@ -179,7 +179,7 @@ export default function WiFiSetup() {
                   fontSize: 16,
                   fontWeight: 700,
                   color: "#000000",
-                  backgroundColor: password.length > 0 ? "#FFD200" : "#555",
+                  backgroundColor: password.length > 0 ? "#ffffff" : "#555",
                   border: "none",
                   borderRadius: 6,
                   padding: "12px 36px",

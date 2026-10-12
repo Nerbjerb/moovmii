@@ -54,7 +54,7 @@ export default function TrainCommuteSettings() {
                 fontSize: "15px",
                 fontWeight: 600,
                 color: isDirty ? "#000000" : "transparent",
-                backgroundColor: isDirty ? "#FFD200" : "transparent",
+                backgroundColor: isDirty ? "#ffffff" : "transparent",
                 border: "none",
                 borderRadius: "8px",
                 padding: "8px 20px",
