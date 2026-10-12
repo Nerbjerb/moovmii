@@ -336,7 +336,8 @@ export default function Setup() {
                       <button onClick={() => setExpanded(isOpen ? null : st.stopId)}
                         style={{ ...font, width: "100%", display: "flex", alignItems: "center", gap: "8px", background: "none", border: "none", cursor: "pointer", padding: "9px 0", color: configured ? YELLOW : "#fff" }}>
                         <span style={{ fontSize: "15px", fontWeight: configured ? 700 : 500, flex: 1, textAlign: "left" }}>{st.name}</span>
-                        {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        {/* Chevron only for globally-selected (configured) platforms; blank otherwise. Row stays tappable. */}
+                        {configured ? (isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />) : null}
                       </button>
                       {isOpen && (
                         <div style={{ paddingBottom: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
