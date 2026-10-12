@@ -1408,6 +1408,45 @@ stopIdMap["PATH-HOB-33"] = {
   "33rd Street": "26724",
 };
 
+// --- PATH phone-setup metadata ---
+// Route-line keys used in favorites (the stopIdMap keys above). Order = NJ→NY-ish.
+export const pathRouteOrder = ["PATH-NWK", "PATH-HOB-WTC", "PATH-JSQ", "PATH-HOB-33"];
+// Short chip labels + official-ish PATH route colors.
+export const pathRouteShort: Record<string, string> = {
+  "PATH-NWK": "NWK–WTC",
+  "PATH-HOB-WTC": "HOB–WTC",
+  "PATH-JSQ": "JSQ–33",
+  "PATH-HOB-33": "HOB–33",
+};
+export const pathRouteColors: Record<string, string> = {
+  "PATH-NWK": "#D93A30",     // red
+  "PATH-HOB-WTC": "#6FB43F", // green
+  "PATH-JSQ": "#F58025",     // orange
+  "PATH-HOB-33": "#2E5CA9",  // blue
+};
+// Station coordinates (approx) for nearest-station suggestions. Keyed by the
+// station names used in the PATH stopIdMap entries above.
+export const pathStationCoords: Record<string, [number, number]> = {
+  "Newark": [40.73454, -74.16425],
+  "Harrison": [40.73894, -74.15587],
+  "Journal Square": [40.73274, -74.06256],
+  "Grove Street": [40.71962, -74.04256],
+  "Exchange Place": [40.71640, -74.03299],
+  "Newport": [40.72689, -74.03383],
+  "Hoboken": [40.73544, -74.02927],
+  "World Trade Center": [40.71266, -74.01087],
+  "Christopher Street": [40.73322, -74.00710],
+  "9th Street": [40.73424, -73.99799],
+  "14th Street": [40.73735, -73.99684],
+  "23rd Street": [40.74293, -73.99274],
+  "33rd Street": [40.74865, -73.98814],
+};
+// Pure system terminals: NY-end stations only run To NJ; NJ-end stations only
+// run To NY. Everything else runs both directions. (Journal Square is a through
+// stop on PATH-NWK, so it is NOT a terminal here.)
+export const pathTerminalsNY = ["33rd Street", "World Trade Center"]; // → To NJ only
+export const pathTerminalsNJ = ["Newark", "Hoboken"];                 // → To NY only
+
 // Apply GTFS-verified stop_id corrections over the hand-entered subway maps
 // (fixes systematic off-by-one / mis-assigned ids). See subwayStopIdCorrections.ts.
 for (const [line, fixes] of Object.entries(subwayStopIdCorrections)) {
