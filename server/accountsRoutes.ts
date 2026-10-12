@@ -90,7 +90,25 @@ export function registerAccountRoutes(app: Express) {
           .set({ consumedAt: new Date() })
           .where(and(eq(pairingCodes.code, code), isNull(pairingCodes.consumedAt), gt(pairingCodes.expiresAt, new Date())))
           .returning({ deviceId: pairingCodes.deviceId });
-        if (!claimed[0]) return { ok: false as const };
+
+        if (!claimed[0]) {
+          // Resume path: the code is already used (or expired), but if it still
+          // points to a device THIS account owns, treat re-entry as idempotent
+          // success — the user dropped out of setup and is retrying. Codes stay
+          // single-use against other accounts (no claiming a device that isn't
+          // yours).
+          const [existing] = await tx
+            .select({ deviceId: pairingCodes.deviceId })
+            .from(pairingCodes).where(eq(pairingCodes.code, code)).limit(1);
+          if (existing) {
+            const [dev] = await tx.select().from(devices).where(eq(devices.id, existing.deviceId)).limit(1);
+            if (dev && dev.accountId === req.account!.id) {
+              return { ok: true as const, device: { id: dev.id, deviceId: dev.deviceId, name: dev.name } };
+            }
+          }
+          return { ok: false as const };
+        }
+
         const [device] = await tx
           .update(devices)
           .set({ accountId: req.account!.id, name: name ?? undefined, pairedAt: new Date() })
