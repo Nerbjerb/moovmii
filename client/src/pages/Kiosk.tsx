@@ -16,6 +16,7 @@ import type { WeatherIconName } from "@shared/weatherIconMapper";
 import { getStopId, getSameColorLines, lineServesStop } from "@shared/stopMetadata";
 import moovmiiLogoV2 from "@assets/moovmii logo v2 (White).png";
 import { getDeviceId } from "@/lib/deviceId";
+import { syncDeviceConfig } from "@/lib/deviceConfigSync";
 import { savePreference, toggleFavorite as toggleStoredFavorite } from "@/lib/localStorageDB";
 import { getCitibikeShowParking } from "@/pages/CitibikePreferences";
 import { getScreenDimSettings, isDimActive } from "@/lib/screenDim";
@@ -124,6 +125,24 @@ export default function Kiosk() {
   const scaleMap: Record<string, number> = { '800x480': 1, '1024x600': 1.25, '1280x800': 1.6, '1920x1080': 2.25 };
   const [kioskScale] = useState(() => scaleMap[localStorage.getItem('kioskResolution') || '800x480'] || 1);
   const deviceId = getDeviceId();
+
+  // Paired tablets pull their config from the server (mirrored into localStorage,
+  // which stays the offline cache). Polls config_version; re-renders on change.
+  // No-op for unpaired tablets (the existing beta units) — they keep localStorage.
+  useEffect(() => {
+    let alive = true;
+    const run = async () => {
+      const changed = await syncDeviceConfig();
+      if (changed && alive) {
+        queryClient.invalidateQueries({ queryKey: ['/api/preferences', deviceId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/favorites', deviceId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/settings', deviceId] });
+      }
+    };
+    run();
+    const t = setInterval(run, 20000);
+    return () => { alive = false; clearInterval(t); };
+  }, [deviceId]);
 
   // Fetch preferences
   const { data: preferences } = useQuery<KioskPreference[]>({
