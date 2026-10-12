@@ -92,7 +92,8 @@ export default function PairDevice() {
     return () => { alive = false; clearTimeout(refreshTimer); clearTimeout(pollTimer); };
   }, []);
 
-  const qrValue = code ? `${PAIR_WEB_URL}?code=${code}` : PAIR_WEB_URL;
+  // Use ?pair= (not ?code=) so it doesn't collide with Supabase OAuth's ?code=.
+  const qrValue = code ? `${PAIR_WEB_URL}?pair=${code}` : PAIR_WEB_URL;
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 fullscreen-wrapper">

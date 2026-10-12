@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useSearch } from "wouter";
+import { useLocation } from "wouter";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 import { apiFetch } from "@/lib/api";
@@ -20,12 +20,16 @@ function GoogleG() {
 
 export default function Pair() {
   const [, setLocation] = useLocation();
-  const search = useSearch();
-  const initialCode = (new URLSearchParams(search).get("code") ?? "").replace(/\D/g, "").slice(0, 6);
 
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const [code, setCode] = useState(initialCode);
+  // Capture the code from the QR (?pair=) into sessionStorage so it survives the
+  // Google OAuth redirect (which rewrites the query string with its own ?code=).
+  const [code, setCode] = useState(() => {
+    const fromUrl = (new URLSearchParams(window.location.search).get("pair") ?? "").replace(/\D/g, "").slice(0, 6);
+    if (fromUrl) sessionStorage.setItem("pending_pair_code", fromUrl);
+    return sessionStorage.getItem("pending_pair_code") ?? "";
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -45,7 +49,7 @@ export default function Pair() {
     try {
       const res = await apiFetch("/api/pair", { method: "POST", body: JSON.stringify({ code: c }) });
       const body = await res.json().catch(() => ({}));
-      if (res.ok && body.paired) { setLocation(`/setup/${body.device.id}`); return; }
+      if (res.ok && body.paired) { sessionStorage.removeItem("pending_pair_code"); setLocation(`/setup/${body.device.id}`); return; }
       setError(body.error || "That code didn't work. Check the screen and try again.");
     } catch {
       setError("Network error — please try again.");
