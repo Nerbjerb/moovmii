@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "wouter";
 import { Home, Briefcase, ShoppingBag, UtensilsCrossed, MoreHorizontal, Car, Search, Check, Plus, Minus } from "lucide-react";
 import { apiFetch } from "@/lib/api";
@@ -107,6 +107,52 @@ export default function Setup() {
     }, 300);
     return () => clearTimeout(t);
   }, [address, step]);
+
+  // ---- Browser back/forward sync ----
+  // Map each flow step to a history entry so the phone's Back button (and the
+  // in-app Back) walk through the setup steps — with selections kept in React
+  // state — instead of leaving straight to the pairing screen. Back from the
+  // first step pops out of the flow (exits to the pairing/code screen). Forward
+  // re-advances.
+  const navKey = step !== "subway"
+    ? step
+    : `subway:${subPhase}${subPhase === "stations" ? `:${lineStep}` : ""}`;
+  const popping = useRef(false);
+  const prevNavKey = useRef(navKey);
+
+  // Tag the entry we arrived on so Back from step 1 restores "location".
+  useEffect(() => {
+    window.history.replaceState({ ...window.history.state, setupNav: "location" }, "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Push a new history entry on each forward move (skip moves caused by a pop).
+  useEffect(() => {
+    if (prevNavKey.current === navKey) return;
+    prevNavKey.current = navKey;
+    if (popping.current) { popping.current = false; return; }
+    window.history.pushState({ ...window.history.state, setupNav: navKey }, "");
+  }, [navKey]);
+
+  // Restore the step a history entry points at when Back/Forward is pressed.
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const key: string | undefined = e.state?.setupNav;
+      if (!key) return; // popped out of the flow → let the router navigate away
+      popping.current = true;
+      setExpanded(null);
+      if (key.startsWith("subway:")) {
+        const [, sp, ls] = key.split(":");
+        setStep("subway");
+        setSubPhase(sp as SubPhase);
+        if (sp === "stations") setLineStep(Number(ls) || 0);
+      } else {
+        setStep(key as Step);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   const saveOnboarding = async (patch: Record<string, any>) => {
     setSaving(true);
@@ -402,14 +448,10 @@ export default function Setup() {
     </div>
   );
 
+  // Go back through the browser history so the in-app Back and the phone's
+  // hardware/browser Back behave identically (popstate restores the prior step).
   function back() {
-    if (step === "address") setStep("location");
-    else if (step === "transit") setStep("address");
-    else if (step === "subway") {
-      if (subPhase === "suggest") setStep("transit");
-      else if (subPhase === "lines") setSubPhase(realPlatforms && realPlatforms.length ? "suggest" : "suggest");
-      else if (subPhase === "stations") { if (lineStep > 0) setLineStep(lineStep - 1); else setSubPhase("lines"); setExpanded(null); }
-    }
+    window.history.back();
   }
   function next() {
     if (step === "location") setStep("address");
