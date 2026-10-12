@@ -393,9 +393,11 @@ export default function Setup() {
                     <div style={{ flex: 1, paddingBottom: "6px" }}>
                       <button onClick={() => setExpanded(isOpen ? null : st.stopId)}
                         style={{ ...font, width: "100%", display: "flex", alignItems: "center", gap: "8px", background: "none", border: "none", cursor: "pointer", padding: "9px 0", color: configured ? YELLOW : "#fff" }}>
-                        <span style={{ fontSize: "15px", fontWeight: configured ? 700 : 500, flex: 1, textAlign: "left" }}>{st.name}</span>
+                        {/* Name sizes to its content (no flex:1) so the chevron sits right after
+                            the text instead of at the far edge, clear of the scroll line. */}
+                        <span style={{ fontSize: "15px", fontWeight: configured ? 700 : 500, textAlign: "left" }}>{st.name}</span>
                         {/* Chevron only for globally-selected (configured) platforms; blank otherwise. Row stays tappable. */}
-                        {configured ? (isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />) : null}
+                        {configured ? (isOpen ? <Minus className="w-4 h-4" style={{ flexShrink: 0 }} /> : <Plus className="w-4 h-4" style={{ flexShrink: 0 }} />) : null}
                       </button>
                       {isOpen && (
                         <div style={{ paddingBottom: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
