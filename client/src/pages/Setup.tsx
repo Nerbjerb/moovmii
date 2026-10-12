@@ -69,7 +69,8 @@ export default function Setup() {
   const [selectedLines, setSelectedLines] = useState<string[]>([]);
   const [lineStep, setLineStep] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null); // stopId
-  const [cfg, setCfg] = useState<Record<string, StopCfg>>({}); // stopId -> selection
+  const [cfg, setCfg] = useState<Record<string, StopCfg>>({}); // stopId -> selection (manual picker)
+  const [suggestSel, setSuggestSel] = useState<Record<string, SuggestedPlatform>>({}); // suggestor: cardKey -> card
 
   const locWord = (locationType === "Other" ? otherLabel : locationType) || "space";
 
@@ -131,10 +132,23 @@ export default function Setup() {
   };
 
   const buildFavorites = () => {
+    const seen = new Set<string>();
     const favs: { line: string; stop: string; direction: string }[] = [];
-    for (const sc of Object.values(cfg)) {
-      for (const dir of sc.dirs) for (const line of sc.lines) favs.push({ line, stop: sc.name, direction: dir });
-    }
+    const add = (line: string, stop: string, direction: string) => {
+      const k = `${line}|${stop}|${direction}`;
+      if (seen.has(k)) return;
+      seen.add(k);
+      favs.push({ line, stop, direction });
+    };
+    // Suggested cards: each card is one (station, direction, color group). Keep
+    // its lines paired to that card's own direction — never cross-product across
+    // cards, or picking red-uptown + green-downtown would also produce
+    // red-downtown + green-uptown.
+    for (const card of Object.values(suggestSel))
+      for (const line of card.lines) add(line, card.station, card.direction);
+    // Manual station picker: the chosen dirs × lines per station is intended.
+    for (const sc of Object.values(cfg))
+      for (const dir of sc.dirs) for (const line of sc.lines) add(line, sc.name, dir);
     return favs;
   };
 
@@ -161,18 +175,22 @@ export default function Setup() {
     setStopCfg(stopId, name, (c) => ({ ...c, dirs: c.dirs.includes(dir) ? c.dirs.filter((d) => d !== dir) : [...c.dirs, dir] }));
   const toggleLine = (stopId: string, name: string, line: string) =>
     setStopCfg(stopId, name, (c) => ({ ...c, lines: c.lines.includes(line) ? c.lines.filter((l) => l !== line) : [...c.lines, line] }));
-  const toggleSuggestion = (p: SuggestedPlatform) => {
-    const stopId = p.key.split("|")[0];
-    const on = (cfg[stopId]?.dirs.includes(p.direction)) && p.lines.every((l) => cfg[stopId]?.lines.includes(l));
-    setStopCfg(stopId, p.station, (c) => on
-      ? { ...c, dirs: c.dirs.filter((d) => d !== p.direction), lines: c.lines.filter((l) => !p.lines.includes(l)) }
-      : { ...c, dirs: c.dirs.includes(p.direction) ? c.dirs : [...c.dirs, p.direction], lines: [...c.lines, ...p.lines.filter((l) => !c.lines.includes(l))] });
-  };
+  // Each suggested card toggles independently by its unique key
+  // (stopId|colorGroup|direction), so selecting one never flips another that
+  // happens to share the same station.
+  const toggleSuggestion = (p: SuggestedPlatform) =>
+    setSuggestSel((prev) => {
+      const next = { ...prev };
+      if (next[p.key]) delete next[p.key];
+      else next[p.key] = p;
+      return next;
+    });
   const stopConfigured = (stopId: string) => !!cfg[stopId] && cfg[stopId].dirs.length > 0 && cfg[stopId].lines.length > 0;
 
   const goToLines = () => {
     // pre-select lines already chosen via suggestions
     const pre = new Set<string>();
+    for (const card of Object.values(suggestSel)) card.lines.forEach((l) => pre.add(l));
     for (const sc of Object.values(cfg)) sc.lines.forEach((l) => pre.add(l));
     setSelectedLines(SUBWAY_LINE_ORDER.filter((l) => pre.has(l)));
     setSubPhase("lines");
@@ -261,8 +279,7 @@ export default function Setup() {
             <div style={{ display: "flex", flexDirection: "column", gap: "9px", overflowY: "auto" }}>
               {realPlatforms === null ? <Dim>Finding nearby platforms…</Dim> : realPlatforms.length === 0 ? <Dim>No suggestions — add platforms below.</Dim> :
                 realPlatforms.map((p) => {
-                  const stopId = p.key.split("|")[0];
-                  const on = (cfg[stopId]?.dirs.includes(p.direction)) && p.lines.every((l) => cfg[stopId]?.lines.includes(l));
+                  const on = !!suggestSel[p.key];
                   return (
                     <button key={p.key} onClick={() => toggleSuggestion(p)} style={rowStyle(!!on, 60)}>
                       <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
