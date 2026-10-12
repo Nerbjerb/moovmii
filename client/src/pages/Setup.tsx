@@ -173,6 +173,14 @@ export default function Setup() {
     });
   const toggleDir = (stopId: string, name: string, dir: string) =>
     setStopCfg(stopId, name, (c) => ({ ...c, dirs: c.dirs.includes(dir) ? c.dirs.filter((d) => d !== dir) : [...c.dirs, dir] }));
+  // Single-line station: toggling a direction also pins that lone line, so the
+  // (direction × line) favorite forms without the user clicking the line.
+  const pickDirSole = (stopId: string, name: string, dir: string, soleLine: string) =>
+    setStopCfg(stopId, name, (c) => {
+      const dirs = c.dirs.includes(dir) ? c.dirs.filter((d) => d !== dir) : [...c.dirs, dir];
+      const lines = dirs.length > 0 && !c.lines.includes(soleLine) ? [...c.lines, soleLine] : c.lines;
+      return { ...c, dirs, lines };
+    });
   const toggleLine = (stopId: string, name: string, line: string) =>
     setStopCfg(stopId, name, (c) => ({ ...c, lines: c.lines.includes(line) ? c.lines.filter((l) => l !== line) : [...c.lines, line] }));
   // Each suggested card toggles independently by its unique key
@@ -324,6 +332,7 @@ export default function Setup() {
                 const configured = stopConfigured(st.stopId);
                 const dirs = getStopDirections(st.stopId);
                 const linesHere = getLinesAtStop(st.stopId);
+                const singleLine = linesHere.length === 1;
                 return (
                   <div key={st.stopId} style={{ display: "flex", gap: "12px" }}>
                     {/* line diagram rail */}
@@ -344,15 +353,17 @@ export default function Setup() {
                           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                             {dirs.map((d) => {
                               const on = cfg[st.stopId]?.dirs.includes(d);
-                              return <Pill key={d} on={!!on} label={dirLabel(d, curLine)} onClick={() => toggleDir(st.stopId, st.name, d)} />;
+                              return <Pill key={d} on={!!on} label={dirLabel(d, curLine)}
+                                onClick={() => (singleLine ? pickDirSole(st.stopId, st.name, d, linesHere[0]) : toggleDir(st.stopId, st.name, d))} />;
                             })}
                           </div>
                           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                             {linesHere.map((l) => {
-                              const on = cfg[st.stopId]?.lines.includes(l);
+                              // A lone line is auto-selected & locked — it follows the direction pills.
+                              const on = singleLine ? true : cfg[st.stopId]?.lines.includes(l);
                               return (
-                                <button key={l} onClick={() => toggleLine(st.stopId, st.name, l)}
-                                  style={{ width: "42px", height: "42px", borderRadius: "10px", backgroundColor: "#1c1c1f", border: `2px solid ${on ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", opacity: on ? 1 : 0.5 }}>
+                                <button key={l} onClick={singleLine ? undefined : () => toggleLine(st.stopId, st.name, l)}
+                                  style={{ width: "42px", height: "42px", borderRadius: "10px", backgroundColor: "#1c1c1f", border: `2px solid ${on ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: singleLine ? "default" : "pointer", opacity: on ? 1 : 0.5 }}>
                                   {LINE_ICONS[l] ? <img src={LINE_ICONS[l]} alt={l} style={{ width: "28px", height: "28px" }} /> : l}
                                 </button>
                               );
