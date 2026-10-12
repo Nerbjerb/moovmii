@@ -127,3 +127,41 @@ export function getNearestSubwayPlatforms(lat: number, lon: number, limit = 9): 
   }
   return cards;
 }
+
+// --- Station-level helpers for the step-by-step platform picker (mobile setup) ---
+
+// All stations on a line, in route order (index 0 = the uptown/north terminal).
+export function getLineStations(line: string): { name: string; stopId: string; isFirst: boolean; isLast: boolean }[] {
+  const entries = Object.entries(stopIdMap[line] ?? {});
+  return entries.map(([name, stopId], i) => ({ name, stopId, isFirst: i === 0, isLast: i === entries.length - 1 }));
+}
+
+// Reverse index: stop_id -> subway lines serving it (+ terminal flags).
+const STOP_LINES: Map<string, LineAt[]> = (() => {
+  const m = new Map<string, LineAt[]>();
+  for (const line of SUBWAY_LINES) {
+    const entries = Object.entries(stopIdMap[line]);
+    entries.forEach(([, stopId], i) => {
+      const arr = m.get(stopId) ?? [];
+      if (!arr.some((x) => x.line === line)) arr.push({ line, isFirst: i === 0, isLast: i === entries.length - 1 });
+      m.set(stopId, arr);
+    });
+  }
+  return m;
+})();
+
+export function getLinesAtStop(stopId: string): string[] {
+  return (STOP_LINES.get(stopId) ?? [])
+    .map((x) => x.line)
+    .sort((a, b) => (LINE_SORT.indexOf(a[0]) - LINE_SORT.indexOf(b[0])) || a.localeCompare(b));
+}
+
+// Directions a stop offers (terminal-aware): Uptown unless it's an uptown
+// terminal on all serving lines; Downtown unless a downtown terminal.
+export function getStopDirections(stopId: string): ("Uptown" | "Downtown")[] {
+  const las = STOP_LINES.get(stopId) ?? [];
+  if (!las.length) return ["Uptown", "Downtown"];
+  if (las.every((l) => l.isFirst)) return ["Downtown"];
+  if (las.every((l) => l.isLast)) return ["Uptown"];
+  return ["Uptown", "Downtown"];
+}
