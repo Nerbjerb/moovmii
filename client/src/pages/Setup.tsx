@@ -447,7 +447,7 @@ function InlineBullet({ line }: { line: string }) {
 }
 function Pill({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{ ...font, height: "38px", padding: "0 16px", borderRadius: "999px", backgroundColor: on ? YELLOW : "#1c1c1f", color: on ? "#000" : "#ccc", border: `2px solid ${on ? YELLOW : "#2d2d31"}`, cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>{label}</button>
+    <button onClick={onClick} style={{ ...font, height: "38px", padding: "0 16px", borderRadius: "10px", backgroundColor: on ? YELLOW : "#1c1c1f", color: on ? "#000" : "#ccc", border: `2px solid ${on ? YELLOW : "#2d2d31"}`, cursor: "pointer", fontSize: "13px", fontWeight: 600 }}>{label}</button>
   );
 }
 function StepBody({ title, subtitle, subtitleNode, children }: { title: string; subtitle?: string; subtitleNode?: React.ReactNode; children: React.ReactNode }) {
