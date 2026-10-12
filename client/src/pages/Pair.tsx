@@ -7,6 +7,8 @@ import moovmiiLogo from "@assets/moovmii logo v2 (White).png";
 
 const font = { fontFamily: "Helvetica, Arial, sans-serif" };
 const fmtCode = (d: string) => (d.length > 3 ? `${d.slice(0, 3)}-${d.slice(3)}` : d);
+const PENDING = "pending_pair_code";
+const IN_PROGRESS = "pairing_in_progress";
 
 function GoogleG() {
   return (
@@ -30,68 +32,64 @@ export default function Pair() {
   const [, setLocation] = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const [phase, setPhase] = useState<"code" | "signin">("code");
   const [code, setCode] = useState(() => {
     const fromUrl = (new URLSearchParams(window.location.search).get("pair") ?? "").replace(/\D/g, "").slice(0, 6);
-    if (fromUrl) sessionStorage.setItem("pending_pair_code", fromUrl);
-    return sessionStorage.getItem("pending_pair_code") ?? "";
+    if (fromUrl) sessionStorage.setItem(PENDING, fromUrl);
+    return sessionStorage.getItem(PENDING) ?? "";
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
-  const signIn = () =>
-    supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.href } });
-
-  const pair = async () => {
-    const c = code.replace(/\D/g, "");
-    if (c.length !== 6) { setError("Enter the 6-digit code from your moovmii screen."); return; }
+  const claim = async (c: string) => {
     setBusy(true); setError("");
     try {
       const res = await apiFetch("/api/pair", { method: "POST", body: JSON.stringify({ code: c }) });
       const body = await res.json().catch(() => ({}));
-      if (res.ok && body.paired) { sessionStorage.removeItem("pending_pair_code"); setLocation(`/setup/${body.device.id}`); return; }
+      if (res.ok && body.paired) {
+        sessionStorage.removeItem(PENDING); sessionStorage.removeItem(IN_PROGRESS);
+        setLocation(`/setup/${body.device.id}`); return;
+      }
+      sessionStorage.removeItem(IN_PROGRESS);
       setError(body.error || "That code didn't work. Check the screen and try again.");
+      setPhase("code");
     } catch {
-      setError("Network error — please try again.");
-    } finally {
-      setBusy(false);
-    }
+      setError("Network error — please try again."); setPhase("code");
+    } finally { setBusy(false); }
   };
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session); setReady(true);
+      const pc = (sessionStorage.getItem(PENDING) ?? "").replace(/\D/g, "");
+      // Returning from the Google redirect mid-pair → finish the claim.
+      if (data.session && pc.length === 6 && sessionStorage.getItem(IN_PROGRESS)) claim(pc);
+    })();
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => sub.subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onContinue = () => {
+    const c = code.replace(/\D/g, "");
+    if (c.length !== 6) { setError("Enter the 6-digit code from your moovmii screen."); return; }
+    sessionStorage.setItem(PENDING, c);
+    if (session) { claim(c); return; }
+    sessionStorage.setItem(IN_PROGRESS, "1");
+    setError(""); setPhase("signin");
+  };
+  const signIn = () =>
+    supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.href } });
 
   return (
     <div style={{ ...font, minHeight: "100vh", backgroundColor: "#0b0b0b", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", padding: "0 24px" }}>
       <img src={moovmiiLogo} alt="moovmii" style={{ height: "26px", width: "auto", marginTop: "64px" }} />
 
       <div style={{ width: "100%", maxWidth: "380px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: "22px", paddingBottom: "60px" }}>
-        {!ready ? null : !session ? (
-          <>
-            <h1 style={{ fontSize: "26px", fontWeight: 700, margin: 0, textAlign: "center" }}>Sign up or Log In</h1>
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button
-                onClick={signIn}
-                style={{ flex: 1, minHeight: "64px", borderRadius: "12px", backgroundColor: "#fff", color: "#111", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "9px", padding: "0 10px" }}
-              >
-                <GoogleG />
-                <span style={{ fontSize: "13px", fontWeight: 600, textAlign: "left", lineHeight: 1.2 }}>Continue with<br />Google</span>
-              </button>
-              <button
-                disabled
-                style={{ flex: 1, minHeight: "64px", borderRadius: "12px", backgroundColor: "#1c1c1f", color: "#6f6f6f", border: "1px solid #2d2d31", cursor: "default", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", padding: "0 10px" }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
-                  <AppleLogo color="#6f6f6f" />
-                  <span style={{ fontSize: "13px", fontWeight: 600, textAlign: "left", lineHeight: 1.2 }}>Continue with<br />Apple</span>
-                </div>
-                <span style={{ fontSize: "10px", color: "#5a5a5a" }}>coming soon</span>
-              </button>
-            </div>
-          </>
-        ) : (
+        {!ready ? null : busy ? (
+          <div style={{ textAlign: "center", color: "#9a9a9a", fontSize: "16px" }}>Pairing…</div>
+        ) : phase === "code" ? (
           <>
             <div style={{ textAlign: "center" }}>
               <h1 style={{ fontSize: "26px", fontWeight: 700, margin: 0 }}>Match the code</h1>
@@ -102,27 +100,36 @@ export default function Pair() {
             <input
               value={fmtCode(code)}
               onChange={(e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder="000-000"
-              style={{
-                ...font, height: "68px", borderRadius: "12px", backgroundColor: "#1c1c1f", color: "#fff",
-                border: error ? "2px solid #e05252" : "2px solid #2d2d31", textAlign: "center",
-                fontSize: "32px", fontWeight: 600, letterSpacing: "6px", outline: "none",
-              }}
+              inputMode="numeric" autoComplete="one-time-code" placeholder="000-000"
+              style={{ ...font, height: "68px", borderRadius: "12px", backgroundColor: "#1c1c1f", color: "#fff", border: error ? "2px solid #e05252" : "2px solid #2d2d31", textAlign: "center", fontSize: "32px", fontWeight: 600, letterSpacing: "6px", outline: "none" }}
             />
             {error && <div style={{ color: "#ff8080", fontSize: "13px", marginTop: "-10px", textAlign: "center" }}>{error}</div>}
-            <button
-              onClick={pair}
-              disabled={busy || code.length !== 6}
-              style={{ height: "54px", borderRadius: "12px", backgroundColor: code.length === 6 && !busy ? "#FFD200" : "#2d2d31", color: code.length === 6 && !busy ? "#000" : "#777", border: "none", cursor: code.length === 6 && !busy ? "pointer" : "default", fontSize: "16px", fontWeight: 700 }}
-            >
-              {busy ? "Pairing…" : "Enter Code To Continue"}
+            <button onClick={onContinue} disabled={code.length !== 6}
+              style={{ height: "54px", borderRadius: "12px", backgroundColor: code.length === 6 ? "#FFD200" : "#2d2d31", color: code.length === 6 ? "#000" : "#777", border: "none", cursor: code.length === 6 ? "pointer" : "default", fontSize: "16px", fontWeight: 700 }}>
+              Enter Code To Continue
             </button>
-            <div style={{ fontSize: "12px", color: "#6f6f6f", textAlign: "center" }}>
-              Signed in as {session.user.email} ·{" "}
-              <span onClick={() => supabase.auth.signOut()} style={{ color: "#9a9a9a", textDecoration: "underline", cursor: "pointer" }}>Sign out</span>
+          </>
+        ) : (
+          <>
+            <h1 style={{ fontSize: "26px", fontWeight: 700, margin: 0, textAlign: "center" }}>Sign up or Log In</h1>
+            <p style={{ fontSize: "14px", color: "#9a9a9a", marginTop: "-10px", textAlign: "center" }}>to finish pairing your device.</p>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button onClick={signIn}
+                style={{ flex: 1, minHeight: "64px", borderRadius: "12px", backgroundColor: "#fff", color: "#111", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "9px", padding: "0 10px" }}>
+                <GoogleG /><span style={{ fontSize: "13px", fontWeight: 600, textAlign: "left", lineHeight: 1.2 }}>Continue with<br />Google</span>
+              </button>
+              <button disabled
+                style={{ flex: 1, minHeight: "64px", borderRadius: "12px", backgroundColor: "#1c1c1f", color: "#6f6f6f", border: "1px solid #2d2d31", cursor: "default", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", padding: "0 10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+                  <AppleLogo color="#6f6f6f" /><span style={{ fontSize: "13px", fontWeight: 600, textAlign: "left", lineHeight: 1.2 }}>Continue with<br />Apple</span>
+                </div>
+                <span style={{ fontSize: "10px", color: "#5a5a5a" }}>coming soon</span>
+              </button>
             </div>
+            <button onClick={() => { setPhase("code"); sessionStorage.removeItem(IN_PROGRESS); }}
+              style={{ ...font, background: "none", border: "none", color: "#8a8a8a", fontSize: "13px", cursor: "pointer", textDecoration: "underline" }}>
+              Back to code
+            </button>
           </>
         )}
       </div>
