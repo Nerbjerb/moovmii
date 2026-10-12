@@ -219,14 +219,19 @@ export default function Setup() {
       const next = fn({ ...cur, dirs: [...cur.dirs], lines: [...cur.lines], name });
       return { ...prev, [stopId]: next };
     });
+  // Lines require a direction: when the last direction is removed, drop the line
+  // picks too (nothing can be saved without a direction anyway).
   const toggleDir = (stopId: string, name: string, dir: string) =>
-    setStopCfg(stopId, name, (c) => ({ ...c, dirs: c.dirs.includes(dir) ? c.dirs.filter((d) => d !== dir) : [...c.dirs, dir] }));
+    setStopCfg(stopId, name, (c) => {
+      const dirs = c.dirs.includes(dir) ? c.dirs.filter((d) => d !== dir) : [...c.dirs, dir];
+      return { ...c, dirs, lines: dirs.length === 0 ? [] : c.lines };
+    });
   // Single-line station: toggling a direction also pins that lone line, so the
   // (direction × line) favorite forms without the user clicking the line.
   const pickDirSole = (stopId: string, name: string, dir: string, soleLine: string) =>
     setStopCfg(stopId, name, (c) => {
       const dirs = c.dirs.includes(dir) ? c.dirs.filter((d) => d !== dir) : [...c.dirs, dir];
-      const lines = dirs.length > 0 && !c.lines.includes(soleLine) ? [...c.lines, soleLine] : c.lines;
+      const lines = dirs.length === 0 ? [] : (c.lines.includes(soleLine) ? c.lines : [...c.lines, soleLine]);
       return { ...c, dirs, lines };
     });
   const toggleLine = (stopId: string, name: string, line: string) =>
@@ -379,6 +384,7 @@ export default function Setup() {
                 const dirs = getStopDirections(st.stopId);
                 const linesHere = getLinesAtStop(st.stopId);
                 const singleLine = linesHere.length === 1;
+                const hasDir = (cfg[st.stopId]?.dirs.length ?? 0) > 0; // lines are pickable only with a direction
                 return (
                   <div key={st.stopId} style={{ display: "flex", gap: "12px" }}>
                     {/* line diagram rail: gray bars, dot in the line's color.
@@ -410,11 +416,15 @@ export default function Setup() {
                           </div>
                           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                             {linesHere.map((l) => {
-                              // A lone line is auto-selected & locked — it follows the direction pills.
-                              const on = singleLine ? true : cfg[st.stopId]?.lines.includes(l);
+                              // Lines are only pickable once a direction is chosen. Without one they're
+                              // dimmed & disabled. A lone line is locked (follows the direction pills).
+                              const on = singleLine ? hasDir : !!(hasDir && cfg[st.stopId]?.lines.includes(l));
+                              const disabled = !hasDir;
+                              const locked = singleLine;
                               return (
-                                <button key={l} onClick={singleLine ? undefined : () => toggleLine(st.stopId, st.name, l)}
-                                  style={{ width: "42px", height: "42px", borderRadius: "10px", backgroundColor: "#1c1c1f", border: `2px solid ${on ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: singleLine ? "default" : "pointer", opacity: on ? 1 : 0.5 }}>
+                                <button key={l} disabled={disabled}
+                                  onClick={(disabled || locked) ? undefined : () => toggleLine(st.stopId, st.name, l)}
+                                  style={{ width: "42px", height: "42px", borderRadius: "10px", backgroundColor: "#1c1c1f", border: `2px solid ${on ? YELLOW : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: (disabled || locked) ? "default" : "pointer", opacity: disabled ? 0.3 : (on ? 1 : 0.5) }}>
                                   {LINE_ICONS[l] ? <img src={LINE_ICONS[l]} alt={l} style={{ width: "28px", height: "28px" }} /> : l}
                                 </button>
                               );
