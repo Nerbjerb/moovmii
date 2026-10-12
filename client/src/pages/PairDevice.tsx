@@ -115,7 +115,7 @@ export default function PairDevice() {
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <span style={{ ...font, fontSize: "46px", fontWeight: 500, color: "#ffffff", letterSpacing: "3px" }}>
-                {code ?? "– – – – – –"}
+                {code ? `${code.slice(0, 3)}-${code.slice(3)}` : "– – – - – – –"}
               </span>
             </div>
           </div>
