@@ -43,6 +43,12 @@ const MODES: ModeDef[] = [
   { id: "nywaterway", label: "NY Waterway (NY/NJ)", img: nyWaterwayLogo },
   { id: "driving", label: "Driving", Icon: Car },
 ];
+// Short labels for the chevron "pizza tracker" (one chevron per selected mode).
+const MODE_SHORT: Record<string, string> = {
+  subway: "Subway", sir: "SIR", lirr: "LIRR", mnr: "Metro-North", nycbus: "NYC Bus",
+  citibike: "Citibike", nycferry: "Ferry", path: "PATH", njt: "NJ Transit",
+  njtbus: "NJT Bus", nywaterway: "NY Waterway", driving: "Driving",
+};
 
 type Step = "location" | "address" | "transit" | "subway" | "done";
 type SubPhase = "suggest" | "lines" | "stations";
@@ -262,14 +268,53 @@ export default function Setup() {
 
   const curLine = selectedLines[lineStep];
 
+  // Chevron "pizza tracker": one chevron per selected transit mode, in flow order.
+  // Only Subway has a config screen today, so it's the active one; the rest are
+  // placeholders until their screens are built.
+  const configModes = MODES.filter((m) => modes.includes(m.id)).map((m) => m.id);
+  const configIndex = configModes.indexOf("subway"); // current mode being configured
+
   return (
     <div style={{ ...font, height: "100svh", backgroundColor: "#0b0b0b", color: "#fff", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <div style={{ display: "flex", justifyContent: "center", paddingTop: "20px" }}>
         <img src={moovmiiLogo} alt="moovmii" style={{ height: step === "subway" ? "18px" : "22px", width: "auto" }} />
       </div>
 
-      {step === "subway" && (
-        <div style={{ textAlign: "center", marginTop: "6px", fontSize: "11px", color: "#888", letterSpacing: "0.03em" }}>Setup Progress</div>
+      {/* Domino's-style 2D chevron tracker: equal widths, white = current+completed */}
+      {step === "subway" && configModes.length > 0 && (
+        <div style={{ padding: "8px 16px 0" }}>
+          <div style={{ display: "flex", alignItems: "stretch", gap: "3px", height: "26px" }}>
+            {configModes.map((id, i) => {
+              const done = i <= configIndex;
+              const first = i === 0;
+              const last = i === configModes.length - 1;
+              const CH = 10;
+              const clip = configModes.length === 1
+                ? undefined
+                : first
+                  ? `polygon(0 0, calc(100% - ${CH}px) 0, 100% 50%, calc(100% - ${CH}px) 100%, 0 100%)`
+                  : last
+                    ? `polygon(0 0, 100% 0, 100% 100%, 0 100%, ${CH}px 50%)`
+                    : `polygon(0 0, calc(100% - ${CH}px) 0, 100% 50%, calc(100% - ${CH}px) 100%, 0 100%, ${CH}px 50%)`;
+              return (
+                <div key={id} style={{
+                  flex: 1, minWidth: 0, clipPath: clip,
+                  backgroundColor: done ? "#ffffff" : "#2D2C31",
+                  borderRadius: configModes.length === 1 ? "6px" : "0",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{
+                    ...font, fontSize: "11px", fontWeight: 700, letterSpacing: "0.2px", textTransform: "uppercase",
+                    color: done ? "#000" : "#888",
+                    paddingLeft: first ? "0" : `${CH}px`, paddingRight: last ? "0" : `${CH}px`,
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>{MODE_SHORT[id] || id}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ height: "1px", backgroundColor: "#333", marginTop: "10px" }} />
+        </div>
       )}
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 22px 22px", minHeight: 0 }}>
