@@ -71,6 +71,7 @@ export default function Setup() {
   const [expanded, setExpanded] = useState<string | null>(null); // stopId
   const [cfg, setCfg] = useState<Record<string, StopCfg>>({}); // stopId -> selection (manual picker)
   const [suggestSel, setSuggestSel] = useState<Record<string, SuggestedPlatform>>({}); // suggestor: cardKey -> card
+  const [addOther, setAddOther] = useState(false); // "Add other platforms" selected → Next goes to the lines picker
 
   const locWord = (locationType === "Other" ? otherLabel : locationType) || "space";
 
@@ -208,9 +209,6 @@ export default function Setup() {
   if (!loaded) return <Centered>Loading…</Centered>;
 
   const curLine = selectedLines[lineStep];
-  // "Add other platforms" highlights once the manual picker has produced any
-  // configured platform, so it reads as selected when you return to this screen.
-  const hasOtherPlatforms = Object.keys(cfg).some((id) => stopConfigured(id));
 
   return (
     <div style={{ ...font, height: "100svh", backgroundColor: "#0b0b0b", color: "#fff", display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -301,7 +299,8 @@ export default function Setup() {
                     </button>
                   );
                 })}
-              <button onClick={goToLines} style={{ ...rowStyle(hasOtherPlatforms, 56), justifyContent: "center", color: hasOtherPlatforms ? "#fff" : "#ddd" }}>
+              {/* Selecting this doesn't navigate; it makes the bottom button become "Next" → lines picker. */}
+              <button onClick={() => setAddOther((v) => !v)} style={{ ...rowStyle(addOther, 56), justifyContent: "center", color: addOther ? "#fff" : "#ddd" }}>
                 <span style={{ fontSize: "14px", fontWeight: 600 }}>Add other platforms to main screen</span>
               </button>
             </div>
@@ -413,14 +412,14 @@ export default function Setup() {
     else if (step === "address") setStep("transit");
     else if (step === "transit") enterSubway();
     else if (step === "subway") {
-      if (subPhase === "suggest") finish();
+      if (subPhase === "suggest") { if (addOther) goToLines(); else finish(); }
       else if (subPhase === "lines") { if (selectedLines.length) { setLineStep(0); setExpanded(null); setSubPhase("stations"); } }
       else if (subPhase === "stations") { if (lineStep < selectedLines.length - 1) { setLineStep(lineStep + 1); setExpanded(null); } else finish(); }
     }
   }
   function nextLabel() {
     if (step === "subway" && subPhase === "stations" && lineStep >= selectedLines.length - 1) return "Finish";
-    if (step === "subway" && subPhase === "suggest") return "Finish";
+    if (step === "subway" && subPhase === "suggest") return addOther ? "Next" : "Finish";
     return "Next";
   }
   function nextDisabled() {
