@@ -110,7 +110,7 @@ export default function PairDevice() {
         <main className="bg-black relative" style={{ width: "800px", height: "480px", overflow: "hidden" }}>
           {/* Title */}
           <div className="absolute top-[26px] left-0 right-0 flex justify-center">
-            <span style={{ ...font, fontSize: "34px", fontWeight: 400, color: "#ffffff" }}>Sign In</span>
+            <span style={{ ...font, fontSize: "34px", fontWeight: 400, color: "#ffffff" }}>Pair Device</span>
           </div>
 
           {/* Left: enter a code */}
