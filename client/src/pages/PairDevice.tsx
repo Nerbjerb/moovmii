@@ -79,11 +79,20 @@ export default function PairDevice() {
       };
       await scheduleRefresh();
 
+      // Advance to the kiosk only once setup actually produces/updates config
+      // (configVersion increases past where it was when this screen opened).
+      // This way re-opening "Set up device" on an already-paired device stays
+      // here instead of bouncing straight back to the kiosk.
+      let baseline: number | null = null;
       const poll = async () => {
         const st = await fetch("/api/device/state", { headers: { "x-device-token": token } })
           .then((r) => r.json()).catch(() => null);
         if (!alive) return;
-        if (st?.paired) { setLocation("/"); return; }
+        if (st) {
+          const v = st.configVersion ?? 0;
+          if (baseline === null) baseline = v;
+          else if (v > baseline) { setLocation("/"); return; }
+        }
         pollTimer = setTimeout(poll, 3000);
       };
       pollTimer = setTimeout(poll, 3000);
