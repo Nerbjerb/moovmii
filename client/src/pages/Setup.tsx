@@ -4,6 +4,7 @@ import { Home, Briefcase, ShoppingBag, UtensilsCrossed, MoreHorizontal, Car, Sea
 import { apiFetch } from "@/lib/api";
 import { LINE_ICONS, SUBWAY_LINE_ORDER } from "@/lib/lineIcons";
 import { getNearestSubwayPlatforms, getLineStations, getLinesAtStop, getStopDirections, type SuggestedPlatform } from "@/lib/subwaySuggest";
+import { lineToColor } from "@shared/stopMetadata";
 import moovmiiLogo from "@assets/moovmii logo v2 (White).png";
 import sirIcon from "@assets/moovmii/MTA Icons/src/svg/sir.svg";
 import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
@@ -334,10 +335,13 @@ export default function Setup() {
                 const singleLine = linesHere.length === 1;
                 return (
                   <div key={st.stopId} style={{ display: "flex", gap: "12px" }}>
-                    {/* line diagram rail */}
+                    {/* line diagram rail: gray bars, dot in the line's color.
+                        Fixed top segment keeps the dot aligned to the station
+                        name; the flex bottom bar runs continuously down through
+                        the expanded options. */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "14px", flexShrink: 0 }}>
-                      <div style={{ width: "2px", flex: 1, backgroundColor: "#3a3a3a" }} />
-                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: configured ? YELLOW : "#8a8a8a", margin: "2px 0" }} />
+                      <div style={{ width: "2px", height: "13px", backgroundColor: "#3a3a3a" }} />
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: lineToColor[curLine] || "#8a8a8a" }} />
                       <div style={{ width: "2px", flex: 1, backgroundColor: "#3a3a3a" }} />
                     </div>
                     <div style={{ flex: 1, paddingBottom: "6px" }}>
