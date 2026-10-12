@@ -179,7 +179,7 @@ export default function Setup() {
   const curLine = selectedLines[lineStep];
 
   return (
-    <div style={{ ...font, minHeight: "100vh", backgroundColor: "#0b0b0b", color: "#fff", display: "flex", flexDirection: "column" }}>
+    <div style={{ ...font, height: "100dvh", backgroundColor: "#0b0b0b", color: "#fff", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <div style={{ display: "flex", justifyContent: "center", paddingTop: "20px" }}>
         <img src={moovmiiLogo} alt="moovmii" style={{ height: step === "subway" ? "18px" : "22px", width: "auto" }} />
       </div>
