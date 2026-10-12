@@ -20,6 +20,8 @@ import CitibikeSettings from "@/pages/CitibikeSettings";
 import CitibikePreferences from "@/pages/CitibikePreferences";
 import Onboarding from "@/pages/Onboarding";
 import PairDevice from "@/pages/PairDevice";
+import Pair from "@/pages/Pair";
+import Setup from "@/pages/Setup";
 
 function Router() {
   return (
@@ -41,6 +43,8 @@ function Router() {
       <Route path="/citibike-preferences" component={CitibikePreferences} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/pair-device" component={PairDevice} />
+      <Route path="/pair" component={Pair} />
+      <Route path="/setup/:id" component={Setup} />
     </Switch>
   );
 }
