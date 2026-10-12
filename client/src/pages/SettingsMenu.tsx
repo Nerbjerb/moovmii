@@ -218,7 +218,7 @@ export default function SettingsMenu() {
                 <span style={{ ...font, fontSize: "16px", fontWeight: 600, color: syncState === "current" ? "#4ade80" : "#ffffff" }}>{syncLabel}</span>
               </button>
               <button
-                onClick={() => setLocation("/onboarding")}
+                onClick={() => setLocation("/pair-device")}
                 className="flex items-center gap-4 rounded-[8px] hover:opacity-80 transition-opacity"
                 style={{ height: "64px", backgroundColor: "#2D2C31", padding: "0 24px" }}
                 data-testid="button-setup-device"
