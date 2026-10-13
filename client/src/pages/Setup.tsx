@@ -6,6 +6,7 @@ import { LINE_ICONS, SUBWAY_LINE_ORDER } from "@/lib/lineIcons";
 import { getNearestSubwayPlatforms, getLineStations, getLinesAtStop, getStopDirections, type SuggestedPlatform } from "@/lib/subwaySuggest";
 import { getNearestPathPlatforms, getPathRouteStations, getPathRoutesAtStop, getPathStopDirections, pathDirLabel } from "@/lib/pathSuggest";
 import { lineToColor, pathRouteOrder, pathRouteShort, pathRouteColors } from "@shared/stopMetadata";
+import type { CitibikeStation, CitibikeSlot } from "@/components/CitibikeDockRow";
 import moovmiiLogo from "@assets/moovmii logo v2 (White).png";
 import sirIcon from "@assets/moovmii/MTA Icons/src/svg/sir.svg";
 import pathIcon from "@assets/moovmii/MTA Icons/src/svg/PATH_logo_no_bg.png";
@@ -55,9 +56,31 @@ type Step = "location" | "address" | "transit" | "subway" | "done";
 type SubPhase = "suggest" | "lines" | "stations";
 type StopCfg = { name: string; dirs: string[]; lines: string[] };
 
-// Modes that have a config sub-flow (suggest → routes → stations) on the phone.
-// Order here is the sequence modes are configured in.
-const CONFIG_MODES = ["subway", "path"];
+// Modes that have a config sub-flow on the phone. Sequenced in MODES order.
+const CONFIG_MODES = ["subway", "path", "citibike"];
+
+// Citibike borough filters (mirrors the tablet Citibike screen).
+const CB_BOROUGHS = [
+  { id: "manhattan", name: "Manhattan" },
+  { id: "queens", name: "Queens" },
+  { id: "brooklyn", name: "Brooklyn" },
+  { id: "bronx", name: "Bronx" },
+  { id: "staten_island", name: "Staten Island" },
+  { id: "new_jersey", name: "New Jersey" },
+];
+const CB_BOUNDS: Record<string, { minLat: number; maxLat: number; minLng: number; maxLng: number }> = {
+  manhattan: { minLat: 40.693, maxLat: 40.882, minLng: -74.020, maxLng: -73.907 },
+  brooklyn: { minLat: 40.570, maxLat: 40.712, minLng: -74.045, maxLng: -73.833 },
+  queens: { minLat: 40.607, maxLat: 40.800, minLng: -73.975, maxLng: -73.700 },
+  bronx: { minLat: 40.785, maxLat: 40.918, minLng: -73.935, maxLng: -73.748 },
+  staten_island: { minLat: 40.477, maxLat: 40.651, minLng: -74.260, maxLng: -74.053 },
+  new_jersey: { minLat: 40.688, maxLat: 40.782, minLng: -74.090, maxLng: -73.990 },
+};
+const cbDist = (aLat: number, aLon: number, bLat: number, bLon: number) => {
+  const dLat = aLat - bLat, dLon = aLon - bLon;
+  return dLat * dLat + dLon * dLon; // squared euclidean — fine for nearest-sort
+};
+const CB_MAX = 3; // stations per Citibike row
 
 type RouteMeta = { id: string; label: string; color: string; icon?: string };
 // A mode adapter lets the shared config screens render different transit modes.
@@ -125,6 +148,12 @@ export default function Setup() {
   const [suggestSel, setSuggestSel] = useState<Record<string, SuggestedPlatform>>({}); // suggestor: cardKey -> card
   const [addOther, setAddOther] = useState(false); // "Add other platforms" selected → Next goes to the lines picker
 
+  // Citibike (station-only, up to CB_MAX stations → one dock row)
+  const [cbStations, setCbStations] = useState<CitibikeStation[]>([]);
+  const [cbSlots, setCbSlots] = useState<CitibikeSlot[]>([]);
+  const [cbBorough, setCbBorough] = useState<string | null>(null);
+  const [cbSearch, setCbSearch] = useState("");
+
   const locWord = (locationType === "Other" ? otherLabel : locationType) || "space";
 
   // The selected modes that actually have a config flow, in configure order.
@@ -134,10 +163,41 @@ export default function Setup() {
   // Nearby suggestions are derived from the active mode + coords, so they're
   // always correct for the current mode (even after Back crosses mode boundaries).
   const realPlatforms = useMemo<SuggestedPlatform[] | null>(() => {
-    if (step !== "subway") return null;
+    if (step !== "subway" || activeMode === "citibike") return null;
     if (!coords) return [];
     return adapter.getNearby(coords.lat, coords.lon);
-  }, [step, adapter, coords?.lat, coords?.lon]);
+  }, [step, activeMode, adapter, coords?.lat, coords?.lon]);
+
+  // ---- Citibike derived data ----
+  useEffect(() => {
+    if (activeMode !== "citibike" || cbStations.length) return;
+    fetch("/api/citibike/stations")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => setCbStations(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, [activeMode, cbStations.length]);
+  const cbNearby = useMemo<CitibikeStation[]>(() => {
+    if (!coords || !cbStations.length) return [];
+    return [...cbStations]
+      .sort((a, b) => cbDist(coords.lat, coords.lon, a.lat, a.lon) - cbDist(coords.lat, coords.lon, b.lat, b.lon))
+      .slice(0, 6);
+  }, [cbStations, coords?.lat, coords?.lon]);
+  const cbResults = useMemo<CitibikeStation[]>(() => {
+    if (!cbBorough) return [];
+    const b = CB_BOUNDS[cbBorough];
+    if (!b) return [];
+    const inB = cbStations.filter((s) => s.lat >= b.minLat && s.lat <= b.maxLat && s.lon >= b.minLng && s.lon <= b.maxLng);
+    const q = cbSearch.trim().toLowerCase();
+    return (q ? inB.filter((s) => s.name.toLowerCase().includes(q)) : inB).slice(0, 30);
+  }, [cbStations, cbBorough, cbSearch]);
+  const cbHas = (id: string) => cbSlots.some((s) => s.id === id);
+  const cbToggle = (st: CitibikeStation) =>
+    setCbSlots((prev) => {
+      if (prev.some((s) => s.id === st.station_id)) return prev.filter((s) => s.id !== st.station_id);
+      if (prev.length >= CB_MAX) return prev; // locked at CB_MAX
+      return [...prev, { id: st.station_id, name: st.name }];
+    });
+  const cbRemove = (id: string) => setCbSlots((prev) => prev.filter((s) => s.id !== id));
 
   useEffect(() => {
     apiFetch(`/api/devices/${deviceUuid}/config`)
@@ -239,6 +299,8 @@ export default function Setup() {
     setSelectedLines([]);
     setLineStep(0);
     setExpanded(null);
+    setCbBorough(null);
+    setCbSearch("");
     setSubPhase(c ? "suggest" : "lines");
   };
   const enterConfig = async () => {
@@ -285,7 +347,14 @@ export default function Setup() {
 
   const finish = async () => {
     const favorites = buildFavorites();
-    const preferences = favorites.slice(0, 2).map((f, i) => ({ row: i + 1, ...f }));
+    const preferences: { row: number; line: string; stop: string; direction: string }[] = [];
+    let row = 1;
+    for (const f of favorites.slice(0, 2)) preferences.push({ row: row++, ...f });
+    // Citibike is a single row holding up to CB_MAX station slots (JSON-encoded).
+    if (cbSlots.length) {
+      const slots = [cbSlots[0] ?? null, cbSlots[1] ?? null, cbSlots[2] ?? null];
+      preferences.push({ row: row++, line: "CITIBIKE", stop: JSON.stringify({ slots }), direction: "citibike" });
+    }
     setSaving(true);
     try {
       await apiFetch(`/api/devices/${deviceUuid}/config`, {
@@ -457,7 +526,7 @@ export default function Setup() {
           </StepBody>
         )}
 
-        {step === "subway" && subPhase === "suggest" && (
+        {step === "subway" && activeMode !== "citibike" && subPhase === "suggest" && (
           <StepBody title={adapter.title} subtitle="We recommend these stations based on your location">
             <div style={{ display: "flex", flexDirection: "column", gap: "9px", overflowY: "auto" }}>
               {realPlatforms === null ? <Dim>Finding nearby platforms…</Dim> : realPlatforms.length === 0 ? <Dim>No suggestions — add platforms below.</Dim> :
@@ -481,7 +550,7 @@ export default function Setup() {
           </StepBody>
         )}
 
-        {step === "subway" && subPhase === "lines" && (
+        {step === "subway" && activeMode !== "citibike" && subPhase === "lines" && (
           <StepBody title={adapter.title} subtitle="Which lines do you use? Lines from previous screens are selected.">
             <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center", overflowY: "auto" }}>
               {adapter.routes.map((r) => (
@@ -492,7 +561,7 @@ export default function Setup() {
           </StepBody>
         )}
 
-        {step === "subway" && subPhase === "stations" && curLine && (
+        {step === "subway" && activeMode !== "citibike" && subPhase === "stations" && curLine && (
           <StepBody title={adapter.title} subtitleNode={<><span>Select platform for</span><RouteInline meta={adapter.routeMeta(curLine)} /></>}>
             <div className="show-scrollbar" style={{ overflowY: "auto", flex: 1, minHeight: 0, paddingLeft: "4px" }}>
               {adapter.getRouteStations(curLine).map((st) => {
@@ -554,6 +623,70 @@ export default function Setup() {
           </StepBody>
         )}
 
+        {step === "subway" && activeMode === "citibike" && subPhase === "suggest" && (
+          <StepBody title="Citibike Setup" subtitle="Nearby docks based on your location">
+            <div style={{ display: "flex", flexDirection: "column", gap: "9px", overflowY: "auto" }}>
+              <SelectedDocks slots={cbSlots} onRemove={cbRemove} />
+              {!coords ? <Dim>Use “Add additional docks” to pick by borough.</Dim> :
+               cbNearby.length === 0 ? <Dim>Finding nearby docks…</Dim> :
+               cbNearby.map((st) => {
+                 const chosen = cbHas(st.station_id);
+                 const atCap = cbSlots.length >= CB_MAX && !chosen;
+                 return (
+                   <button key={st.station_id} disabled={atCap} onClick={atCap ? undefined : () => cbToggle(st)}
+                     style={{ ...rowStyle(chosen, 54), opacity: atCap ? 0.3 : 1 }}>
+                     <span style={{ fontSize: "15px", fontWeight: 600, flex: 1, textAlign: "left" }}>{st.name}</span>
+                     {chosen && <Check className="w-5 h-5" style={{ color: YELLOW, flexShrink: 0 }} />}
+                   </button>
+                 );
+               })}
+              <button onClick={() => setAddOther((v) => !v)} style={{ ...rowStyle(addOther, 56), justifyContent: "center", color: addOther ? "#fff" : "#ddd" }}>
+                <span style={{ fontSize: "14px", fontWeight: 600 }}>Add additional docks</span>
+              </button>
+            </div>
+          </StepBody>
+        )}
+
+        {step === "subway" && activeMode === "citibike" && subPhase === "lines" && (
+          <StepBody title="Citibike Setup" subtitle="Which borough are the docks in?">
+            <div style={{ display: "flex", flexDirection: "column", gap: "9px", overflowY: "auto" }}>
+              <SelectedDocks slots={cbSlots} onRemove={cbRemove} />
+              {CB_BOROUGHS.map((b) => (
+                <button key={b.id} onClick={() => { setCbBorough(b.id); setCbSearch(""); setSubPhase("stations"); }} style={rowStyle(false, 52)}>
+                  <span style={{ fontSize: "15px", fontWeight: 600, flex: 1, textAlign: "left" }}>{b.name}</span>
+                </button>
+              ))}
+            </div>
+          </StepBody>
+        )}
+
+        {step === "subway" && activeMode === "citibike" && subPhase === "stations" && (
+          <StepBody title="Citibike Setup" subtitle={`Search docks in ${CB_BOROUGHS.find((b) => b.id === cbBorough)?.name ?? ""}`}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "9px", flex: 1, minHeight: 0 }}>
+              <SelectedDocks slots={cbSlots} onRemove={cbRemove} />
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", height: "48px", borderRadius: "12px", backgroundColor: "#1c1c1f", border: "2px solid #2d2d31", padding: "0 14px", flexShrink: 0 }}>
+                <Search className="w-4 h-4" style={{ color: "#888", flexShrink: 0 }} />
+                <input value={cbSearch} onChange={(e) => setCbSearch(e.target.value)} placeholder="Search dock name…" autoComplete="off"
+                  style={{ ...font, flex: 1, background: "transparent", border: "none", color: "#fff", fontSize: "15px", outline: "none" }} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", flex: 1, minHeight: 0 }}>
+                {cbResults.length === 0 ? <Dim>No docks found.</Dim> :
+                 cbResults.map((st) => {
+                   const chosen = cbHas(st.station_id);
+                   const atCap = cbSlots.length >= CB_MAX && !chosen;
+                   return (
+                     <button key={st.station_id} disabled={atCap} onClick={atCap ? undefined : () => cbToggle(st)}
+                       style={{ ...rowStyle(chosen, 50), opacity: atCap ? 0.3 : 1 }}>
+                       <span style={{ fontSize: "14px", fontWeight: 600, flex: 1, textAlign: "left" }}>{st.name}</span>
+                       {chosen && <Check className="w-5 h-5" style={{ color: YELLOW, flexShrink: 0 }} />}
+                     </button>
+                   );
+                 })}
+              </div>
+            </div>
+          </StepBody>
+        )}
+
         {step === "done" && (
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
             <div style={{ fontSize: "48px" }}>✅</div>
@@ -583,6 +716,11 @@ export default function Setup() {
     if (step === "location") setStep("address");
     else if (step === "address") setStep("transit");
     else if (step === "transit") enterConfig();
+    else if (step === "subway" && activeMode === "citibike") {
+      // Citibike: suggest=nearby, lines=boroughs (tap auto-advances), stations=search.
+      if (subPhase === "suggest") { if (addOther) setSubPhase("lines"); else advanceMode(); }
+      else if (subPhase === "stations") advanceMode();
+    }
     else if (step === "subway") {
       if (subPhase === "suggest") { if (addOther) goToLines(); else advanceMode(); }
       else if (subPhase === "lines") { if (selectedLines.length) { setLineStep(0); setExpanded(null); setSubPhase("stations"); } }
@@ -592,15 +730,17 @@ export default function Setup() {
   function nextLabel() {
     if (step !== "subway") return "Next";
     const isLastMode = modeStep >= activeModes.length - 1;
-    const endsMode =
-      (subPhase === "suggest" && !addOther) ||
-      (subPhase === "stations" && lineStep >= selectedLines.length - 1);
+    const endsMode = activeMode === "citibike"
+      ? ((subPhase === "suggest" && !addOther) || subPhase === "stations")
+      : ((subPhase === "suggest" && !addOther) || (subPhase === "stations" && lineStep >= selectedLines.length - 1));
     return endsMode && isLastMode ? "Finish" : "Next";
   }
   function nextDisabled() {
     if (saving) return true;
     if (step === "location") return !locationType;
     if (step === "transit") return modes.length === 0;
+    // Citibike boroughs: pick one (tapping auto-advances), so Next is inert here.
+    if (step === "subway" && activeMode === "citibike") return subPhase === "lines";
     if (step === "subway" && subPhase === "lines") return selectedLines.length === 0;
     return false;
   }
@@ -668,6 +808,21 @@ function StepBody({ title, subtitle, subtitleNode, children }: { title: string; 
 }
 function NextButton({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
   return <button onClick={onClick} disabled={disabled} style={{ ...font, height: "48px", padding: "0 30px", borderRadius: "12px", backgroundColor: disabled ? "#2d2d31" : YELLOW, color: disabled ? "#777" : "#000", border: "none", cursor: disabled ? "default" : "pointer", fontSize: "16px", fontWeight: 700 }}>{label}</button>;
+}
+// Chosen Citibike docks summary with remove (×).
+function SelectedDocks({ slots, onRemove }: { slots: CitibikeSlot[]; onRemove: (id: string) => void }) {
+  if (!slots.length) return null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "6px", flexShrink: 0, paddingBottom: "4px" }}>
+      <div style={{ ...font, fontSize: "12px", color: "#9a9a9a" }}>Selected docks ({slots.length}/{CB_MAX})</div>
+      {slots.map((s) => (
+        <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#141416", border: "1px solid #2d2d31", borderRadius: "10px", padding: "8px 12px" }}>
+          <span style={{ ...font, fontSize: "13px", fontWeight: 600, color: "#fff", flex: 1, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</span>
+          <button onClick={() => onRemove(s.id)} style={{ ...font, background: "none", border: "none", color: "#ff8080", cursor: "pointer", fontSize: "18px", lineHeight: 1, padding: "0 4px", flexShrink: 0 }}>×</button>
+        </div>
+      ))}
+    </div>
+  );
 }
 function Dim({ children }: { children: React.ReactNode }) {
   return <div style={{ ...font, color: "#777", fontSize: "14px", padding: "20px 0", textAlign: "center" }}>{children}</div>;
